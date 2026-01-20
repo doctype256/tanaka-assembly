@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@libsql/client';
+// 🟢 自作の db.ts からクライアント取得関数をインポート
+import { getDbClient } from '@/lib/db';
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL!,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+export const runtime = 'nodejs';
 
 export async function GET() {
   try {
+    // 🟢 関数の「中」で実行。これによりビルド時のエラーを回避
+    const client = getDbClient();
+
     // 降順でお問い合わせを取得
     const result = await client.execute("SELECT * FROM contacts ORDER BY created_at DESC");
     

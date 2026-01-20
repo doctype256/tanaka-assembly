@@ -1,43 +1,28 @@
-// app/api/cases/route.ts
-
 import { NextResponse } from "next/server";
-import { createClient } from "@libsql/client";
+import { getDbClient } from "@/lib/db";
 
-/**
- * DBクライアントを遅延生成する関数
- * ※ build時には実行されない
- */
-function getClient() {
-  const url = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
-
-  if (!url) {
-    throw new Error("TURSO_DATABASE_URL is undefined");
-  }
-
-  return createClient({
-    url,
-    authToken,
-  });
-}
+export const runtime = "nodejs";
 
 /**
  * GET /api/cases
  */
 export async function GET() {
   try {
-    const client = getClient();
+    const client = getDbClient();
 
+    // 🟢 imageカラムを追加してテーブルを作成/更新
     await client.execute(`
       CREATE TABLE IF NOT EXISTS cases (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
-        content TEXT NOT NULL
+        content TEXT NOT NULL,
+        image TEXT
       );
     `);
 
+    // 🟢 imageも含めて取得
     const result = await client.execute(
-      "SELECT id, title, content FROM cases"
+      "SELECT id, title, content, image FROM cases ORDER BY id DESC"
     );
 
     return NextResponse.json(
@@ -50,14 +35,7 @@ export async function GET() {
     );
   } catch (error: any) {
     console.error("❌ API /api/cases GET error:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        message: error.message,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ ok: false, message: error.message }, { status: 500 });
   }
 }
 
@@ -66,10 +44,11 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const client = getClient();
+    const client = getDbClient();
 
     const body = await request.json();
-    const { title, content } = body;
+    // 🟢 フロントエンドから送られてくる image (Base64文字列) を受け取る
+    const { title, content, image } = body;
 
     if (!title || !content) {
       return NextResponse.json(
@@ -78,9 +57,10 @@ export async function POST(request: Request) {
       );
     }
 
+    // 🟢 SQLに image カラムを追加
     const result = await client.execute({
-      sql: "INSERT INTO cases (title, content) VALUES (?, ?)",
-      args: [String(title), String(content)],
+      sql: "INSERT INTO cases (title, content, image) VALUES (?, ?, ?)",
+      args: [String(title), String(content), image ? String(image) : null],
     });
 
     return NextResponse.json(
@@ -94,10 +74,6 @@ export async function POST(request: Request) {
     );
   } catch (error: any) {
     console.error("❌ API /api/cases POST error:", error);
-
-    return NextResponse.json(
-      { error: "データの挿入に失敗しました。" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "データの挿入に失敗しました。" }, { status: 500 });
   }
 }

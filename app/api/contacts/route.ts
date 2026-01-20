@@ -1,24 +1,17 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@libsql/client";
+// 🟢 getDbClient をインポート（パスが違う場合は適宜調整してください）
+import { getDbClient } from "@/lib/db"; 
 
-export const runtime = "nodejs"; // ← Turso必須
-
-const url = process.env.TURSO_DATABASE_URL;
-const authToken = process.env.TURSO_AUTH_TOKEN;
-
-if (!url) {
-  throw new Error("TURSO_DATABASE_URL が設定されていません");
-}
-
-const client = createClient({
-  url,
-  authToken,
-});
+export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   console.log("=== POST /api/contact start ===");
 
   try {
+    // 🟢 関数の外ではなく、この中でクライアントを取得する
+    // これにより、ビルド時に環境変数がなくてもクラッシュしなくなります
+    const client = getDbClient();
+
     const body = await request.json();
     console.log("📥 request body:", body);
 

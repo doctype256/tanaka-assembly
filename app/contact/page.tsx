@@ -17,14 +17,6 @@ export default function ContactPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
-  /* ===== 🔍 デバッグ出力（復活） ===== */
-  console.log("=== ContactPage Debug Start ===");
-  console.log("NODE_ENV:", process.env.NODE_ENV);
-  console.log("TURSO_DATABASE_URL exists:", !!process.env.TURSO_DATABASE_URL);
-  console.log("TURSO_AUTH_TOKEN exists:", !!process.env.TURSO_AUTH_TOKEN);
-  console.log("=== ContactPage Debug End ===");
-  /* ================================= */
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus("loading");
@@ -37,8 +29,6 @@ export default function ContactPage() {
     };
 
     try {
-      console.log("POST to /api/contacts"); // ← パス確認用ログ
-
       const res = await fetch("/api/contacts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,7 +39,6 @@ export default function ContactPage() {
         setStatus("success");
         (e.target as HTMLFormElement).reset();
       } else {
-        console.error("API Error Status:", res.status);
         setStatus("error");
       }
     } catch (error) {
