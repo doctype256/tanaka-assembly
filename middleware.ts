@@ -3,28 +3,15 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const url = request.nextUrl;
-  const { pathname } = url;
-  const host = request.headers.get("host");
+  // 1. 現在アクセスしようとしているパスを取得
+  const { pathname } = request.nextUrl;
 
-  // -----------------------------
-  // ① admin.example.com の場合は /admin を自動付与
-  // -----------------------------
-  if (host === "admin.example.com") {
-    // すでに /admin から始まっていない場合だけ付ける
-    if (!pathname.startsWith("/admin")) {
-      url.pathname = `/admin${pathname}`;
-      return NextResponse.rewrite(url);
-    }
-  }
-
-  // -----------------------------
-  // ② 管理画面の認証チェック
-  // -----------------------------
+  // 2. Cookieから「is_admin」というログインの証拠があるか確認
   const isAdmin = request.cookies.get('is_admin')?.value === 'true';
 
-  // /admin 以下（ただし /admin/login は除外）
+  // 3. /admin 以下のページ（ログイン画面以外）にアクセスしようとした場合
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
+    // ログインしていなければ、ログイン画面へ強制送還
     if (!isAdmin) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
@@ -33,10 +20,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// 適用範囲
+// チェックを実行する対象のパスを指定（/admin 以下すべて）
 export const config = {
-  matcher: [
-    '/admin/:path*',   // 管理画面の認証チェック
-    '/:path*'          // ドメイン振り分けのため全体に適用
-  ],
+  matcher: ['/admin/:path*'],
 };
