@@ -18,7 +18,7 @@ export function middleware(request: NextRequest) {
   // 認証チェック
   const isAdmin = request.cookies.get('is_admin')?.value === 'true';
 
-  // /admin 直下のページはログイン画面なので例外扱い
+  // /admin 直下のページはログイン画面
   const isLoginPage = pathname === '/admin' || pathname === '/admin/';
 
   if (pathname.startsWith('/admin') && !isLoginPage) {
@@ -31,5 +31,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/:path*'],
+  matcher: [
+    '/((?!_next|favicon.ico|.*\\..*).*)'
+  ],
 };
