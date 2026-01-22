@@ -1,4 +1,4 @@
-// app/admin/page.tsx
+// app/admin/top/page.tsx
 import AdminDashboardClient from '../AdminDashboardClient'; // 表示担当を読み込む
 import { AuthService } from '@/lib/services/AuthService';
 
