@@ -1,4 +1,4 @@
-// app/admin/login/page.tsx
+// app/admin/page.tsx
 import LoginClient from './LoginClient';
 
 export const metadata = {
