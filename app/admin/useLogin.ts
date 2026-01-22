@@ -24,7 +24,7 @@ export function useLogin() {
       });
 
       if (res.ok) {
-        router.push('/admin');
+        router.push('/admin/top');
         router.refresh();
       } else {
         setError('ユーザー名またはパスワードが正しくありません');

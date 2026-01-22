@@ -1,15 +1,10 @@
-// app/admin/page.tsx
-import AdminDashboardClient from './AdminDashboardClient'; // 表示担当を読み込む
-import { AuthService } from '@/lib/services/AuthService';
+// app/admin/login/page.tsx
+import LoginClient from './LoginClient';
 
-export default async function AdminDashboardPage() {
-  /**
-   * 1. サーバーサイドで名前を特定
-   * ログインAPIで保存したクッキー（joji）を鍵に、DBから「小林 譲司」を取得します。
-   */
-  const authService = new AuthService();
-  const displayName = await authService.getCurrentDisplayName();
+export const metadata = {
+  title: '管理者ログイン | 管理システム',
+};
 
-  // 2. 取得した名前を Props としてクライアントコンポーネントへ渡す
-  return <AdminDashboardClient initialUserName={displayName} />;
+export default function LoginPage() {
+  return <LoginClient />;
 }

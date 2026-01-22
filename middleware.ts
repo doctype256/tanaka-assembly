@@ -3,24 +3,33 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // 1. 現在アクセスしようとしているパスを取得
-  const { pathname } = request.nextUrl;
+  const url = request.nextUrl;
+  const { pathname } = url;
+  const host = request.headers.get("host");
 
-  // 2. Cookieから「is_admin」というログインの証拠があるか確認
+  // 管理画面用ドメインなら /admin を自動付与
+  if (host === "admin-tanaka-assembly.vercel.app") {
+    if (!pathname.startsWith("/admin")) {
+      url.pathname = `/admin${pathname}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
+  // 認証チェック
   const isAdmin = request.cookies.get('is_admin')?.value === 'true';
 
-  // 3. /admin 以下のページ（ログイン画面以外）にアクセスしようとした場合
-  if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
-    // ログインしていなければ、ログイン画面へ強制送還
+  // /admin 直下のページはログイン画面なので例外扱い
+  const isLoginPage = pathname === '/admin' || pathname === '/admin/';
+
+  if (pathname.startsWith('/admin') && !isLoginPage) {
     if (!isAdmin) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
   }
 
   return NextResponse.next();
 }
 
-// チェックを実行する対象のパスを指定（/admin 以下すべて）
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/:path*'],
 };
