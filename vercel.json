@@ -4,7 +4,7 @@
   "installCommand": "npm install",
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs20.x"
+      "runtime": "nodejs20"
     }
   },
   "env": {
@@ -12,4 +12,5 @@
     "TURSO_AUTH_TOKEN": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NjkzODY5NzEsImlkIjoiMzA2OTA2MTAtMTk2ZS00NGNmLWE4MTQtMjM5ZWQ4ZjYxMTRkIiwicmlkIjoiYmQzMmNiZGMtYmIyZS00YzYyLWE3YTctMDYxNDBmMjNiYjg4In0.OVDnnqCc3ST-l27vPhBz3NNJlIU_ApyPQuCHKPb5jL0FSWbl42DI-Jhxi4Fg_umMptYjFs8MOYJg_vGr1ahjAA"
   }
 }
+
 
