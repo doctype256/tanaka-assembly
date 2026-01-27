@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>活動報告 | 田中しほ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body data-page="activity">
+
+<header>
+  <nav class="header-inner">
+    <div id="header-name"></div>
+    <div id="header-nav"></div>
+    <button id="menu-toggle">☰</button>
+  </nav>
+</header>
+
+<main class="activity">
+  <h1 class="activity-title" id="activity-title"></h1>
+  <button id="category-toggle" class="category-toggle">＞</button>
+
+  <aside class="activity-sidebar" id="activity-sidebar">
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">カテゴリー</h3>
+      <div class="category-buttons" id="category-buttons"></div>
+    </div>
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">年代</h3>
+      <div class="category-buttons" id="year-buttons"></div>
+    </div>
+  </aside>
+
+  <section class="activity-grid" id="activity-grid"></section>
+</main>
+
+<script>
+fetch('data/static-texts.json')
+.then(res => res.json())
+.then(data => {
+  document.title = `活動報告｜${data.profile.name}`;
+  document.getElementById('header-name').textContent = data.profile.name;
+
+  const nav = document.getElementById('header-nav');
+  data.navigation.forEach(n => {
+    const a = document.createElement('a');
+    a.href = n.href;
+    a.textContent = n.text;
+    nav.appendChild(a);
+  });
+
+  const activity = data.activities;
+  document.getElementById('activity-title').textContent = activity.title;
+
+  const grid = document.getElementById('activity-grid');
+  const catButtons = document.getElementById('category-buttons');
+  const yearButtons = document.getElementById('year-buttons');
+  const sidebar = document.getElementById('activity-sidebar');
+  const toggle = document.getElementById('category-toggle');
+
+  let activeCategory = 'all';
+  let activeYear = 'all';
+
+  catButtons.innerHTML = `<button data-category="all" class="is-active">すべて</button>`;
+  activity.categories.forEach(cat => {
+    catButtons.innerHTML += `<button data-category="${cat.id}">${cat.label}</button>`;
+  });
+
+  yearButtons.innerHTML = `<button data-year="all">すべての年</button>`;
+  for (let y = 2026; y >= 2022; y--) {
+    yearButtons.innerHTML += `<button data-year="${y}">${y}年</button>`;
+  }
+
+  function render(scrollTop = false) {
+    grid.innerHTML = '';
+
+    activity.categories.forEach(cat => {
+      if (cat.id === 'topics') return;
+      if (activeCategory !== 'all' && cat.id !== activeCategory) return;
+
+      // 元の activity.reports 内でのインデックスを保持したままフィルタリング
+      const reportsWithIndex = activity.reports
+        .map((r, originalIndex) => ({ ...r, originalIndex }))
+        .filter(r => r.category === cat.id)
+        .filter(r => activeYear === 'all' || r.year === activeYear);
+
+      if (!reportsWithIndex.length) return;
+
+      const block = document.createElement('section');
+      block.className = 'category-block';
+      block.innerHTML = `<h2 class="category-heading">${cat.label}</h2>`;
+      const wrap = document.createElement('div');
+      wrap.className = 'category-articles';
+
+      reportsWithIndex.forEach(r => {
+        wrap.innerHTML += `
+          <article class="report card">
+            <span class="period">${r.year}年</span>
+            <h2>${r.title}</h2>
+            ${r.photos ? `<div class="report-photos"><img src="${r.photos[0]}"></div>` : ''}
+            <a href="article.html?type=report&index=${r.originalIndex}" class="detail-button">詳しく見る</a>
+          </article>
+        `;
+      });
+      block.appendChild(wrap);
+      grid.appendChild(block);
+    });
+
+    const t = activity.topics;
+    if (t && (activeCategory === 'all' || activeCategory === 'topics') && (activeYear === 'all' || t.year === activeYear)) {
+      grid.innerHTML += `
+        <section class="category-block">
+          <h2 class="category-heading">Topics</h2>
+          <div class="category-articles">
+            <article class="report card">
+              <span class="period">${t.year}年</span>
+              <h2>${t.title}</h2>
+              ${t.photos ? `<div class="report-photos"><img src="${t.photos[0]}"></div>` : ''}
+              <a href="article.html?type=topics" class="detail-button">詳しく見る</a>
+            </article>
+          </div>
+        </section>
+      `;
+    }
+    if (scrollTop) grid.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  render();
+
+  function clearAllActive() {
+    document.querySelectorAll('#category-buttons button, #year-buttons button').forEach(b => b.classList.remove('is-active'));
+  }
+
+  catButtons.onclick = e => {
+    if (!e.target.dataset.category) return;
+    activeCategory = e.target.dataset.category;
+    activeYear = 'all';
+    clearAllActive();
+    e.target.classList.add('is-active');
+    render(true);
+    sidebar.classList.remove('is-open');
+    toggle.textContent = '＞';
+  };
+
+  yearButtons.onclick = e => {
+    if (!e.target.dataset.year) return;
+    activeYear = e.target.dataset.year === 'all' ? 'all' : Number(e.target.dataset.year);
+    activeCategory = 'all';
+    clearAllActive();
+    e.target.classList.add('is-active');
+    render(true);
+    sidebar.classList.remove('is-open');
+    toggle.textContent = '＞';
+  };
+
+  toggle.onclick = () => {
+    sidebar.classList.toggle('is-open');
+    toggle.textContent = sidebar.classList.contains('is-open') ? '＜' : '＞';
+  };
+});
+</script>
+<script src="src/header.js"></script>
+</body>
+</html>

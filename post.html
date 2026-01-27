@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ご相談ポスト</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+  <style>
+    .post-form {
+      background-color: #f9f3f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .post-form input,
+    .post-form textarea {
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 16px;
+    }
+
+    .post-form textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .post-form button {
+      padding: 12px;
+      background-color: #ff6b9d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .post-form button:hover:not(:disabled) {
+      background-color: #ff5285;
+    }
+
+    .post-form button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .post-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+    }
+
+    .post-item {
+      background-color: white;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+
+    .post-name {
+      font-weight: 600;
+      color: #ff6b9d;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .post-item p {
+      margin: 0;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .post-date {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    .loading-message {
+      text-align: center;
+      color: #999;
+      padding: 20px;
+    }
+
+    .error-message {
+      background-color: #fee;
+      color: #c00;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+
+    .success-message {
+      background-color: #efe;
+      color: #0a0;
+      padding: 15px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+
+<body data-page="contact">
+
+<header>
+  <nav class="header-inner">
+    <div id="header-name"></div>
+    <div id="header-nav"></div>
+    <button id="menu-toggle" aria-label="メニュー">☰</button>
+  </nav>
+</header>
+
+<main>
+  <section class="contact-section">
+
+    <h1 class="contact-title" id="contact-title">ご相談ポスト</h1>
+
+    <p class="contact-text" id="contact-text">
+      ご相談やご質問がある場合は、こちらのフォームからお送りください。<br>
+      ご投稿いただいたご相談は、管理者の承認後に表示されます。
+    </p>
+
+    <!-- 投稿フォーム -->
+    <div class="post-form">
+      <input type="text" id="postName" placeholder="お名前（例：さくら）" maxlength="100">
+      <input type="text" id="postSubject" placeholder="件名（例：保育園選びについて）" maxlength="100">
+      <textarea id="postContent" placeholder="ご相談内容をお書きください" maxlength="1000"></textarea>
+      <button id="postButton">送信</button>
+      <div id="postMessage-container"></div>
+    </div>
+
+    <!-- ポスト一覧 -->
+    <div id="postsContainer">
+      <div class="loading-message">ご相談を読み込み中...</div>
+    </div>
+  </section>
+</main>
+
+<script>
+fetch('data/static-texts.json')
+  .then(res => res.json())
+  .then(data => {
+    if (data.rinen && data.rinen.name) {
+      document.getElementById('header-name').textContent = data.rinen.name;
+    }
+  });
+
+// ポスト一覧を取得して表示
+async function loadPosts() {
+  try {
+    const response = await fetch('/api/posts');
+    const posts = await response.json();
+    
+    const container = document.getElementById('postsContainer');
+    
+    if (posts.length === 0) {
+      container.innerHTML = '<div class="loading-message">ご相談がまだありません</div>';
+      return;
+    }
+    
+    const list = document.createElement('ul');
+    list.className = 'post-list';
+    
+    posts.forEach(post => {
+      const li = document.createElement('li');
+      li.className = 'post-item';
+      
+      const name = document.createElement('span');
+      name.className = 'post-name';
+      name.textContent = post.name || '匿名';
+      
+      const subject = document.createElement('p');
+      subject.style.fontWeight = '600';
+      subject.style.marginBottom = '8px';
+      subject.textContent = post.subject;
+      
+      const content = document.createElement('p');
+      content.textContent = post.content;
+      
+      const date = document.createElement('div');
+      date.className = 'post-date';
+      date.textContent = new Date(post.created_at).toLocaleString('ja-JP');
+      
+      li.appendChild(name);
+      li.appendChild(subject);
+      li.appendChild(content);
+      li.appendChild(date);
+      list.appendChild(li);
+    });
+    
+    container.innerHTML = '';
+    container.appendChild(list);
+  } catch (error) {
+    console.error('ポスト読み込みエラー:', error);
+    document.getElementById('postsContainer').innerHTML = 
+      '<div class="error-message">ご相談の読み込みに失敗しました</div>';
+  }
+}
+
+// ポスト投稿処理
+document.getElementById('postButton').addEventListener('click', async () => {
+  const name = document.getElementById('postName').value.trim();
+  const subject = document.getElementById('postSubject').value.trim();
+  const content = document.getElementById('postContent').value.trim();
+  const messageContainer = document.getElementById('postMessage-container');
+  
+  // バリデーション
+  if (!name) {
+    messageContainer.innerHTML = '<div class="error-message">お名前を入力してください</div>';
+    return;
+  }
+  
+  if (!subject) {
+    messageContainer.innerHTML = '<div class="error-message">件名を入力してください</div>';
+    return;
+  }
+  
+  if (!content) {
+    messageContainer.innerHTML = '<div class="error-message">ご相談内容を入力してください</div>';
+    return;
+  }
+  
+  try {
+    // クライアント IP を取得（API経由）
+    let ip_address = 'unknown';
+    try {
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipResponse.json();
+      ip_address = ipData.ip;
+    } catch (e) {
+      console.warn('IP取得失敗:', e);
+    }
+    
+    const response = await fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, subject, content, ip_address })
+    });
+    
+    if (response.ok) {
+      messageContainer.innerHTML = '<div class="success-message">ご相談を送信しました。管理者の承認後に表示されます。</div>';
+      document.getElementById('postName').value = '';
+      document.getElementById('postSubject').value = '';
+      document.getElementById('postContent').value = '';
+      setTimeout(() => {
+        messageContainer.innerHTML = '';
+        loadPosts();
+      }, 2000);
+    } else {
+      messageContainer.innerHTML = '<div class="error-message">送信に失敗しました。もう一度お試しください。</div>';
+    }
+  } catch (error) {
+    console.error('投稿エラー:', error);
+    messageContainer.innerHTML = '<div class="error-message">送信に失敗しました</div>';
+  }
+});
+
+// ページ読み込み時にポスト一覧を表示
+loadPosts();
+</script>
+
+<script src="src/header.js"></script>
+</body>
+</html>
