@@ -8,7 +8,8 @@
     }
   },
   "env": {
-    "TURSO_DATABASE_URL": "@turso_database_url",
-    "TURSO_AUTH_TOKEN": "@turso_auth_token"
+    "TURSO_DATABASE_URL": "libsql://testdata-kyoto343.aws-ap-northeast-1.turso.io",
+    "TURSO_AUTH_TOKEN": "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NjkzODY5NzEsImlkIjoiMzA2OTA2MTAtMTk2ZS00NGNmLWE4MTQtMjM5ZWQ4ZjYxMTRkIiwicmlkIjoiYmQzMmNiZGMtYmIyZS00YzYyLWE3YTctMDYxNDBmMjNiYjg4In0.OVDnnqCc3ST-l27vPhBz3NNJlIU_ApyPQuCHKPb5jL0FSWbl42DI-Jhxi4Fg_umMptYjFs8MOYJg_vGr1ahjAA"
   }
 }
+
