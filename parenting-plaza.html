@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TOPページ</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+
+<body data-page="policy">
+
+<main>
+
+  <!-- ▼ ヘッダー -->
+  <header class="site-header">
+    <h1 id="site-title"></h1>
+    <p id="site-subtitle"></p>
+  </header>
+
+  <!-- ▼ ページ入口用ビジュアル -->
+  <section class="hero-image">
+    <img src="assets/トップページ.png" alt="子育て支援・活動の入口イメージ">
+  </section>
+
+  <!-- ▼ 写真下ナビ（ボタン） -->
+  <section class="hero-cards">
+
+    <div class="hero-item hero-aisatu-button">
+      <a href="community-forum.html">おしゃべり広場</a>
+    </div>
+  </section>
+
+</main>
+
+<!-- ▼ フッター（JSON管理） -->
+<footer class="page-footer">
+  <div class="page-footer-inner">
+    <h3 id="footer-title"></h3>
+    <p id="footer-text"></p>
+
+    <div class="footer-buttons" id="footer-links"></div>
+
+  </div>
+</footer>
+
+<!-- ===== JS ===== -->
+<script>
+fetch('data/static-texts.json')
+  .then(res => res.json())
+  .then(data => {
+
+    /* ==========================
+       ヘッダー
+    ========================== */
+    if (data.header) {
+      document.getElementById('site-title').textContent =
+        data.header.title || '';
+      document.getElementById('site-subtitle').textContent =
+        data.header.subtitle || '';
+    }
+
+    /* ==========================
+       フッター（JSON管理）
+    ========================== */
+    if (!data.footer) return;
+
+    const footer = data.footer;
+
+    /* タイトル */
+    document.getElementById('footer-title').textContent =
+      footer.title || '';
+
+    /* 説明文 */
+    document.getElementById('footer-text').textContent =
+      footer.text || '';
+
+    /* ボタンリンク */
+    const nav = document.getElementById('footer-links');
+    nav.innerHTML = '';
+
+    if (Array.isArray(footer.links)) {
+      footer.links.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.url;
+        a.textContent = link.label;
+        a.className = 'footer-button'; // ← ボタン化
+        nav.appendChild(a);
+      });
+    }
+
+  })
+  .catch(err => console.error(err));
+</script>
+
+</body>
+</html>

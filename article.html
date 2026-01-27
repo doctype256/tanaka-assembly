@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>活動詳細 | 田中しほ</title>
+  <link rel="stylesheet" href="src/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700;800&display=swap" rel="stylesheet">
+</head>
+<body data-page="policy">
+  <header>
+    <nav class="header-inner">
+      <div id="header-name"></div>
+      <div id="header-nav"></div>
+    </nav>
+  </header>
+
+  <main class="container">
+    <article class="article-content-wrapper">
+      <div class="article-meta-area">
+        <div id="article-meta" class="period"></div>
+      </div>
+
+      <h1 id="article-title" class="article-detail-title"></h1>
+      <div id="article-content" class="article-detail-body"></div>
+      <div id="article-photos" class="article-detail-photos"></div>
+      
+      <section class="comment-section">
+        <h2 class="comment-title">読者の声</h2>
+        <div id="comment-list" class="comment-list">
+          </div>
+
+        <div class="comment-post-box">
+          <p class="comment-notice">この記事へのご意見・ご感想をお寄せください。活動の参考にさせていただきます。</p>
+          <a id="comment-link" href="comment.html" class="comment-submit-button">この報告に感想を送る</a>
+        </div>
+      </section>
+
+      <div class="back-link-area">
+        <a href="policy.html" class="back-button">活動報告一覧へ戻る</a>
+      </div>
+
+    </article>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get('type'); 
+    const index = params.get('index'); 
+
+    fetch('data/static-texts.json')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('header-name').textContent = data.site.title;
+        const nav = document.getElementById('header-nav');
+        data.navigation.forEach(n => {
+          const a = document.createElement('a');
+          a.href = n.href;
+          a.textContent = n.text;
+          nav.appendChild(a);
+        });
+        
+        let r;
+        if (type === 'topics') {
+          r = data.activities.topics;
+        } else {
+          r = data.activities.reports[index];
+        }
+
+        if (!r) return;
+
+        document.title = `${r.title} | ${data.site.title}`;
+        document.getElementById('article-meta').textContent = `${r.year}年 府政報告`;
+        document.getElementById('article-title').textContent = r.title;
+
+        const contentDiv = document.getElementById('article-content');
+        if (r.items) {
+          contentDiv.innerHTML = `<ul class="report-items">${r.items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+        } else if (r.body) {
+          contentDiv.innerHTML = r.body.split('\n\n').map(p => `<p>${p}</p>`).join('');
+        }
+
+        const photoDiv = document.getElementById('article-photos');
+        if (r.photos && r.photos.length > 0) {
+          photoDiv.innerHTML = r.photos.map(p => `
+            <figure class="news-photo-container">
+              <img src="${p}" alt="${r.title}">
+              <figcaption>【活動の様子】</figcaption>
+            </figure>
+          `).join('');
+        }
+
+        // --- コメント読み込み処理 ---
+        const commentList = document.getElementById('comment-list');
+        
+        async function loadComments() {
+          try {
+            console.log('コメント取得開始:', r.title);
+            
+            const response = await fetch(`/api/comments?article_title=${encodeURIComponent(r.title)}`);
+            console.log('API レスポンス:', response.status, response.statusText);
+            
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const comments = await response.json();
+            console.log('コメント取得成功:', comments.length, '件');
+            
+            if (comments && comments.length > 0) {
+              commentList.innerHTML = comments.map((c, idx) => {
+                const createdAt = c.created_at || new Date().toISOString();
+                const date = new Date(createdAt).toLocaleDateString('ja-JP');
+                console.log(`コメント${idx + 1}:`, c.name, '-', date);
+                return `
+                  <div class="comment-item">
+                    <p class="comment-text">${c.message}</p>
+                    <p class="comment-info">${c.name} 様（${date}）</p>
+                  </div>
+                `;
+              }).join('');
+              console.log('コメント表示完了');
+            } else {
+              console.log('コメントなし');
+              commentList.innerHTML = '<p class="no-comment">現在、投書はありません。</p>';
+            }
+          } catch (error) {
+            console.error('コメント読み込みエラー:', error);
+            commentList.innerHTML = '<p class="no-comment">コメントの読み込みに失敗しました。</p>';
+          }
+        }
+        
+        loadComments();
+        
+        // コメントフォームへのリンク設定
+        const commentLink = document.getElementById('comment-link');
+        if (type === 'topics') {
+          commentLink.href = `comment.html?type=topics`;
+        } else {
+          commentLink.href = `comment.html?type=report&index=${index}`;
+        }
+        console.log('コメントリンク:', commentLink.href);
+      });
+  </script>
+</body>
+</html>

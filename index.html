@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TOPページ</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+
+<body data-page="policy">
+
+ <!-- <div class="font-size-controls" aria-label="文字サイズ変更">
+    <button data-size="small">小</button>
+    <button data-size="normal" class="active">標準</button>
+    <button data-size="large">大</button>
+  </div> --> 
+
+<header>
+  <nav class="header-inner">
+    <div id="header-name"></div>
+    <div id="header-nav"></div>
+    <button id="menu-toggle" aria-label="メニュー">☰</button>
+  </nav>
+</header>
+
+<main>
+  <section class="hero-image">
+    <img src="assets/トップページ背景.png" alt="">
+    <div class="hero-person-layer-index">
+      <img src="assets/トップページ田中しほ.png" alt="田中しほ"> 
+    </div>
+  </section>
+
+  <section class="hero-nav-section">
+    <div class="hero-card-grid">
+      
+      <div class="hero-nav-card">
+        <div class="card-content">
+          <p class="card-description">私のこれまでの歩みと、政治を志した原点についてご紹介します。</p>
+          <a href="profile.html" class="card-btn">自己紹介</a>
+        </div>
+      </div>
+
+      <div class="hero-nav-card">
+        <div class="card-content">
+          <p class="card-description">京都府議会での日々の活動や、取り組んでいる政策をご報告します。</p>
+          <a href="policy.html" class="card-btn">活動報告</a>
+        </div>
+      </div>
+
+      <div class="hero-nav-card">
+        <div class="card-content">
+          <p class="card-description">府政へのご意見やご要望など、お気軽にお寄せください。</p>
+          <a href="contact.html" class="card-btn">お問い合わせ</a>
+        </div>
+      </div>
+
+      <div class="hero-nav-card">
+        <div class="card-content">
+          <p class="card-description">暮らしの中の困りごとや不安、あなたの声を直接届けてください。</p>
+          <a href="post.html" class="card-btn">ご相談ポスト</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<section class="page-header">
+  <div class="page-header-inner">
+
+    <!-- ▼ タイトル・住所（縦並び） -->
+    <h2 class="page-header-title" id="page-header-title"></h2>
+    <p class="page-header-text" id="page-header-text"></p>
+
+    <!-- ▼ 横並びエリア（flexはここだけ） -->
+    <div class="page-header-columns">
+
+      <!-- 左：マップ -->
+      <div class="page-header-left">
+        <div class="map-embed-wrapper" id="page-header-map"></div>
+      </div>
+
+      <!-- 右：リンク集 -->
+      <ul class="page-header-links" id="page-header-links"></ul>
+
+    </div>
+
+  </div>
+</section>
+
+<script>
+fetch('data/static-texts.json')
+  .then(res => res.json())
+  .then(data => {
+
+    /* ===== ページヘッダー ===== */
+    const page = document.body.dataset.page;
+    if (data.pageHeaders && data.pageHeaders[page]) {
+
+      const header = data.pageHeaders[page]; // ← ★これが必要
+
+      document.getElementById('page-header-title').textContent =data.pageHeaders[page].title;
+      
+      document.getElementById('page-header-text').textContent =data.pageHeaders[page].text;
+
+    /* ▼ Googleマップ埋め込み */
+      const mapWrapper = document.getElementById('page-header-map');
+      if (header.mapEmbed) {
+        mapWrapper.innerHTML = `
+          <iframe
+            src="${header.mapEmbed}"
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            allowfullscreen
+          ></iframe>
+        `;
+      } else {
+        mapWrapper.innerHTML = '';
+      }
+      /* ▼ リンク集生成 */
+        const linksWrapper = document.getElementById('page-header-links');
+        linksWrapper.innerHTML = '';
+  
+        if (header.links && Array.isArray(header.links)) {
+          header.links.forEach(item => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+  
+            a.href = item.url;
+            a.textContent = item.label;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+  
+            li.appendChild(a);
+            linksWrapper.appendChild(li);
+          });
+        }
+    }
+  });
+    /* ==============================
+    文字サイズ切替（追記）
+    ============================== */
+  document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('.font-size-controls button');
+    if (!buttons.length) return;
+
+    const savedSize = localStorage.getItem('fontSize') || 'normal';
+    setFontSize(savedSize);
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const size = btn.dataset.size;
+        setFontSize(size);
+        localStorage.setItem('fontSize', size);
+      });
+    });
+
+    function setFontSize(size) {
+      document.body.classList.remove('font-small', 'font-normal', 'font-large');
+      document.body.classList.add(`font-${size}`);
+
+      buttons.forEach(b => b.classList.remove('active'));
+      document
+        .querySelector(`.font-size-controls button[data-size="${size}"]`)
+        ?.classList.add('active');
+    }
+  });
+</script>
+
+
+<script src="src/header.js"></script>
+</body>
+</html>

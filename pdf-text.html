@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDFファイル - テキスト表示</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+  <style>
+    .pdf-container {
+      max-width: 1200px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    .pdf-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .pdf-header h1 {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .pdf-list {
+      position: relative;
+      margin-bottom: 40px;
+    }
+
+    .pdf-carousel {
+      display: flex;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: relative;
+      height: auto;
+      min-height: 250px;
+    }
+
+    .pdf-carousel-inner {
+      display: flex;
+      transition: transform 0.5s ease;
+      width: 100%;
+      transform: translateX(0);
+      height: 100%;
+      perspective: 1000px;
+    }
+
+    .pdf-item {
+      background-color: #f9f3f0;
+      padding: 20px;
+      border-radius: 0;
+      box-shadow: none;
+      cursor: pointer;
+      transition: transform 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease;
+      flex: 0 0 100%;
+      min-width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      opacity: 0.6;
+      transform: scale(0.85);
+    }
+
+    .pdf-item.center {
+      opacity: 1;
+      transform: scale(1.05);
+      z-index: 5;
+    }
+
+    .pdf-item:hover {
+      opacity: 0.8;
+      transform: scale(0.88);
+    }
+
+    .pdf-item.center:hover {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+
+    @media (min-width: 768px) {
+      .pdf-item {
+        flex: 0 0 50%;
+        min-width: 50%;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .pdf-item {
+        flex: 0 0 33.333%;
+        min-width: 33.333%;
+      }
+    }
+
+    .carousel-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      z-index: 10;
+      border-radius: 4px;
+    }
+
+    .carousel-nav:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .carousel-prev {
+      left: 10px;
+    }
+
+    .carousel-next {
+      right: 10px;
+    }
+
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #ccc;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .dot.active {
+      background-color: #ff6b9d;
+    }
+
+    .pdf-item-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .pdf-item h3 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .pdf-item h3:hover {
+      color: #ff6b9d;
+    }
+
+    .pdf-item p {
+      color: #666;
+      margin-bottom: 15px;
+      line-height: 1.6;
+    }
+
+    .pdf-item-meta {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 15px;
+    }
+
+    .pdf-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .pdf-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ff6b9d;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: background-color 0.3s;
+      cursor: pointer;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .pdf-btn:hover {
+      background-color: #ff5587;
+    }
+
+    .pdf-btn-secondary {
+      background-color: #999;
+    }
+
+    .pdf-btn-secondary:hover {
+      background-color: #777;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .pdf-viewer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0,0,0,0.8);
+      display: none;
+      flex-direction: column;
+      z-index: 99;
+    }
+
+    .pdf-viewer.show {
+      display: flex;
+    }
+
+    .pdf-viewer-header {
+      padding: 15px 20px;
+      background-color: white;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pdf-viewer-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .pdf-viewer-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pdf-viewer-close:hover {
+      color: #333;
+    }
+
+    .pdf-viewer-controls {
+      padding: 15px 20px;
+      background-color: #f5f5f5;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pdf-controls-btn {
+      padding: 8px 12px;
+      background-color: #ddd;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    .pdf-controls-btn:hover {
+      background-color: #bbb;
+    }
+
+    .pdf-controls-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pdf-page-info {
+      color: #666;
+      font-size: 14px;
+      min-width: 150px;
+      text-align: center;
+    }
+
+    .pdf-viewer-body {
+      padding: 20px;
+      overflow: auto;
+      background-color: #f5f5f5;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .pdf-page-container {
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      max-width: 900px;
+      width: 100%;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .pdf-content {
+      padding: 40px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .pdf-canvas-container {
+      position: relative;
+      width: 100%;
+      display: inline-block;
+      transform-origin: top center;
+    }
+
+    #pdf-canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      background-color: white;
+    }
+
+    #pdf-canvas-image {
+      width: 100%;
+      height: auto;
+      display: block;
+      background-color: white;
+    }
+
+    .pdf-text-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.0;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .pdf-text-item {
+      position: absolute;
+      white-space: pre-wrap;
+      cursor: text;
+      user-select: text;
+      pointer-events: auto;
+    }
+
+    .pdf-text-item:hover {
+      background-color: rgba(255, 107, 157, 0.2);
+      opacity: 0.5;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .view-toggle-btn {
+      padding: 6px 12px;
+      background-color: #ddd;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 12px;
+      transition: background-color 0.3s;
+    }
+
+    .view-toggle-btn.active {
+      background-color: #ff6b9d;
+      color: white;
+    }
+
+    .view-toggle-btn:hover {
+      background-color: #bbb;
+    }
+
+    .view-toggle-btn.active:hover {
+      background-color: #ff5587;
+    }
+  </style>
+</head>
+
+<body data-page="pdf">
+
+<header>
+  <nav class="header-inner">
+    <div id="header-name"></div>
+    <div id="header-nav"></div>
+    <button id="menu-toggle" aria-label="メニュー">☰</button>
+  </nav>
+</header>
+
+<main>
+  <div class="pdf-container">
+    <div class="pdf-header">
+      <h1>PDFファイル</h1>
+      <p>重要な資料やお知らせはこちらからご覧いただけます</p>
+    </div>
+
+    <div class="pdf-list">
+      <div class="pdf-carousel">
+        <button class="carousel-nav carousel-prev" id="carousel-prev" aria-label="前へ">❮</button>
+        <div class="pdf-carousel-inner" id="pdf-carousel-inner">
+          <!-- PDFリストが動的に挿入される -->
+        </div>
+        <button class="carousel-nav carousel-next" id="carousel-next" aria-label="次へ">❯</button>
+      </div>
+      <div class="carousel-dots" id="carousel-dots">
+        <!-- ドットが動的に挿入される -->
+      </div>
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+      <div class="empty-state-icon">📄</div>
+      <p>PDFファイルはまだ登録されていません</p>
+    </div>
+
+    <!-- PDFビューアー -->
+    <div id="pdf-viewer" class="pdf-viewer">
+      <div class="pdf-viewer-header">
+        <h2 id="pdf-title" class="pdf-viewer-title">PDF ドキュメント</h2>
+        <button id="pdf-close-btn" class="pdf-viewer-close">✕</button>
+      </div>
+
+      <div class="pdf-viewer-controls">
+        <button class="pdf-controls-btn" id="pdf-prev-btn">前へ</button>
+        <div class="pdf-page-info">
+          <span id="pdf-current-page">1</span> / <span id="pdf-total-pages">1</span>
+        </div>
+        <button class="pdf-controls-btn" id="pdf-next-btn">次へ</button>
+        <button class="pdf-controls-btn" id="pdf-zoom-in-btn">拡大</button>
+        <button class="pdf-controls-btn" id="pdf-zoom-out-btn">縮小</button>
+        <a id="pdf-download-btn" class="pdf-controls-btn" style="text-decoration: none; cursor: pointer; display: inline-block;">ダウンロード</a>
+        
+        <div class="view-toggle">
+          <button class="view-toggle-btn active" id="text-view-btn">テキスト表示</button>
+          <button class="view-toggle-btn" id="image-view-btn">画像表示</button>
+        </div>
+      </div>
+
+      <div class="pdf-viewer-body">
+        <!-- テキストビュー -->
+        <div id="text-view" class="pdf-page-container">
+          <div class="pdf-canvas-container">
+            <canvas id="pdf-canvas"></canvas>
+            <div id="pdf-text-layer" class="pdf-text-layer"></div>
+          </div>
+        </div>
+
+        <!-- 画像ビュー -->
+        <div id="image-view" class="pdf-page-container" style="display: none;">
+          <canvas id="pdf-canvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="src/header.js"></script>
+<script>
+// PDF.js の worker ファイルを設定
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let currentPdf = null;
+let currentPageNum = 1;
+let currentScale = 1.5;
+let currentViewMode = 'text'; // 'text' または 'image'
+let pdfPages = []; // ページのテキスト情報を保存
+let pdfViewports = []; // ページのビューポート情報を保存
+let carouselIndex = 0;
+let totalSlides = 0;
+let itemsPerView = 1;
+
+// レスポンシブアイテム数を計算
+function updateItemsPerView() {
+  if (window.innerWidth >= 1024) {
+    itemsPerView = 3;
+  } else if (window.innerWidth >= 768) {
+    itemsPerView = 2;
+  } else {
+    itemsPerView = 1;
+  }
+}
+
+// カルーセルスライドを更新
+function updateCarousel() {
+  const inner = document.getElementById('pdf-carousel-inner');
+  
+  // 1つのアイテムの幅（パーセンテージ）
+  const itemWidth = 100 / itemsPerView;
+  
+  // 表示できる最後の位置
+  const maxIndex = Math.max(0, totalSlides - itemsPerView);
+  
+  if (carouselIndex > maxIndex) {
+    carouselIndex = maxIndex;
+  }
+  if (carouselIndex < 0) {
+    carouselIndex = 0;
+  }
+
+  // 1つずつスライドする
+  const translatePercent = -carouselIndex * itemWidth;
+  inner.style.transform = `translateX(${translatePercent}%)`;
+
+  // 中央のアイテムにcenterクラスを付与
+  const items = document.querySelectorAll('.pdf-item');
+  const centerItemIndex = carouselIndex + Math.floor(itemsPerView / 2);
+  items.forEach((item, index) => {
+    item.classList.remove('center');
+    if (index === centerItemIndex) {
+      item.classList.add('center');
+    }
+  });
+
+  // ドットの更新
+  const dots = document.querySelectorAll('.dot');
+  dots.forEach((dot, index) => {
+    dot.classList.toggle('active', index === carouselIndex);
+  });
+}
+
+// ドットをクリック
+function goToSlide(index) {
+  carouselIndex = index;
+  updateCarousel();
+}
+
+async function loadPDFs() {
+  try {
+    const response = await fetch('/api/pdfs');
+    if (!response.ok) throw new Error('PDFリスト取得失敗');
+    
+    const pdfs = await response.json();
+    renderPDFCarousel(pdfs);
+  } catch (error) {
+    console.error('PDF読込エラー:', error);
+    // テストデータを表示
+    const testPdfs = [
+      { id: 1, title: 'サンプルPDF 1', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date().toISOString() },
+      { id: 2, title: 'サンプルPDF 2', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date().toISOString() },
+      { id: 3, title: 'サンプルPDF 3', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date().toISOString() }
+    ];
+    renderPDFCarousel(testPdfs);
+  }
+}
+
+function renderPDFCarousel(pdfs) {
+  const carouselInner = document.getElementById('pdf-carousel-inner');
+  const emptyState = document.getElementById('empty-state');
+
+  if (!Array.isArray(pdfs) || pdfs.length === 0) {
+    emptyState.style.display = 'block';
+    carouselInner.innerHTML = '';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  totalSlides = pdfs.length;
+  
+  carouselInner.innerHTML = pdfs.map(pdf => `
+    <div class="pdf-item">
+      <div class="pdf-item-icon">📄</div>
+      <h3 onclick="openPDF('${pdf.file_path}', '${pdf.title.replace(/'/g, "\\'")}', '${pdf.id}')">${pdf.title}</h3>
+      ${pdf.description ? `<p>${pdf.description}</p>` : ''}
+      <div class="pdf-item-meta">
+        ${pdf.created_at ? `アップロード日時: ${new Date(pdf.created_at).toLocaleDateString('ja-JP')}` : ''}
+      </div>
+      <div class="pdf-actions">
+        <button class="pdf-btn" onclick="openPDF('${pdf.file_path}', '${pdf.title.replace(/'/g, "\\'")}', '${pdf.id}')">テキスト表示</button>
+        <a href="${pdf.file_path}" class="pdf-btn pdf-btn-secondary" download>ダウンロード</a>
+      </div>
+    </div>
+  `).join('');
+
+  // ドットを生成
+  const dotsContainer = document.getElementById('carousel-dots');
+  const maxIndex = Math.max(0, totalSlides - itemsPerView);
+  const numDots = maxIndex + 1;
+  dotsContainer.innerHTML = Array.from({ length: numDots }, (_, i) => `
+    <div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></div>
+  `).join('');
+
+  carouselIndex = 0;
+  updateCarousel();
+}
+
+async function openPDF(filePath, title, pdfId) {
+  try {
+    const viewer = document.getElementById('pdf-viewer');
+
+    // PDFドキュメントを読み込む
+    const pdf = await pdfjsLib.getDocument(filePath).promise;
+    currentPdf = pdf;
+    currentPageNum = 1;
+    pdfPages = [];
+    pdfViewports = [];
+
+    // タイトルを設定
+    document.getElementById('pdf-title').textContent = title;
+    document.getElementById('pdf-total-pages').textContent = pdf.numPages;
+    document.getElementById('pdf-download-btn').href = filePath;
+
+    // ビューアーを表示
+    viewer.classList.add('show');
+    currentViewMode = 'text';
+    updateViewMode();
+
+    // 最初のページを表示
+    renderPage(currentPageNum);
+  } catch (error) {
+    console.error('PDFオープンエラー:', error);
+    alert('PDFを開けませんでした: ' + error.message);
+  }
+}
+
+async function renderPageWithTextLayer(pageNum) {
+  if (!currentPdf || pageNum < 1 || pageNum > currentPdf.numPages) return;
+
+  try {
+    const page = await currentPdf.getPage(pageNum);
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.querySelector('.pdf-canvas-container');
+
+    const scale = currentScale;
+    const viewport = page.getViewport({ scale });
+
+    console.log('[PDF] Rendering page with scale:', scale, 'viewport:', viewport.width, 'x', viewport.height);
+
+    // Canvas にページを描画
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+
+    await page.render(renderContext).promise;
+
+    // コンテナのサイズを更新（表示サイズを調整）
+    container.style.width = viewport.width + 'px';
+    container.style.height = viewport.height + 'px';
+
+    // テキストレイヤーを生成
+    const textContent = await page.getTextContent();
+    const textLayer = document.getElementById('pdf-text-layer');
+    textLayer.innerHTML = '';
+
+    // Canvas のサイズに合わせてレイヤーをリサイズ
+    textLayer.style.width = canvas.width + 'px';
+    textLayer.style.height = canvas.height + 'px';
+
+    // テキストアイテムを配置
+    textContent.items.forEach((item) => {
+      const textElement = document.createElement('div');
+      textElement.className = 'pdf-text-item';
+      textElement.textContent = item.str;
+
+      // テキストの位置と変換行列を解析
+      const transform = item.transform;
+      const [scaleX, , , scaleY, x, y] = transform;
+
+      // Canvas 座標系に変換
+      const canvasX = x * scale;
+      const canvasY = (viewport.height - y) * scale;
+      const fontSize = Math.abs(scaleY) * scale;
+
+      // スタイルを適用
+      textElement.style.left = canvasX + 'px';
+      textElement.style.top = (canvasY - fontSize) + 'px';
+      textElement.style.fontSize = fontSize + 'px';
+      textElement.style.fontFamily = item.fontName || 'Arial, sans-serif';
+
+      // フォントスタイルを判定
+      if (item.fontName && item.fontName.includes('Bold')) {
+        textElement.style.fontWeight = 'bold';
+      }
+      if (item.fontName && item.fontName.includes('Italic')) {
+        textElement.style.fontStyle = 'italic';
+      }
+
+      // テキストの色（RGB値がある場合）
+      if (item.height && item.width) {
+        textElement.style.width = Math.abs(scaleX) * scale + 'px';
+        textElement.style.height = fontSize + 'px';
+      }
+
+      textLayer.appendChild(textElement);
+    });
+
+  } catch (error) {
+    console.error('ページレンダリングエラー:', error);
+  }
+}
+
+async function renderPageImageOnly(pageNum) {
+  if (!currentPdf || pageNum < 1 || pageNum > currentPdf.numPages) return;
+
+  try {
+    const page = await currentPdf.getPage(pageNum);
+    const canvas = document.getElementById('pdf-canvas-image');
+    const ctx = canvas.getContext('2d');
+    const container = document.querySelector('.pdf-canvas-container');
+
+    const scale = currentScale;
+    const viewport = page.getViewport({ scale });
+
+    console.log('[PDF] Rendering image with scale:', scale);
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    // コンテナのサイズを更新
+    container.style.width = viewport.width + 'px';
+    container.style.height = viewport.height + 'px';
+
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+
+    await page.render(renderContext).promise;
+  } catch (error) {
+    console.error('ページレンダリングエラー:', error);
+  }
+}
+
+async function renderPage(pageNum) {
+  if (!currentPdf || pageNum < 1 || pageNum > currentPdf.numPages) return;
+
+  currentPageNum = pageNum;
+  document.getElementById('pdf-current-page').textContent = pageNum;
+
+  if (currentViewMode === 'text') {
+    await renderPageWithTextLayer(pageNum);
+  } else {
+    await renderPageImageOnly(pageNum);
+  }
+
+  // ナビゲーションボタンの有効/無効を切り替え
+  document.getElementById('pdf-prev-btn').disabled = pageNum <= 1;
+  document.getElementById('pdf-next-btn').disabled = pageNum >= currentPdf.numPages;
+}
+
+function updateViewMode() {
+  const textView = document.getElementById('text-view');
+  const imageView = document.getElementById('image-view');
+  const textBtn = document.getElementById('text-view-btn');
+  const imageBtn = document.getElementById('image-view-btn');
+
+  if (currentViewMode === 'text') {
+    textView.style.display = 'block';
+    imageView.style.display = 'none';
+    textBtn.classList.add('active');
+    imageBtn.classList.remove('active');
+  } else {
+    textView.style.display = 'none';
+    imageView.style.display = 'block';
+    textBtn.classList.remove('active');
+    imageBtn.classList.add('active');
+  }
+
+  renderPage(currentPageNum);
+}
+
+// イベントリスナー
+document.getElementById('pdf-close-btn').addEventListener('click', () => {
+  document.getElementById('pdf-viewer').classList.remove('show');
+  currentPdf = null;
+  pdfPages = [];
+});
+
+document.getElementById('pdf-prev-btn').addEventListener('click', () => {
+  if (currentPageNum > 1) {
+    renderPage(currentPageNum - 1);
+  }
+});
+
+document.getElementById('pdf-next-btn').addEventListener('click', () => {
+  if (currentPdf && currentPageNum < currentPdf.numPages) {
+    renderPage(currentPageNum + 1);
+  }
+});
+
+document.getElementById('pdf-zoom-in-btn').addEventListener('click', () => {
+  if (currentScale < 3.0) {
+    currentScale += 0.1;
+    currentScale = Math.round(currentScale * 10) / 10; // 浮動小数点の誤差を補正
+    console.log('[PDF] Zoom in:', currentScale);
+    renderPage(currentPageNum);
+  }
+});
+
+document.getElementById('pdf-zoom-out-btn').addEventListener('click', () => {
+  if (currentScale > 0.3) {
+    currentScale -= 0.1;
+    currentScale = Math.round(currentScale * 10) / 10; // 浮動小数点の誤差を補正
+    console.log('[PDF] Zoom out:', currentScale);
+    renderPage(currentPageNum);
+  }
+});
+
+document.getElementById('text-view-btn').addEventListener('click', () => {
+  currentViewMode = 'text';
+  updateViewMode();
+});
+
+document.getElementById('image-view-btn').addEventListener('click', () => {
+  currentViewMode = 'image';
+  updateViewMode();
+});
+
+// キーボード操作
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('pdf-viewer').classList.contains('show')) {
+    if (e.key === 'ArrowLeft') {
+      document.getElementById('pdf-prev-btn').click();
+    } else if (e.key === 'ArrowRight') {
+      document.getElementById('pdf-next-btn').click();
+    } else if (e.key === 'Escape') {
+      document.getElementById('pdf-close-btn').click();
+    }
+  }
+});
+
+// カルーセルのイベントリスナー
+document.getElementById('carousel-prev').addEventListener('click', () => {
+  const maxScrollPositions = Math.max(0, totalSlides - itemsPerView);
+  carouselIndex = (carouselIndex - 1 + maxScrollPositions + 1) % (maxScrollPositions + 1);
+  updateCarousel();
+});
+
+document.getElementById('carousel-next').addEventListener('click', () => {
+  const maxScrollPositions = Math.max(0, totalSlides - itemsPerView);
+  carouselIndex = (carouselIndex + 1) % (maxScrollPositions + 1);
+  updateCarousel();
+});
+
+// ウィンドウリサイズ時にアイテム数を更新
+window.addEventListener('resize', () => {
+  const oldItemsPerView = itemsPerView;
+  updateItemsPerView();
+  if (oldItemsPerView !== itemsPerView) {
+    carouselIndex = 0;
+    loadPDFs();
+  }
+});
+
+// ページ読み込み時に実行
+updateItemsPerView();
+loadPDFs();
+</script>
+</body>
+</html>

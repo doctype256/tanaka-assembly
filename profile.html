@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>自己紹介</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/style.css">
+</head>
+
+<body data-page="policy">
+
+<!-- <div class="font-size-controls" aria-label="文字サイズ変更">
+  <button data-size="small">小</button>
+  <button data-size="normal" class="active">標準</button>
+  <button data-size="large">大</button>
+</div> -->
+
+<header>
+  <nav class="header-inner">
+    <div id="header-name"></div>
+    <div id="header-nav"></div>
+    <button id="menu-toggle" aria-label="メニュー">☰</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ================= 自己紹介 ================= -->
+  <section class="profile">
+
+    <h1 class="profile-title" id="profile-title"></h1>
+
+    <!-- 写真 -->
+    <div class="profile-photo" id="profile-photo"></div>
+
+    <!-- 名前・肩書き -->
+    <div class="profile-name">
+      <h2 id="profile-name"></h2>
+      <p id="profile-name-en"></p>
+      <span id="profile-role"></span>
+    </div>
+
+    <!-- 基本情報 -->
+    <div class="profile-basic" id="profile-basic"></div>
+
+    <!-- 経歴 -->
+    <section class="profile-history">
+      <h3>経歴</h3>
+      <div id="profile-history"></div>
+    </section>
+
+  </section>
+
+</main>
+
+<!-- ================= page-header（既存） ================= -->
+<section class="page-header">
+  <div class="page-header-inner">
+    <h2 class="page-header-title" id="page-header-title"></h2>
+    <p class="page-header-text" id="page-header-text"></p>
+
+    <div class="page-header-columns">
+      <div class="page-header-left">
+        <div class="map-embed-wrapper" id="page-header-map"></div>
+      </div>
+      <ul class="page-header-links" id="page-header-links"></ul>
+    </div>
+  </div>
+</section>
+
+<script>
+async function loadProfile() {
+  try {
+    // 静的データを先に読み込み（フォールバック用）
+    const staticRes = await fetch('data/static-texts.json');
+    const staticData = await staticRes.json();
+    let profile = staticData.profile;
+
+    // API からプロフィール取得を試みる
+    try {
+      const profileRes = await fetch('/api/profile?password=admin777');
+      if (profileRes.ok) {
+        const apiProfile = await profileRes.json();
+        // API データがあればマージ
+        if (apiProfile && apiProfile.Name) {
+          profile = {
+            ...profile,
+            name: apiProfile.Name,
+            photo: apiProfile.IMG_URL || profile.photo,
+            basic: [
+              { label: '生年月日', value: apiProfile.birthday },
+              { label: '出身地', value: apiProfile.From },
+              { label: '家族構成', value: apiProfile.Family },
+              { label: '趣味・特技', value: apiProfile.hobby }
+            ].filter(item => item.value),
+            role: apiProfile.Job || profile.role,
+            history: profile.history // 静的な history は保持
+          };
+        }
+      }
+    } catch (apiError) {
+      console.log('API 読込失敗 - 静的データを使用:', apiError.message);
+    }
+
+    // API からキャリア取得を試みる
+    let careers = [];
+    try {
+      const careerRes = await fetch('/api/career?password=admin777');
+      if (careerRes.ok) {
+        careers = await careerRes.json();
+      }
+    } catch (careerError) {
+      console.log('キャリア API 読込失敗:', careerError.message);
+    }
+
+    // プロフィール情報の表示
+    document.title = `${profile.name}`;
+    document.getElementById('header-name').textContent = profile.name;
+    document.getElementById('profile-title').textContent = profile.title;
+    document.getElementById('profile-name').textContent = profile.name;
+    document.getElementById('profile-name-en').textContent = profile.name_en || '';
+    document.getElementById('profile-role').textContent = profile.role || '';
+
+    // 写真
+    if (profile.photo) {
+      document.getElementById('profile-photo').innerHTML =
+        `<img src="${profile.photo}" alt="${profile.name}">`;
+    }
+
+    // 基本情報
+    const basicWrap = document.getElementById('profile-basic');
+    basicWrap.innerHTML = '';
+    profile.basic.forEach(item => {
+      if (item.value) {
+        const div = document.createElement('div');
+        div.className = 'basic-row';
+        div.innerHTML = `
+          <span class="dot"></span>
+          <div>
+            <strong>${item.label}</strong>
+            <p>${item.value}</p>
+          </div>
+        `;
+        basicWrap.appendChild(div);
+      }
+    });
+
+    // 経歴
+    const historyWrap = document.getElementById('profile-history');
+    historyWrap.innerHTML = '';
+    
+    // キャリア API データが優先（存在し、配列で、かつ要素がある場合）
+    let historyItems = (Array.isArray(careers) && careers.length > 0)
+      ? careers.map(c => ({ year: c.year + '年' + c.month + '月', text: c.Content }))
+      : (profile.history || []);
+
+    historyItems.forEach(h => {
+      const div = document.createElement('div');
+      div.className = 'history-row';
+      div.innerHTML = `
+        <span class="year">${h.year}</span>
+        <p>${h.text}</p>
+      `;
+      historyWrap.appendChild(div);
+    });
+
+    /* ===== page-header（既存） ===== */
+    const page = document.body.dataset.page;
+    if (staticData.pageHeaders && staticData.pageHeaders[page]) {
+      const header = staticData.pageHeaders[page];
+      document.getElementById('page-header-title').textContent = header.title;
+      document.getElementById('page-header-text').textContent = header.text;
+
+      document.getElementById('page-header-map').innerHTML =
+        header.mapEmbed
+          ? `<iframe src="${header.mapEmbed}" loading="lazy"></iframe>`
+          : '';
+
+      const links = document.getElementById('page-header-links');
+      links.innerHTML = '';
+      header.links?.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `<a href="${item.url}">${item.label}</a>`;
+        links.appendChild(li);
+      });
+    }
+  } catch (error) {
+    console.error('プロフィール読込エラー:', error);
+  }
+}
+
+// ページ読み込み時に実行
+loadProfile();
+
+/* ===== 文字サイズ切替（そのまま） ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  const buttons = document.querySelectorAll('.font-size-controls button');
+  const savedSize = localStorage.getItem('fontSize') || 'normal';
+  setFontSize(savedSize);
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const size = btn.dataset.size;
+      setFontSize(size);
+      localStorage.setItem('fontSize', size);
+    });
+  });
+
+  function setFontSize(size) {
+    document.body.classList.remove('font-small','font-normal','font-large');
+    document.body.classList.add(`font-${size}`);
+    buttons.forEach(b => b.classList.remove('active'));
+    document.querySelector(`[data-size="${size}"]`)?.classList.add('active');
+  }
+});
+</script>
+
+<script src="src/header.js"></script>
+</body>
+</html>
