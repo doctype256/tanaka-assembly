@@ -182,6 +182,136 @@ h2 {
   object-fit: contain;
 }
 
+/* --- タイルナビゲーション全体 --- */
+.top-tile-nav {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.tile-grid {
+  display: flex;
+  gap: 20px;
+}
+
+/* --- タイル共通設定 --- */
+.tile-item {
+  position: relative;
+  text-decoration: none;
+  color: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.tile-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* タイル内のテキスト装飾 */
+.tile-en { font-size: 0.9rem; font-weight: 500; display: block; margin-bottom: 4px; opacity: 0.9; }
+.tile-jp { font-size: 1.4rem; font-weight: 700; margin: 0; font-family: "Noto Serif JP", serif; }
+.tile-desc { font-size: 0.85rem; margin-top: 15px; line-height: 1.5; opacity: 0.9; }
+
+/* アイコン位置 */
+.tile-icon {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+/* --- 左側：縦型タイル（青） --- */
+.profile-vertical {
+  width: 250px;
+  background-color: #1a4fa3;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  min-height: 420px;
+}
+
+/* --- 右側エリア --- */
+.tile-right-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 活動報告（緑） */
+.activity-horizontal {
+  background-color: #7fbf4d;
+  height: 140px;
+  display: flex;
+  align-items: center;
+}
+
+/* 下段3つ（横並び） */
+.tile-bottom-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 20px;
+  height: 260px;
+}
+
+.press-box { background-color: #ed913d; }
+.contact-box { background-color: #7bc1e4; }
+.post-box { background-color: #e07491; }
+
+/* --- スマホレスポンシブ --- */
+@media (max-width: 768px) {
+  .tile-grid {
+    flex-direction: column;
+    gap: 15px; /* スマホでは間隔を少し詰める */
+  }
+
+  /* 全てのタイルをスマホでは中央揃えにする */
+  .tile-item, .tile-sub {
+    width: 100% !important;
+    min-height: 150px; /* 高さを統一感出す */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* 上下中央 */
+    align-items: center;     /* 左右中央 */
+    text-align: center;      /* 文字の中央揃え */
+    padding: 20px;
+  }
+
+  /* 自己紹介タイルの高さ調整（スマホ用） */
+  .profile-vertical {
+    min-height: 180px; 
+  }
+
+  /* 下段3つも縦並びにして中央揃えを適用 */
+  .tile-bottom-row {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    height: auto; /* 高さを自動に */
+  }
+
+  /* アイコンが文字に被る場合は非表示にするか、位置を調整 */
+  .tile-icon {
+    position: static; /* 絶対配置を解除 */
+    margin-top: 10px;
+    font-size: 1.2rem;
+  }
+
+  /* テキストの微調整 */
+  .tile-jp {
+    font-size: 1.3rem;
+  }
+  .tile-desc {
+    margin-top: 8px;
+  }
+}
+
 .grid {
   display:grid;
   gap:2rem;
@@ -234,6 +364,132 @@ h2 {
 
 .hero-link:hover {
   opacity: 0.7;
+}
+
+/* ヒーローセクションの微調整 */
+.hero-container {
+  position: relative;
+  width: 100%;
+  height: 70vh;
+  min-height: 400px;
+  overflow: hidden;
+  background: #f0f7f9;
+}
+.hero-text-overlay {
+  position: absolute;
+  top: 30%;
+  left: 5%;
+  z-index: 5;
+}
+.hero-badge {
+  background: #03709b;
+  color: #fff;
+  display: inline-block;
+  padding: 4px 12px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.hero-name {
+  font-size: 3rem;
+  color: #03709b;
+  margin: 0;
+}
+.hero-sub { font-size: 1.2rem; display: block; color: #333; }
+
+/* ご相談ポスト (背景やわらかめ) */
+.consultation-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff5f7; /* ラフの「背景やわらかめ」 */
+  border: 2px solid #ec4899;
+  padding: 1.5rem 2rem;
+  border-radius: 15px;
+  text-decoration: none;
+  color: #b8326a;
+  transition: 0.3s;
+}
+.consultation-banner:hover { background: #fde2e8; transform: scale(1.02); }
+.banner-text { font-size: 1.4rem; font-weight: bold; display: block; }
+.banner-icon { font-size: 2rem; }
+
+/* YouTube */
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.video-wrapper iframe {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+}
+
+/* 政策リスト */
+.policy-item-box {
+  background: #fff;
+  padding: 1.2rem;
+  margin-bottom: 0.8rem;
+  border-left: 5px solid #03709b;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  font-weight: 600;
+}
+
+/* SNSリスト */
+.sns-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.2rem;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  text-decoration: none;
+  color: #333;
+  font-weight: 600;
+}
+.sns-row:hover { background: #f9f9f9; }
+
+/* 共通タイトルとボタン */
+.section-title {
+  text-align: center;
+  color: #03709b;
+  margin-bottom: 1.5rem;
+}
+.more-btn {
+  display: block;
+  width: 120px;
+  margin: 1rem auto;
+  text-align: center;
+  color: #03709b;
+  font-weight: bold;
+  text-decoration: none;
+  border-bottom: 2px solid #03709b;
+}
+
+/* 事務所情報の横並び */
+.office-card {
+  display: flex;
+  gap: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+.office-map { flex: 1; height: 300px; border-radius: 10px; overflow: hidden; }
+.office-info { flex: 1; }
+
+/* スマホ対応 */
+@media (max-width: 768px) {
+  .hero-name { font-size: 2.2rem; }
+  .office-card { flex-direction: column; }
+  .link-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .link-card { 
+      padding: 20px; text-align: center; color: white; border-radius: 10px; text-decoration: none;
+      display: flex; flex-direction: column;
+  }
+  .profile-link { background: #1a4fa3; }
+  .policy-link { background: #7fbf4d; }
 }
 
 /* ==============================
@@ -1571,48 +1827,6 @@ body.font-large {
   line-height: 1.7;
   font-size: 0.95rem;
 }
-
-/* ===== ホームボタン（右上固定） ===== */
-.home-button {
-  position: fixed;
-  top: 10px;
-  right: 30px;
-  z-index: 1200;
-}
-
-/* リンクをボタン化 */
-.home-button a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 50px;
-  height: 50px;
-
-  background: #6bbf59;      /* サイトの黄緑 */
-  color: #fff;
-  text-decoration: none;
-
-  border-radius: 50%;       /* 丸ボタン */
-  font-size: 22px;
-  line-height: 1;
-
-  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
-  transition: transform .15s ease, box-shadow .15s ease;
-}
-
-/* ホバー・タップ */
-.home-button a:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.3);
-}
-
-/* 押した感 */
-.home-button a:active {
-  transform: translateY(0);
-  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-}
-
 
 /* ===== フッター ===== */
 .page-footer {

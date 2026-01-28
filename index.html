@@ -27,43 +27,57 @@
 
 <main>
   <section class="hero-image">
-    <img src="assets/トップページ背景.png" alt="">
+    <img src="assets/トップページ背景.png" alt="子育て支援・活動の入口イメージ">
+
     <div class="hero-person-layer-index">
-      <img src="assets/トップページ田中しほ.png" alt="田中しほ"> 
+    <img src="assets/トップページ田中しほ.png" alt="田中しほ"> </div>
+  </section>
+
+  <section class="consultation-section">
+    <a href="post.html" class="consultation-banner">
+      <div class="banner-content">
+        <span class="banner-text">ご相談ポストはコチラ！</span>
+        <span class="banner-sub">あなたの声をお聞かせください</span>
+      </div>
+      <div class="banner-icon">📩</div>
+    </a>
+  </section>
+
+  <section class="youtube-section">
+    <div class="video-wrapper">
+      <iframe src="https://www.youtube.com/embed/uLO5zh5Hz6k" title="田中しほ 自己紹介動画" frameborder="0" allowfullscreen></iframe>
     </div>
   </section>
 
-  <section class="hero-nav-section">
-    <div class="hero-card-grid">
-      
-      <div class="hero-nav-card">
-        <div class="card-content">
-          <p class="card-description">私のこれまでの歩みと、政治を志した原点についてご紹介します。</p>
-          <a href="profile.html" class="card-btn">自己紹介</a>
-        </div>
-      </div>
+<section class="link-nav-section">
+  <div class="link-grid">
+    <a href="profile.html" class="link-card profile-link">
+      <span class="en">Profile</span>
+      <span class="jp">自己紹介 ＞</span>
+    </a>
+  </div>
+</section>
 
-      <div class="hero-nav-card">
-        <div class="card-content">
-          <p class="card-description">京都府議会での日々の活動や、取り組んでいる政策をご報告します。</p>
-          <a href="policy.html" class="card-btn">活動報告</a>
-        </div>
-      </div>
+  <section class="news-section">
+    <div class="news-block">
+      <h2 class="section-title">Shiho Press</h2>
+      <div class="card-placeholder">最新号を公開中</div>
+      <a href="pdf-text.html" class="more-btn">一覧へ ＞</a>
+    </div>
+    
+    <div class="news-block">
+      <h2 class="section-title">最新の活動報告</h2>
+      <div class="card-placeholder">直近2件を表示</div>
+      <a href="policy.html" class="more-btn">一覧へ ＞</a>
+    </div>
+  </section>
 
-      <div class="hero-nav-card">
-        <div class="card-content">
-          <p class="card-description">府政へのご意見やご要望など、お気軽にお寄せください。</p>
-          <a href="contact.html" class="card-btn">お問い合わせ</a>
-        </div>
-      </div>
-
-      <div class="hero-nav-card">
-        <div class="card-content">
-          <p class="card-description">暮らしの中の困りごとや不安、あなたの声を直接届けてください。</p>
-          <a href="post.html" class="card-btn">ご相談ポスト</a>
-        </div>
-      </div>
-
+  <section class="sns-jump-section">
+    <h2 class="section-title">SNS</h2>
+    <div class="sns-list">
+      <a href="#" class="sns-row"><span>X (旧Twitter)</span><span class="arrow">＞</span></a>
+      <a href="#" class="sns-row"><span>Instagram</span><span class="arrow">＞</span></a>
+      <a href="#" class="sns-row"><span>Facebook</span><span class="arrow">＞</span></a>
     </div>
   </section>
 </main>
@@ -169,7 +183,6 @@ fetch('data/static-texts.json')
     }
   });
 </script>
-
 
 <script src="src/header.js"></script>
 </body>
