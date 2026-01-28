@@ -147,7 +147,7 @@
 </main>
 
 <script>
-fetch('data/static-texts.json')
+fetch('/data/static-texts.json')
   .then(res => res.json())
   .then(data => {
     if (data.rinen && data.rinen.name) {
@@ -269,6 +269,6 @@ document.getElementById('postButton').addEventListener('click', async () => {
 loadPosts();
 </script>
 
-<script src="src/header.js"></script>
+<script src="/src/header.js"></script>
 </body>
 </html>
