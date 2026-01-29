@@ -572,9 +572,9 @@ class AdminManager {
       }
 
       Utils.showMessage('login-error', 'パスワードが間違っています', 0);
-}
-
     }
+
+    
   }
 
   /**
