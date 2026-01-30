@@ -7,15 +7,12 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/style.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 </head>
 
 <body data-page="policy">
-
- <!-- <div class="font-size-controls" aria-label="文字サイズ変更">
-    <button data-size="small">小</button>
-    <button data-size="normal" class="active">標準</button>
-    <button data-size="large">大</button>
-  </div> --> 
 
 <header>
   <nav class="header-inner">
@@ -27,10 +24,10 @@
 
 <main>
   <section class="hero-image">
-    <img src="assets/トップページ背景.png" alt="子育て支援・活動の入口イメージ">
-
+    <img src="assets/トップページ背景.png" alt="背景">
     <div class="hero-person-layer-index">
-    <img src="assets/トップページ田中しほ.png" alt="田中しほ"> </div>
+      <img src="assets/トップページ田中しほ.png" alt="田中しほ">
+    </div>
   </section>
 
   <section class="consultation-section">
@@ -43,31 +40,40 @@
     </a>
   </section>
 
-  <section class="youtube-section">
-    <div class="video-wrapper">
-      <iframe src="https://www.youtube.com/embed/uLO5zh5Hz6k" title="田中しほ 自己紹介動画" frameborder="0" allowfullscreen></iframe>
+    <section class="youtube-section">
+      <div class="video-wrapper">
+        <iframe 
+          width="560" 
+          height="315" 
+          src="https://www.youtube.com/embed/_bx_78IZleo" 
+          title="YouTube video player" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          referrerpolicy="strict-origin-when-cross-origin" 
+          allowfullscreen>
+        </iframe>
+      </div>
+    </section>
+
+  <section class="link-nav-section">
+    <div class="link-grid">
+      <a href="profile.html" class="link-card profile-link">
+        <span class="en">Profile</span>
+        <span class="jp">自己紹介 ＞</span>
+      </a>
     </div>
   </section>
-
-<section class="link-nav-section">
-  <div class="link-grid">
-    <a href="profile.html" class="link-card profile-link">
-      <span class="en">Profile</span>
-      <span class="jp">自己紹介 ＞</span>
-    </a>
-  </div>
-</section>
 
   <section class="news-section">
     <div class="news-block">
       <h2 class="section-title">Shiho Press</h2>
-      <div class="card-placeholder">最新号を公開中</div>
+      <div id="shiho-press-container"></div>
       <a href="pdf-text.html" class="more-btn">一覧へ ＞</a>
     </div>
     
     <div class="news-block">
       <h2 class="section-title">最新の活動報告</h2>
-      <div class="card-placeholder">直近2件を表示</div>
+      <div id="policy-carousel-container"></div>
       <a href="policy.html" class="more-btn">一覧へ ＞</a>
     </div>
   </section>
@@ -75,115 +81,217 @@
   <section class="sns-jump-section">
     <h2 class="section-title">SNS</h2>
     <div class="sns-list">
-      <a href="#" class="sns-row"><span>X (旧Twitter)</span><span class="arrow">＞</span></a>
-      <a href="#" class="sns-row"><span>Instagram</span><span class="arrow">＞</span></a>
-      <a href="#" class="sns-row"><span>Facebook</span><span class="arrow">＞</span></a>
+      <a href="https://x.com/ishin_tanaka_s" class="sns-row" target="_blank" rel="noopener"><span>X (旧Twitter)</span><span class="arrow">＞</span></a>
+      <a href="https://www.instagram.com/tanaka_shiho_mama/" class="sns-row" target="_blank" rel="noopener"><span>Instagram</span><span class="arrow">＞</span></a>
+      <a href="https://www.facebook.com/people/Shiho-Tanaka/pfbid0..." class="sns-row" target="_blank" rel="noopener"><span>Facebook</span><span class="arrow">＞</span></a>
     </div>
   </section>
 </main>
 
 <section class="page-header">
   <div class="page-header-inner">
-
-    <!-- ▼ タイトル・住所（縦並び） -->
     <h2 class="page-header-title" id="page-header-title"></h2>
     <p class="page-header-text" id="page-header-text"></p>
-
-    <!-- ▼ 横並びエリア（flexはここだけ） -->
     <div class="page-header-columns">
-
-      <!-- 左：マップ -->
       <div class="page-header-left">
         <div class="map-embed-wrapper" id="page-header-map"></div>
       </div>
-
-      <!-- 右：リンク集 -->
       <ul class="page-header-links" id="page-header-links"></ul>
-
     </div>
-
   </div>
 </section>
 
 <script>
-fetch('data/static-texts.json')
-  .then(res => res.json())
-  .then(data => {
+// --- PDF.js 初期化 ---
+const pdfjsLib = window['pdfjs-dist/build/pdf'];
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    /* ===== ページヘッダー ===== */
-    const page = document.body.dataset.page;
-    if (data.pageHeaders && data.pageHeaders[page]) {
+let carouselIndices = {};
+let carouselTotalSlides = {};
 
-      const header = data.pageHeaders[page]; // ← ★これが必要
-
-      document.getElementById('page-header-title').textContent =data.pageHeaders[page].title;
-      
-      document.getElementById('page-header-text').textContent =data.pageHeaders[page].text;
-
-    /* ▼ Googleマップ埋め込み */
-      const mapWrapper = document.getElementById('page-header-map');
-      if (header.mapEmbed) {
-        mapWrapper.innerHTML = `
-          <iframe
-            src="${header.mapEmbed}"
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-            allowfullscreen
-          ></iframe>
-        `;
-      } else {
-        mapWrapper.innerHTML = '';
-      }
-      /* ▼ リンク集生成 */
+// --- データの読み込み ---
+document.addEventListener('DOMContentLoaded', () => {
+  fetch('data/static-texts.json')
+    .then(res => res.json())
+    .then(data => {
+      // 1. ページヘッダー処理
+      const page = document.body.dataset.page;
+      if (data.pageHeaders && data.pageHeaders[page]) {
+        const header = data.pageHeaders[page];
+        document.getElementById('page-header-title').textContent = header.title;
+        document.getElementById('page-header-text').textContent = header.text;
+        const mapWrapper = document.getElementById('page-header-map');
+        if (header.mapEmbed) {
+          mapWrapper.innerHTML = `<iframe src="${header.mapEmbed}" loading="lazy" allowfullscreen></iframe>`;
+        }
         const linksWrapper = document.getElementById('page-header-links');
-        linksWrapper.innerHTML = '';
-  
-        if (header.links && Array.isArray(header.links)) {
+        if (header.links) {
           header.links.forEach(item => {
             const li = document.createElement('li');
             const a = document.createElement('a');
-  
-            a.href = item.url;
-            a.textContent = item.label;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-  
-            li.appendChild(a);
-            linksWrapper.appendChild(li);
+            a.href = item.url; a.textContent = item.label; a.target = '_blank';
+            li.appendChild(a); linksWrapper.appendChild(li);
           });
         }
-    }
-  });
-    /* ==============================
-    文字サイズ切替（追記）
-    ============================== */
-  document.addEventListener('DOMContentLoaded', () => {
-    const buttons = document.querySelectorAll('.font-size-controls button');
-    if (!buttons.length) return;
+      }
 
-    const savedSize = localStorage.getItem('fontSize') || 'normal';
-    setFontSize(savedSize);
+      // 2. 活動報告カルーセル
+      if (data.activities && data.activities.reports) {
+        const reports = data.activities.reports
+          .map((r, i) => ({ ...r, originalIndex: i }))
+          .sort((a, b) => b.year - a.year)
+          .slice(0, 4);
+        renderPolicyCarousel(reports);
+      }
 
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const size = btn.dataset.size;
-        setFontSize(size);
-        localStorage.setItem('fontSize', size);
-      });
+      // 3. Shiho Press 読込
+      loadLatestShihoPress();
     });
+});
 
-    function setFontSize(size) {
-      document.body.classList.remove('font-small', 'font-normal', 'font-large');
-      document.body.classList.add(`font-${size}`);
+/* 活動報告カルーセル表示 */
+function renderPolicyCarousel(reports) {
+  const container = document.getElementById('policy-carousel-container');
+  const yearKey = 'policy_latest';
+  carouselTotalSlides[yearKey] = reports.length;
+  carouselIndices[yearKey] = 0;
 
-      buttons.forEach(b => b.classList.remove('active'));
-      document
-        .querySelector(`.font-size-controls button[data-size="${size}"]`)
-        ?.classList.add('active');
+  container.innerHTML = `
+    <div class="pdf-year-section" data-carousel-year="${yearKey}">
+      <div class="pdf-carousel-wrapper">
+        <div class="pdf-carousel">
+          <button class="carousel-nav carousel-prev" onclick="handlePrevClickIndex('${yearKey}')">❮</button>
+          <div class="pdf-carousel-inner" id="pdf-carousel-inner-${yearKey}">
+            ${reports.map(r => `
+              <div class="pdf-item" onclick="location.href='article.html?type=report&index=${r.originalIndex}'">
+                <div class="pdf-item-icon">📢</div>
+                <div class="pdf-item-meta">${r.year}年</div>
+                <h3>${r.title}</h3>
+                <p>${r.description || '活動内容の詳細はこちらからご覧いただけます。'}</p>
+                <div class="pdf-actions">
+                  <span class="pdf-btn">詳細を見る</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="carousel-nav carousel-next" onclick="handleNextClickIndex('${yearKey}')">❯</button>
+        </div>
+        <div class="carousel-dots">
+          ${reports.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlideIndex('${yearKey}', ${i})"></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+  updateCarouselIndex(yearKey);
+}
+
+/* Shiho Press (PDF) 読込 */
+async function loadLatestShihoPress() {
+  try {
+    const response = await fetch('/api/pdfs');
+    const pdfs = response.ok ? await response.json() : [];
+    renderShihoPressCarousel(pdfs);
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function renderShihoPressCarousel(pdfs) {
+  const container = document.getElementById('shiho-press-container');
+  if (!pdfs || !pdfs.length) return;
+
+  const latestYear = new Date(pdfs[0].created_at).getFullYear();
+  const yearPdfs = pdfs.filter(p => new Date(p.created_at).getFullYear() === latestYear);
+  
+  carouselTotalSlides[latestYear] = yearPdfs.length;
+  carouselIndices[latestYear] = 0;
+
+  container.innerHTML = `
+    <div class="pdf-year-section" data-carousel-year="${latestYear}">
+      <div class="pdf-carousel-wrapper">
+        <div class="pdf-year-title">${latestYear}年</div>
+        <div class="pdf-carousel">
+          <button class="carousel-nav carousel-prev" onclick="handlePrevClickIndex('${latestYear}')">❮</button>
+          <div class="pdf-carousel-inner" id="pdf-carousel-inner-${latestYear}">
+            ${yearPdfs.map((pdf, index) => {
+              const dateStr = pdf.created_at ? `アップロード日時: ${new Date(pdf.created_at).toLocaleDateString('ja-JP')}` : '';
+              return `
+                <div class="pdf-item">
+                  <div class="pdf-thumbnail-container" id="thumb-${latestYear}-${index}">
+                    <div class="thumbnail-loading">生成中...</div>
+                  </div>
+                  <h3 onclick="window.open('${pdf.file_path}', '_blank')">${pdf.title}</h3>
+                  ${pdf.description ? `<p>${pdf.description}</p>` : ''}
+                  <div class="pdf-item-meta" style="margin-bottom: 10px; font-size: 0.85em; color: #666;">
+                    ${dateStr}
+                  </div>
+                  <div class="pdf-actions">
+                    <a href="${pdf.file_path}" target="_blank" class="pdf-btn">PDFを表示</a>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+          <button class="carousel-nav carousel-next" onclick="handleNextClickIndex('${latestYear}')">❯</button>
+        </div>
+        <div class="carousel-dots">
+          ${yearPdfs.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlideIndex('${latestYear}', ${i})"></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  
+  updateCarouselIndex(latestYear);
+  generateThumbnails(yearPdfs, latestYear);
+}
+
+/* サムネイル生成関数 */
+async function generateThumbnails(pdfs, year) {
+  for (let i = 0; i < pdfs.length; i++) {
+    const thumbContainer = document.getElementById(`thumb-${year}-${i}`);
+    try {
+      const loadingTask = pdfjsLib.getDocument(pdfs[i].file_path);
+      const pdf = await loadingTask.promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 0.4 });
+      const canvas = document.createElement('canvas');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+
+      const img = document.createElement('img');
+      img.src = canvas.toDataURL();
+      img.className = 'pdf-thumbnail-img';
+      img.onclick = () => window.open(pdfs[i].file_path, '_blank');
+      thumbContainer.innerHTML = '';
+      thumbContainer.appendChild(img);
+    } catch (err) {
+      thumbContainer.innerHTML = '📄';
     }
-  });
-</script>
+  }
+}
 
+/* カルーセル制御 */
+function updateCarouselIndex(key) {
+  const section = document.querySelector(`[data-carousel-year="${key}"]`);
+  if (!section) return;
+  const inner = section.querySelector('.pdf-carousel-inner');
+  const items = section.querySelectorAll('.pdf-item');
+  const index = carouselIndices[key];
+  const visibleItems = window.innerWidth < 768 ? 1 : (window.innerWidth < 1024 ? 2 : 3);
+  const itemWidth = 100 / visibleItems;
+  const offset = (visibleItems - 1) / 2;
+  inner.style.transform = `translateX(${-(index - offset) * itemWidth}%)`;
+  items.forEach((item, i) => item.classList.toggle('center', i === index));
+  const dots = section.querySelectorAll('.dot');
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+}
+
+function handlePrevClickIndex(key) { if (carouselIndices[key] > 0) { carouselIndices[key]--; updateCarouselIndex(key); } }
+function handleNextClickIndex(key) { if (carouselIndices[key] < carouselTotalSlides[key] - 1) { carouselIndices[key]++; updateCarouselIndex(key); } }
+function goToSlideIndex(key, index) { carouselIndices[key] = index; updateCarouselIndex(key); }
+
+window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
+</script>
 <script src="src/header.js"></script>
 </body>
 </html>

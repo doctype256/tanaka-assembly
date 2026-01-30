@@ -117,10 +117,6 @@ h2 {
 }
 
 
-
-
-
-
 .hero {
   font-size: 2rem;   /* タイトルを大きく */
     
@@ -2144,4 +2140,253 @@ body.font-large {
     grid-template-columns: 1fr; /* スマホでは縦1列 */
     gap: 1rem;
   }
+}
+
+/* --- YouTubeセクションの調整 --- */
+.youtube-section {
+  padding: 1.5rem 0;   /* 上下の余白を3remから1.5remへ半分に */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* --- リンクボタンセクション（自己紹介ボタン）の調整 --- */
+.link-nav-section {
+  padding-top: 0;      /* 上側の余白を0にする */
+  padding-bottom: 2rem; 
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ビデオ容器の下マージンもリセット */
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin-bottom: 0;    /* 下側の余白をなくす */
+}
+
+/* グリッド配置の修正 */
+.link-grid {
+  display: flex;      /* gridからflexに変更してサイズ調整しやすくする */
+  justify-content: center; /* 中身を中央に寄せる */
+  gap: 10px;          /* ボタン同士の間隔 */
+}
+
+/* ボタン（カード）自体のデザイン修正 */
+.link-card {
+  flex: 1;            /* 均等な幅にする */
+  max-width: 300px;   /* ボタンが大きくなりすぎないよう制限 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.2rem;    /* 余白を小さくしてスリムに */
+  text-decoration: none;
+  border-radius: 12px; /* 既存デザインに合わせた角丸 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* ホバー演出 */
+  min-height: 80px;   /* 高さを抑える */
+  color: #ffffff;
+}
+
+/* 個別カラー（既存のトーンに合わせる） */
+.profile-link {
+  background-color: #1a4fa3; /* 自己紹介用：濃い青 */
+}
+
+.policy-link {
+  background-color: #339b03; /* 活動報告用：緑 */
+}
+
+/* ホバー演出 */
+.link-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  opacity: 0.9;
+}
+
+/* 中のテキストサイズ調整 */
+.link-card .en {
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.link-card .jp {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* --- スマホ用レスポンシブ調整 --- */
+@media (max-width: 768px) {
+  .link-grid {
+    flex-direction: column; /* 縦並びにする */
+    align-items: center;
+  }
+  .link-card {
+    width: 100%;
+    max-width: 100%; /* スマホでは横幅いっぱいに */
+    min-height: 70px;
+  }
+}
+
+/* ============================================================
+   Carousel System (Shiho Press & Latest Reports) - Black Edition
+   ============================================================ */
+.pdf-year-section { margin-bottom: 50px; }
+.pdf-carousel-wrapper { position: relative; margin-bottom: 30px; }
+.pdf-year-title { 
+  font-size: 24px; font-weight: 700; color: #333; 
+  margin-bottom: 15px; display: block; 
+}
+
+/* カルーセル外枠 */
+.pdf-list {
+  position: relative;
+  margin-bottom: 40px;
+  overflow: hidden;
+  padding: 40px 0; /* 中央拡大時の見切れ防止 */
+}
+
+.pdf-carousel {
+  display: flex; overflow: hidden; border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; 
+  height: auto; min-height: 250px;
+}
+
+.pdf-carousel-inner {
+  display: flex; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  width: 100%; height: 100%; align-items: center; 
+}
+
+/* カルーセル内の各カードの設定 */
+.pdf-item {
+  /* 固定幅(300px)を廃止し、割合に戻す */
+  flex: 0 0 33.4%;       /* PCでは少し両端が見えるくらいのサイズ（お好みで90%など） */
+  margin: 0px;      /* アイテム間の余白 */
+  
+  background-color: #f9f3f0;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.5s ease;
+  opacity: 0.4;
+  transform: scale(0.9);
+  box-sizing: border-box;
+}
+
+/* 中央のアイテム */
+.pdf-item.center {
+  opacity: 1;
+  transform: scale(1.0);
+}
+
+/* スマホ表示では1枚を大きく見せる */
+@media (max-width: 767px) {
+  .pdf-item {
+    flex: 0 0 85%; /* スマホ画面の85%の幅 */
+    margin: 0 5px;
+  }
+}
+
+/* 中央のアイテム：黒ベースのアクセント */
+.pdf-item.center { opacity: 1; transform: scale(1.1); z-index: 5; }
+.pdf-item:hover { opacity: 0.8; transform: scale(0.88); }
+.pdf-item.center:hover { opacity: 1; transform: scale(1.15); }
+
+/* レスポンシブ対応 */
+@media (max-width: 1023px) { .pdf-item { flex: 0 0 50%; } }
+@media (max-width: 767px) { .pdf-item { flex: 0 0 100%; } }
+
+.pdf-item-icon { font-size: 32px; margin-bottom: 10px; color: #333; }
+.pdf-item h3 { 
+  font-size: 20px; font-weight: 700; color: #333; 
+  margin: 0 0 10px 0; cursor: pointer; 
+}
+.pdf-item h3:hover { color: #000; text-decoration: underline; }
+.pdf-item p { 
+  color: #666; margin: 0 0 15px 0; line-height: 1.6; font-size: 14px; 
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; 
+}
+
+.pdf-item-meta { font-size: 12px; color: #888; font-weight: bold; margin: 0 0 15px 0; }
+.pdf-actions { margin-top: auto; display: flex; gap: 10px; }
+
+/* ボタン：黒ベース */
+.pdf-btn {
+  display: inline-block; padding: 10px 20px; background-color: #ff6b9d; color: white;
+  text-decoration: none; border: none; border-radius: 4px; font-weight: 600; 
+  font-size: 14px; transition: background 0.3s; cursor: pointer;
+}
+.pdf-btn:hover { background-color: #e05586; /* 少し濃いピンク */ }
+.pdf-btn-secondary { background-color: #999; }
+.pdf-btn-secondary:hover { background-color: #777; }
+
+/* Navigation Buttons (黒・半透明のデザイン) */
+.carousel-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); 
+  background-color: rgba(0, 0, 0, 0.5); /* 黒の半透明 */
+  color: white; border: none; width: 44px; height: 44px; border-radius: 4px; /* 四角めのデザイン */
+  cursor: pointer; font-size: 20px; z-index: 10;
+  transition: background 0.3s; display: flex; align-items: center; justify-content: center;
+}
+.carousel-nav:hover { background-color: rgba(0, 0, 0, 0.8); }
+.carousel-prev { left: 10px; }
+.carousel-next { right: 10px; }
+
+/* Dots Navigation */
+.carousel-dots { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+.dot { 
+  width: 10px; height: 10px; border-radius: 50%; 
+  background-color: #ccc; cursor: pointer; transition: 0.3s; 
+}
+.dot.active { background-color: #ff6b9d; }
+
+/* --- Shiho Press サムネイル表示用スタイル --- */
+.pdf-thumbnail-container {
+  width: 100%;
+  height: 180px; /* 必要に応じて調整してください */
+  background-color: #f0f0f0;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.pdf-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 枠に合わせて切り抜き表示 */
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.pdf-thumbnail-img:hover {
+  opacity: 0.8;
+}
+
+.thumbnail-loading {
+  font-size: 12px;
+  color: #999;
+}
+
+/* PDFビューアー（モーダル）の基本レイアウト */
+.pdf-viewer {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.85);
+  display: none;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+.pdf-viewer.show {
+  display: flex;
 }
