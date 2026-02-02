@@ -123,6 +123,24 @@
       right: 10px;
     }
 
+    .pdf-year-section {
+      margin-bottom: 50px;
+    }
+
+    .pdf-year-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 0;
+      border-bottom: none;
+      display: block;
+    }
+
+    .pdf-carousel-wrapper {
+      margin-bottom: 30px;
+    }
+
     .carousel-dots {
       display: flex;
       justify-content: center;
@@ -141,6 +159,24 @@
 
     .dot.active {
       background-color: #ff6b9d;
+    }
+
+    .pdf-year-section {
+      margin-bottom: 50px;
+    }
+
+    .pdf-year-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 15px;
+      padding-bottom: 0;
+      border-bottom: none;
+      display: block;
+    }
+
+    .pdf-carousel-wrapper {
+      margin-bottom: 30px;
     }
 
     .pdf-item-icon {
@@ -288,6 +324,16 @@
       cursor: not-allowed;
     }
 
+    .pdf-back-btn {
+      background-color: #ff6b9d;
+      color: white;
+      margin-left: auto;
+    }
+
+    .pdf-back-btn:hover {
+      background-color: #ff5587;
+    }
+
     .pdf-page-info {
       color: #666;
       font-size: 14px;
@@ -336,17 +382,8 @@
       <p>重要な資料やお知らせはこちらからご覧いただけます</p>
     </div>
 
-    <div class="pdf-list">
-      <div class="pdf-carousel">
-        <button class="carousel-nav carousel-prev" id="carousel-prev" aria-label="前へ">❮</button>
-        <div class="pdf-carousel-inner" id="pdf-carousel-inner">
-          <!-- PDFリストが動的に挿入される -->
-        </div>
-        <button class="carousel-nav carousel-next" id="carousel-next" aria-label="次へ">❯</button>
-      </div>
-      <div class="carousel-dots" id="carousel-dots">
-        <!-- ドットが動的に挿入される -->
-      </div>
+    <div class="pdf-list" id="pdf-list">
+      <!-- 年代別セクションが動的に挿入される -->
     </div>
 
     <div id="empty-state" class="empty-state" style="display: none;">
@@ -370,6 +407,7 @@
         <button class="pdf-controls-btn" id="pdf-zoom-in-btn">拡大</button>
         <button class="pdf-controls-btn" id="pdf-zoom-out-btn">縮小</button>
         <a id="pdf-download-btn" class="pdf-controls-btn" style="text-decoration: none; cursor: pointer; display: inline-block;">ダウンロード</a>
+        <button class="pdf-controls-btn pdf-back-btn" id="pdf-back-btn">ShihoPressに戻る</button>
       </div>
 
       <div class="pdf-viewer-body">
@@ -389,9 +427,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 
 let currentPdf = null;
 let currentPageNum = 1;
-let currentScale = 1.5;  // デフォルト画質を向上（1.5倍で表示）
-let carouselIndex = 0;
-let totalSlides = 0;
+let currentScale = 1.5;
+let carouselIndices = {};
+let carouselTotalSlides = {};
 let itemsPerView = 1;
 
 // レスポンシブアイテム数を計算
@@ -406,47 +444,54 @@ function updateItemsPerView() {
 }
 
 // カルーセルスライドを更新
-function updateCarousel() {
-  const inner = document.getElementById('pdf-carousel-inner');
+function updateCarousel(year) {
+  const section = document.querySelector(`[data-carousel-year="${year}"]`);
+  if (!section) return;
+
+  const inner = section.querySelector('.pdf-carousel-inner');
+  const items = section.querySelectorAll('.pdf-item');
+  const totalSlides = carouselTotalSlides[year] || items.length;
+  let carouselIndex = carouselIndices[year] || 0;
   
-  // 1つのアイテムの幅（パーセンテージ）
+  // 範囲制限
+  const maxIndex = Math.max(0, totalSlides - 1);
+  if (carouselIndex > maxIndex) carouselIndex = maxIndex;
+  carouselIndices[year] = carouselIndex;
+  
+  // 1つあたりのアイテム幅
   const itemWidth = 100 / itemsPerView;
   
-  // 表示できる最後の位置
-  const maxIndex = Math.max(0, totalSlides - itemsPerView);
-  
-  if (carouselIndex > maxIndex) {
-    carouselIndex = maxIndex;
-  }
-  if (carouselIndex < 0) {
-    carouselIndex = 0;
-  }
+  // 中央に持ってくるための計算
+  const offset = (itemsPerView - 1) / 2; 
+  const translatePercent = -(carouselIndex - offset) * itemWidth;
 
-  // 1つっつスライドする
-  const translatePercent = -carouselIndex * itemWidth;
+  inner.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
   inner.style.transform = `translateX(${translatePercent}%)`;
 
-  // 中央のアイテムにcenterクラスを付与
-  const items = document.querySelectorAll('.pdf-item');
-  const centerItemIndex = carouselIndex + Math.floor(itemsPerView / 2);
+  // アクティブな要素にクラスを付与
   items.forEach((item, index) => {
     item.classList.remove('center');
-    if (index === centerItemIndex) {
+    if (index === carouselIndex) {
       item.classList.add('center');
     }
   });
 
   // ドットの更新
-  const dots = document.querySelectorAll('.dot');
+  const dots = section.querySelectorAll('.carousel-dots .dot');
   dots.forEach((dot, index) => {
     dot.classList.toggle('active', index === carouselIndex);
   });
+  
+  // ボタンの表示/非表示
+  section.querySelector('.carousel-prev').style.display = carouselIndex === 0 ? 'none' : 'block';
+  section.querySelector('.carousel-next').style.display = carouselIndex >= maxIndex ? 'none' : 'block';
 }
 
+
 // ドットをクリック
-function goToSlide(index) {
-  carouselIndex = index;
-  updateCarousel();
+function goToSlide(year, index) {
+  carouselIndices[year] = index;
+  updateCarousel(year);
 }
 
 async function loadPDFs() {
@@ -460,52 +505,82 @@ async function loadPDFs() {
     console.error('PDF読込エラー:', error);
     // テストデータを表示
     const testPdfs = [
-      { id: 1, title: 'サンプルPDF 1', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date().toISOString() },
-      { id: 2, title: 'サンプルPDF 2', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date().toISOString() },
-      { id: 3, title: 'サンプルPDF 3', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date().toISOString() }
+      { id: 1, title: 'サンプルPDF 1', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date(2026, 0, 15).toISOString() },
+      { id: 2, title: 'サンプルPDF 2', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date(2025, 11, 25).toISOString() },
+      { id: 3, title: 'サンプルPDF 3', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date(2025, 10, 30).toISOString() },
+      { id: 4, title: 'サンプルPDF 4', description: 'これはテストPDFです', file_path: '/sample.pdf', created_at: new Date(2026, 0, 5).toISOString() }
     ];
     renderPDFCarousel(testPdfs);
   }
 }
 
 function renderPDFCarousel(pdfs) {
-  const carouselInner = document.getElementById('pdf-carousel-inner');
+  const pdfList = document.getElementById('pdf-list');
   const emptyState = document.getElementById('empty-state');
 
   if (!Array.isArray(pdfs) || pdfs.length === 0) {
     emptyState.style.display = 'block';
-    carouselInner.innerHTML = '';
+    pdfList.innerHTML = '';
     return;
   }
 
   emptyState.style.display = 'none';
-  totalSlides = pdfs.length;
   
-  carouselInner.innerHTML = pdfs.map(pdf => `
-    <div class="pdf-item">
-      <div class="pdf-item-icon">📄</div>
-      <h3 onclick="openPDF('${pdf.file_path}', '${pdf.title.replace(/'/g, "\\'")}', '${pdf.id}')">${pdf.title}</h3>
-      ${pdf.description ? `<p>${pdf.description}</p>` : ''}
-      <div class="pdf-item-meta">
-        ${pdf.created_at ? `アップロード日時: ${new Date(pdf.created_at).toLocaleDateString('ja-JP')}` : ''}
+  // 年代でグループ化
+  const groupedByYear = {};
+  pdfs.forEach(pdf => {
+    const year = new Date(pdf.created_at).getFullYear();
+    if (!groupedByYear[year]) groupedByYear[year] = [];
+    groupedByYear[year].push(pdf);
+  });
+  
+  // 年代を降順でソート
+  const years = Object.keys(groupedByYear).sort((a, b) => b - a);
+  
+  // 各年代ごとのセクションを生成
+  pdfList.innerHTML = years.map(year => {
+    const yearPdfs = groupedByYear[year];
+    carouselTotalSlides[year] = yearPdfs.length;
+    carouselIndices[year] = 0;
+    
+    return `
+      <div class="pdf-year-section" data-carousel-year="${year}">
+        
+        <div class="pdf-carousel-wrapper">
+          <div class="pdf-year-title">${year}年</div>
+          
+          <div class="pdf-carousel">
+            <button class="carousel-nav carousel-prev" aria-label="前へ" onclick="handlePrevClick('${year}')">❮</button>
+            <div class="pdf-carousel-inner" id="pdf-carousel-inner-${year}">
+              ${yearPdfs.map(pdf => `
+                <div class="pdf-item">
+                  <div class="pdf-item-icon">📄</div>
+                  <h3 onclick="openPDF('${pdf.file_path}', '${pdf.title.replace(/'/g, "\\'")}', '${pdf.id}')">${pdf.title}</h3>
+                  ${pdf.description ? `<p>${pdf.description}</p>` : ''}
+                  <div class="pdf-item-meta">
+                    ${pdf.created_at ? `アップロード日時: ${new Date(pdf.created_at).toLocaleDateString('ja-JP')}` : ''}
+                  </div>
+                  <div class="pdf-actions">
+                    <button class="pdf-btn" onclick="openPDF('${pdf.file_path}', '${pdf.title.replace(/'/g, "\\'")}', '${pdf.id}')">ページで表示</button>
+                    <a href="${pdf.file_path}" class="pdf-btn pdf-btn-secondary" download>ダウンロード</a>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="carousel-nav carousel-next" aria-label="次へ" onclick="handleNextClick('${year}')">❯</button>
+          </div>
+          <div class="carousel-dots" id="carousel-dots-${year}">
+            ${Array.from({ length: yearPdfs.length }, (_, i) => `
+              <div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide('${year}', ${i})"></div>
+            `).join('')}
+          </div>
+        </div>
       </div>
-      <div class="pdf-actions">
-        <button class="pdf-btn" onclick="openPDF('${pdf.file_path}', '${pdf.title.replace(/'/g, "\\'")}', '${pdf.id}')">ページで表示</button>
-        <a href="${pdf.file_path}" class="pdf-btn pdf-btn-secondary" download>ダウンロード</a>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
-  // ドットを生成
-  const dotsContainer = document.getElementById('carousel-dots');
-  const maxIndex = Math.max(0, totalSlides - itemsPerView);
-  const numDots = maxIndex + 1;
-  dotsContainer.innerHTML = Array.from({ length: numDots }, (_, i) => `
-    <div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlide(${i})"></div>
-  `).join('');
-
-  carouselIndex = 0;
-  updateCarousel();
+  // 各セクションのカルーセルを初期化
+  years.forEach(year => updateCarousel(year));
 }
 
 async function openPDF(filePath, title, pdfId) {
@@ -574,17 +649,25 @@ document.getElementById('pdf-close-btn').addEventListener('click', () => {
   currentPdf = null;
 });
 
-document.getElementById('carousel-prev').addEventListener('click', () => {
-  const maxScrollPositions = Math.max(0, totalSlides - itemsPerView);
-  carouselIndex = (carouselIndex - 1 + maxScrollPositions + 1) % (maxScrollPositions + 1);
-  updateCarousel();
+document.getElementById('pdf-back-btn').addEventListener('click', () => {
+  document.getElementById('pdf-viewer').classList.remove('show');
+  currentPdf = null;
 });
 
-document.getElementById('carousel-next').addEventListener('click', () => {
-  const maxScrollPositions = Math.max(0, totalSlides - itemsPerView);
-  carouselIndex = (carouselIndex + 1) % (maxScrollPositions + 1);
-  updateCarousel();
-});
+function handlePrevClick(year) {
+  if (carouselIndices[year] > 0) {
+    carouselIndices[year]--;
+    updateCarousel(year);
+  }
+}
+
+function handleNextClick(year) {
+  const totalSlides = carouselTotalSlides[year];
+  if (carouselIndices[year] < totalSlides - 1) {
+    carouselIndices[year]++;
+    updateCarousel(year);
+  }
+}
 
 document.getElementById('pdf-prev-btn').addEventListener('click', () => {
   if (currentPageNum > 1) {
@@ -628,8 +711,11 @@ window.addEventListener('resize', () => {
   const oldItemsPerView = itemsPerView;
   updateItemsPerView();
   if (oldItemsPerView !== itemsPerView) {
-    carouselIndex = 0;
-    loadPDFs();
+    const years = Object.keys(carouselIndices);
+    years.forEach(year => {
+      carouselIndices[year] = 0;
+      updateCarousel(year);
+    });
   }
 });
 
