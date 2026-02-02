@@ -559,22 +559,8 @@ class AdminManager {
       this.pdf.render(document.getElementById('pdf-list-container'));
     } catch (err) {
       console.error('[Admin] Login error:', err);
-
-      // 追加すると便利なログ
-      console.log('err.message:', err.message);
-      console.log('err.name:', err.name);
-      console.log('err.stack:', err.stack);
-
-      // fetch の場合は response があることもある
-      if (err.response) {
-        console.log('response status:', err.response.status);
-        console.log('response data:', err.response.data);
-      }
-
       Utils.showMessage('login-error', 'パスワードが間違っています', 0);
     }
-
-    
   }
 
   /**

@@ -7,7 +7,7 @@ export default async function handler(
   res: VercelResponse
 ) {
 
-  // ===== GET =====
+  // ===== GET ====
   if (req.method === "GET") {
     try {
       let rows;
