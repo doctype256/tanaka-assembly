@@ -7,7 +7,7 @@ import APIClient from './api.js';
 import Utils from './utils.js';
 
 /**
- * コメント管理クラス
+ * コメン管理クラス
  */
 class CommentManager {
   constructor(api) {
