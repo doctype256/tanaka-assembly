@@ -2390,3 +2390,41 @@ body.font-large {
 .pdf-viewer.show {
   display: flex;
 }
+
+/* --- 活動報告レイアウト --- */
+.activity {
+  display: flex;
+  max-width: 1200px;
+  margin: 80px auto 0;
+  padding: 20px;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.activity-grid {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- カルーセル表示 --- */
+.pdf-year-section { margin-bottom: 50px; width: 100%; }
+.pdf-list { position: relative; overflow: hidden; padding: 20px 0; }
+.pdf-carousel { position: relative; width: 100%; overflow: hidden; }
+.pdf-carousel-inner { 
+  display: flex; 
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  align-items: center;
+}
+
+/* カードサムネイル */
+.report-thumb {
+  width: 100%; height: 160px; background: #ddd;
+  border-radius: 4px; margin-bottom: 15px; overflow: hidden;
+}
+.report-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* モバイル対応 */
+@media (max-width: 1024px) {
+  .activity { flex-direction: column; }
+  .activity-sidebar { width: 100%; }
+}
