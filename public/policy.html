@@ -79,7 +79,7 @@ fetch('data/static-texts.json')
 
     // 年代
     const isYearAllActive = (activeYear === 'all');
-    yearButtons.innerHTML = `<button data-year="all" class="${isYearAllActive ? 'is-active' : ''}">すべての年</button>`;
+    //yearButtons.innerHTML = `<button data-year="all" class="${isYearAllActive ? 'is-active' : ''}">すべての年</button>`;
     const years = [...new Set(activity.reports.map(r => r.year))].sort((a,b)=>b-a);
     years.forEach(y => {
       const isActive = (activeYear === y);

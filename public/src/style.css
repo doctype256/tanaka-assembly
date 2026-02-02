@@ -1396,7 +1396,8 @@ body.font-large {
     position: fixed;
     top: 90px;
     left: 45px;
-    width: 70%;
+    /* 幅を150pxに強制固定。%は使いません */
+    width: 150px !important;
     background: #03709b;
     padding: 0.75rem;
     border-radius: 8px;
