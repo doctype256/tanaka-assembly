@@ -12,7 +12,6 @@
     "noEmit": true,
     "incremental": true,
     "module": "esnext",
-    "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -21,8 +20,12 @@
       {
         "name": "next"
       }
-    ]
-  },
+    ], // ← ここにカンマが必要でした！
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }, // ← ここも閉じタグの対応を確認
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
