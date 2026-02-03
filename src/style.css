@@ -25,7 +25,7 @@ header {
   top:0; left:0; right:0;
   background:#03709b;
   color:white;
-  z-index: 100;
+  z-index: 10001;
 }
 header nav {
   max-width:1200px;
@@ -115,10 +115,6 @@ h2 {
 .contact-button:hover {
     background-color: #0056d4;  /* ホバー時の色 */
 }
-
-
-
-
 
 
 .hero {
@@ -1400,8 +1396,9 @@ body.font-large {
     position: fixed;
     top: 90px;
     left: 45px;
-    width: 70%;
-    background: #03709b;
+    /* 幅を150pxに強制固定。%は使いません */
+    width: 150px !important;
+    background: #2192be;
     padding: 0.75rem;
     border-radius: 8px;
     display: none;
@@ -2144,4 +2141,375 @@ body.font-large {
     grid-template-columns: 1fr; /* スマホでは縦1列 */
     gap: 1rem;
   }
+}
+
+/* --- YouTubeセクションの調整 --- */
+.youtube-section {
+  padding: 1.5rem 0;   /* 上下の余白を3remから1.5remへ半分に */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* --- リンクボタンセクション（自己紹介ボタン）の調整 --- */
+.link-nav-section {
+  padding-top: 0;      /* 上側の余白を0にする */
+  padding-bottom: 2rem; 
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ビデオ容器の下マージンもリセット */
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin-bottom: 0;    /* 下側の余白をなくす */
+}
+
+/* グリッド配置の修正 */
+.link-grid {
+  display: flex;      /* gridからflexに変更してサイズ調整しやすくする */
+  justify-content: center; /* 中身を中央に寄せる */
+  gap: 10px;          /* ボタン同士の間隔 */
+}
+
+/* ボタン（カード）自体のデザイン修正 */
+.link-card {
+  flex: 1;            /* 均等な幅にする */
+  max-width: 300px;   /* ボタンが大きくなりすぎないよう制限 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.2rem;    /* 余白を小さくしてスリムに */
+  text-decoration: none;
+  border-radius: 12px; /* 既存デザインに合わせた角丸 */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* ホバー演出 */
+  min-height: 80px;   /* 高さを抑える */
+  color: #ffffff;
+}
+
+/* 個別カラー（既存のトーンに合わせる） */
+.profile-link {
+  background-color: #1a4fa3; /* 自己紹介用：濃い青 */
+}
+
+.policy-link {
+  background-color: #339b03; /* 活動報告用：緑 */
+}
+
+/* ホバー演出 */
+.link-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  opacity: 0.9;
+}
+
+/* 中のテキストサイズ調整 */
+.link-card .en {
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.link-card .jp {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* --- スマホ用レスポンシブ調整 --- */
+@media (max-width: 768px) {
+  .link-grid {
+    flex-direction: column; /* 縦並びにする */
+    align-items: center;
+  }
+  .link-card {
+    width: 100%;
+    max-width: 100%; /* スマホでは横幅いっぱいに */
+    min-height: 70px;
+  }
+}
+
+/* ============================================================
+   Carousel System (Shiho Press & Latest Reports) - Black Edition
+   ============================================================ */
+.pdf-year-section { margin-bottom: 50px; }
+.pdf-carousel-wrapper { position: relative; margin-bottom: 30px; }
+.pdf-year-title { 
+  font-size: 24px; font-weight: 700; color: #333; 
+  margin-bottom: 15px; display: block; 
+}
+
+/* カルーセル外枠 */
+.pdf-list {
+  position: relative;
+  margin-bottom: 40px;
+  overflow: hidden;
+  padding: 40px 0; /* 中央拡大時の見切れ防止 */
+}
+
+.pdf-carousel {
+  display: flex; overflow: hidden; border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; 
+  height: auto; min-height: 250px;
+}
+
+.pdf-carousel-inner {
+  display: flex; transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  width: 100%; height: 100%; align-items: center; 
+}
+
+/* カルーセル内の各カードの設定 */
+.pdf-item {
+  /* 固定幅(300px)を廃止し、割合に戻す */
+  flex: 0 0 33.4%;       /* PCでは少し両端が見えるくらいのサイズ（お好みで90%など） */
+  margin: 0px;      /* アイテム間の余白 */
+  
+  background-color: #f9f3f0;
+  padding: 20px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.5s ease;
+  opacity: 0.4;
+  transform: scale(0.9);
+  box-sizing: border-box;
+}
+
+/* 中央のアイテム */
+.pdf-item.center {
+  opacity: 1;
+  transform: scale(1.0);
+}
+
+/* スマホ表示では1枚を大きく見せる */
+@media (max-width: 767px) {
+  .pdf-item {
+    flex: 0 0 85%; /* スマホ画面の85%の幅 */
+    margin: 0 5px;
+  }
+}
+
+/* 中央のアイテム：黒ベースのアクセント */
+.pdf-item.center { opacity: 1; transform: scale(1.1); z-index: 5; }
+.pdf-item:hover { opacity: 0.8; transform: scale(0.88); }
+.pdf-item.center:hover { opacity: 1; transform: scale(1.15); }
+
+/* レスポンシブ対応 */
+@media (max-width: 1023px) { .pdf-item { flex: 0 0 50%; } }
+@media (max-width: 767px) { .pdf-item { flex: 0 0 100%; } }
+
+.pdf-item-icon { font-size: 32px; margin-bottom: 10px; color: #333; }
+.pdf-item h3 { 
+  font-size: 20px; font-weight: 700; color: #333; 
+  margin: 0 0 10px 0; cursor: pointer; 
+}
+.pdf-item h3:hover { color: #000; text-decoration: underline; }
+.pdf-item p { 
+  color: #666; margin: 0 0 15px 0; line-height: 1.6; font-size: 14px; 
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; 
+}
+
+.pdf-item-meta { font-size: 12px; color: #888; font-weight: bold; margin: 0 0 15px 0; }
+.pdf-actions { margin-top: auto; display: flex; gap: 10px; }
+
+/* ボタン：黒ベース */
+.pdf-btn {
+  display: inline-block; padding: 10px 20px; background-color: #ff6b9d; color: white;
+  text-decoration: none; border: none; border-radius: 4px; font-weight: 600; 
+  font-size: 14px; transition: background 0.3s; cursor: pointer;
+}
+.pdf-btn:hover { background-color: #e05586; /* 少し濃いピンク */ }
+.pdf-btn-secondary { background-color: #999; }
+.pdf-btn-secondary:hover { background-color: #777; }
+
+/* Navigation Buttons (黒・半透明のデザイン) */
+.carousel-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); 
+  background-color: rgba(0, 0, 0, 0.5); /* 黒の半透明 */
+  color: white; border: none; width: 44px; height: 44px; border-radius: 4px; /* 四角めのデザイン */
+  cursor: pointer; font-size: 20px; z-index: 10;
+  transition: background 0.3s; display: flex; align-items: center; justify-content: center;
+}
+.carousel-nav:hover { background-color: rgba(0, 0, 0, 0.8); }
+.carousel-prev { left: 10px; }
+.carousel-next { right: 10px; }
+
+/* Dots Navigation */
+.carousel-dots { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
+.dot { 
+  width: 10px; height: 10px; border-radius: 50%; 
+  background-color: #ccc; cursor: pointer; transition: 0.3s; 
+}
+.dot.active { background-color: #ff6b9d; }
+
+/* --- Shiho Press サムネイル表示用スタイル --- */
+.pdf-thumbnail-container {
+  width: 100%;
+  height: 180px; /* 必要に応じて調整してください */
+  background-color: #f0f0f0;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.pdf-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 枠に合わせて切り抜き表示 */
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.pdf-thumbnail-img:hover {
+  opacity: 0.8;
+}
+
+.thumbnail-loading {
+  font-size: 12px;
+  color: #999;
+}
+
+/* PDFビューアー（モーダル）の基本レイアウト */
+.pdf-viewer {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.85);
+  display: none;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+.pdf-viewer.show {
+  display: flex;
+}
+
+/* --- 活動報告レイアウト --- */
+.activity {
+  display: flex;
+  max-width: 1200px;
+  margin: 80px auto 0;
+  padding: 20px;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.activity-grid {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- カルーセル表示 --- */
+.pdf-year-section { margin-bottom: 50px; width: 100%; }
+.pdf-list { position: relative; overflow: hidden; padding: 20px 0; }
+.pdf-carousel { position: relative; width: 100%; overflow: hidden; }
+.pdf-carousel-inner { 
+  display: flex; 
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  align-items: center;
+}
+
+/* カードサムネイル */
+.report-thumb {
+  width: 100%; height: 160px; background: #ddd;
+  border-radius: 4px; margin-bottom: 15px; overflow: hidden;
+}
+.report-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+/* モバイル対応 */
+@media (max-width: 1024px) {
+  .activity { flex-direction: column; }
+  .activity-sidebar { width: 100%; }
+}
+
+/* ============================================================
+   サイドバー・アコーディオン（スマホ限定）
+   ============================================================ */
+
+/* PC版のデフォルト：矢印を隠し、常に開いた状態にする */
+.sidebar-collapsible {
+  cursor: default;
+  user-select: none;
+  margin-bottom: 10px;
+}
+
+/* PCではボタンを常に表示 */
+.collapsible-content {
+  display: flex !important; 
+  flex-direction: column;
+}
+
+.arrow {
+  display: none; /* PCでは矢印不要 */
+}
+
+/* スマホ版（1023px以下）でアコーディオン化 */
+@media screen and (max-width: 1023px) {
+  .sidebar-collapsible {
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 8px;
+    margin-top: 15px;
+  }
+
+  .arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    margin-left: 10px;
+  }
+
+  .arrow.up {
+    transform: rotate(180deg);
+  }
+
+  /* スマホ版では最初は非表示にする */
+  .collapsible-content {
+    display: none !important; 
+    padding-top: 10px;
+  }
+
+  /* JSで .is-open クラスがついた時だけ表示 */
+  .collapsible-content.is-open {
+    display: flex !important;
+  }
+}
+
+/* SNSアイコンの共通設定 */
+.sns-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* X (旧Twitter) - 黒いロゴ */
+.sns-icon.x {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z'/%3E%3C/svg%3E");
+}
+
+/* Instagram - グラデーション風（簡易版） */
+.sns-icon.instagram {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23E4405F'%3E%3Cpath d='M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z'/%3E%3C/svg%3E");
+}
+
+/* Facebook - 青色 */
+.sns-icon.facebook {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231877F2'%3E%3Cpath d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z'/%3E%3C/svg%3E");
+}
+
+/* レイアウト調整用 */
+.sns-left {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* アイコンとテキストの間隔 */
 }
