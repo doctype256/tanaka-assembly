@@ -7,7 +7,6 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/style.css">
-
 </head>
 
 <body data-page="policy">
@@ -82,14 +81,24 @@ async function loadProfile() {
     // API からプロフィール取得を試みる
     try {
       const profileRes = await fetch('/api/profile?password=admin777');
+      console.log('[Profile API] Response status:', profileRes.status);
+      
       if (profileRes.ok) {
         const apiProfile = await profileRes.json();
+        console.log('[Profile API] Full response:', apiProfile);
+        console.log('[Profile API] IMG_URL:', apiProfile?.IMG_URL);
+        
         // API データがあればマージ
         if (apiProfile && apiProfile.Name) {
+          // APIから取得した画像を優先（IMG_URLがあれば必ず使う）
+          const photoUrl = apiProfile.IMG_URL && apiProfile.IMG_URL.trim() 
+            ? apiProfile.IMG_URL 
+            : profile.photo;
+          
           profile = {
             ...profile,
             name: apiProfile.Name,
-            photo: apiProfile.IMG_URL || profile.photo,
+            photo: photoUrl,
             basic: [
               { label: '生年月日', value: apiProfile.birthday },
               { label: '出身地', value: apiProfile.From },
@@ -99,7 +108,12 @@ async function loadProfile() {
             role: apiProfile.Job || profile.role,
             history: profile.history // 静的な history は保持
           };
+          console.log('[Profile API] Merged profile photo:', photoUrl);
+          console.log('Profile loaded from API:', { name: apiProfile.Name, photo: photoUrl });
         }
+      } else {
+        const text = await profileRes.text();
+        console.log('[Profile API] Error response:', profileRes.status, text.substring(0, 200));
       }
     } catch (apiError) {
       console.log('API 読込失敗 - 静的データを使用:', apiError.message);
@@ -111,6 +125,9 @@ async function loadProfile() {
       const careerRes = await fetch('/api/career?password=admin777');
       if (careerRes.ok) {
         careers = await careerRes.json();
+        console.log('Careers loaded:', careers);
+      } else {
+        console.log('Career API response not ok:', careerRes.status, careerRes.statusText);
       }
     } catch (careerError) {
       console.log('キャリア API 読込失敗:', careerError.message);
@@ -126,8 +143,13 @@ async function loadProfile() {
 
     // 写真
     if (profile.photo) {
+      // キャッシュ対策：CloudinaryのURLにはキャッシュ無効化パラメータを追加
+      const photoUrl = profile.photo.includes('cloudinary') 
+        ? `${profile.photo}?t=${Date.now()}`
+        : profile.photo;
       document.getElementById('profile-photo').innerHTML =
-        `<img src="${profile.photo}" alt="${profile.name}">`;
+        `<img src="${photoUrl}" alt="${profile.name}" loading="lazy">`;
+      console.log('Photo set:', photoUrl);
     }
 
     // 基本情報
@@ -218,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<script src="src/header.js"></script>
+<script type="module" src="src/header.js"></script>
+<script type="module" src="src/footer.js"></script>
 </body>
 </html>

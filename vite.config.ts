@@ -1,23 +1,31 @@
-import { defineConfig } from 'vite'
-import apiPlugin from './vite-plugin-api'
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [apiPlugin()],
-  // プロダクション環境でのビルド設定
   build: {
-    outDir: 'dist',
+    outDir: "dist",
     sourcemap: false,
     rollupOptions: {
       output: {
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
-      }
-    }
+        entryFileNames: "assets/[name]-[hash].js",
+        chunkFileNames: "assets/[name]-[hash].js",
+        assetFileNames: "assets/[name]-[hash].[ext]",
+      },
+    },
   },
-  // 開発サーバーの設定
+
   server: {
+    host: true, // ← 外部アクセスも許可（スマホ確認など）
     port: 5173,
-    open: false
-  }
-})
+    strictPort: true, // ← ポート固定
+    open: false,
+
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+    },
+  },
+});

@@ -1,13 +1,14 @@
-// api/cases.ts
+// app/api/cases/route.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import db from "../db/client.js";
+import db from "@/db/client";
+
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
 
-  // ===== GET ====
+  // ===== GET =====
   if (req.method === "GET") {
     try {
       let rows;
