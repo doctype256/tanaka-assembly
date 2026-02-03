@@ -22,12 +22,17 @@
 
   <aside class="activity-sidebar" id="activity-sidebar">
     <div class="sidebar-section">
-      <h3 class="sidebar-title">カテゴリー</h3>
-      <div class="category-buttons" id="category-buttons"></div>
+      <div class="sidebar-collapsible" id="cat-trigger">
+        <h3 class="sidebar-title">カテゴリー <span class="arrow">▼</span></h3>
+      </div>
+      <div class="category-buttons collapsible-content" id="category-buttons"></div>
     </div>
+    
     <div class="sidebar-section">
-      <h3 class="sidebar-title">年代</h3>
-      <div class="category-buttons" id="year-buttons"></div>
+      <div class="sidebar-collapsible" id="year-trigger">
+        <h3 class="sidebar-title">年代 <span class="arrow">▼</span></h3>
+      </div>
+      <div class="category-buttons collapsible-content" id="year-buttons"></div>
     </div>
   </aside>
 
@@ -102,7 +107,6 @@ fetch('data/static-texts.json')
     if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // --- カルーセル生成：既存CSSの構造とクラスを100%活用 ---
   function renderCarousel(title, items) {
     const section = document.createElement('div');
     section.className = 'pdf-year-section';
@@ -136,29 +140,18 @@ fetch('data/static-texts.json')
     const pdfItems = section.querySelectorAll('.pdf-item');
     let currentIndex = 0;
 
-    // 中央に寄せるための計算ロジック
     const update = () => {
       if (pdfItems.length === 0) return;
-
       const containerWidth = carousel.offsetWidth;
       const itemWidth = pdfItems[0].offsetWidth;
-      
-      // 中央配置のオフセット： (コンテナ幅/2) - (カード幅/2)
       const centerOffset = (containerWidth / 2) - (itemWidth / 2);
-      
-      // 移動量の計算
       const moveX = (currentIndex * itemWidth) - centerOffset;
-
-      // 既存CSSの transition が効くように transform で移動
       inner.style.transform = `translateX(${-moveX}px)`;
-
-      // 既存CSSの .center クラス（不透明度・拡大）を切り替え
       pdfItems.forEach((item, i) => {
         item.classList.toggle('center', i === currentIndex);
       });
     };
 
-    // ボタンイベント
     section.querySelector('.carousel-next').onclick = () => {
       currentIndex = (currentIndex + 1) % pdfItems.length;
       update();
@@ -169,14 +162,41 @@ fetch('data/static-texts.json')
       update();
     };
 
-    // リサイズ時に中央を維持
     window.addEventListener('resize', update);
-    
-    // 初回実行（レンダリング後のサイズ確定を待つ）
     setTimeout(update, 100);
   }
 
-  // サイドバー・フィルター操作
+  // --- 4. サイドバー・アコーディオン制御（常に片方だけ開くロジック） ---
+  const handleToggle = (contentId, arrowEl) => {
+    if (window.innerWidth >= 1024) return;
+    
+    const targetContent = document.getElementById(contentId);
+    const isNowOpen = targetContent.classList.contains('is-open');
+
+    // 他のアコーディオンをすべて閉じる
+    document.querySelectorAll('.collapsible-content').forEach(el => {
+      el.classList.remove('is-open');
+    });
+    document.querySelectorAll('.arrow').forEach(el => {
+      el.classList.remove('up');
+    });
+
+    // クリックしたものが閉じていた場合のみ、新しく開く
+    if (!isNowOpen) {
+      targetContent.classList.add('is-open');
+      arrowEl.classList.add('up');
+    }
+  };
+
+  document.getElementById('cat-trigger').onclick = (e) => {
+    handleToggle('category-buttons', e.currentTarget.querySelector('.arrow'));
+  };
+  
+  document.getElementById('year-trigger').onclick = (e) => {
+    handleToggle('year-buttons', e.currentTarget.querySelector('.arrow'));
+  };
+
+  // フィルタークリック後の挙動
   catButtons.onclick = e => {
     const btn = e.target.closest('button');
     if (!btn || !btn.dataset.category) return;
@@ -185,8 +205,10 @@ fetch('data/static-texts.json')
     clearAllActive();
     btn.classList.add('is-active');
     render(true);
-    sidebar.classList.remove('is-open');
-    toggle.textContent = '＞';
+    if (window.innerWidth < 1024) {
+      sidebar.classList.remove('is-open');
+      toggle.textContent = '＞';
+    }
   };
 
   yearButtons.onclick = e => {
@@ -197,8 +219,10 @@ fetch('data/static-texts.json')
     clearAllActive();
     btn.classList.add('is-active');
     render(true);
-    sidebar.classList.remove('is-open');
-    toggle.textContent = '＞';
+    if (window.innerWidth < 1024) {
+      sidebar.classList.remove('is-open');
+      toggle.textContent = '＞';
+    }
   };
 
   toggle.onclick = () => {
