@@ -1,3 +1,4 @@
+import "dotenv/config";
 // db/client.ts
 import { createClient, Client } from "@libsql/client";
 

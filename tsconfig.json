@@ -1,22 +1,40 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
     "skipLibCheck": true,
-    "moduleResolution": "Bundler",
-    "allowImportingTsExtensions": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
     "jsx": "react-jsx",
-    "strict": false,
-    "allowJs": true,
-    "checkJs": false,
-    "types": ["node", "@vercel/node"]
-  },
-  "include": ["src", "api", "db", "types"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ], // ← ここにカンマが必要でした！
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }, // ← ここも閉じタグの対応を確認
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
-
