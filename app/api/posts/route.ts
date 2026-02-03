@@ -1,5 +1,4 @@
-// app/api/posts/route.ts
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { NextResponse } from 'next/server';
 
 const dummyPosts = [
   {
@@ -16,23 +15,23 @@ const dummyPosts = [
   }
 ];
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method === "GET") {
-    return res.status(200).json(dummyPosts);
-  }
+// GETリクエスト用の関数
+export async function GET() {
+  return NextResponse.json(dummyPosts);
+}
 
-  if (req.method === "POST") {
-    const newItem = {
-      id: String(Date.now()),
-      ...req.body,
-      createdAt: new Date().toISOString()
-    };
-    return res.status(200).json(newItem);
-  }
+// POSTリクエスト用の関数
+export async function POST(request: Request) {
+  const body = await request.json();
+  const newItem = {
+    id: String(Date.now()),
+    ...body,
+    createdAt: new Date().toISOString()
+  };
+  return NextResponse.json(newItem);
+}
 
-  if (req.method === "DELETE") {
-    return res.status(200).json({ success: true });
-  }
-
-  return res.status(405).json({ error: "Method not allowed" });
+// DELETEリクエスト用の関数
+export async function DELETE() {
+  return NextResponse.json({ success: true });
 }
