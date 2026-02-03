@@ -210,6 +210,39 @@
     background-color: #333;
     color: white;
   }
+
+
+  /* --- カルーセル(横スライド)の見た目・位置*/
+  .pdf-carousel-wrapper {
+  position: relative;
+}
+
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.carousel-prev {
+  left: 10px;
+}
+
+.carousel-next {
+  right: 10px;
+}
+
 </style>
 </head>
 
@@ -332,13 +365,11 @@ function updateCarousel(year) {
   const items = section.querySelectorAll('.pdf-item');
   const totalSlides = carouselTotalSlides[year] || items.length;
   let carouselIndex = carouselIndices[year] || 0;
-  
-  const maxIndex = Math.max(0, totalSlides - 1);
-  if (carouselIndex > maxIndex) carouselIndex = maxIndex;
+
   carouselIndices[year] = carouselIndex;
-  
+
   const itemWidth = 100 / itemsPerView;
-  const offset = (itemsPerView - 1) / 2; 
+  const offset = (itemsPerView - 1) / 2;
   const translatePercent = -(carouselIndex - offset) * itemWidth;
 
   inner.style.transition = 'transform 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
@@ -352,10 +383,8 @@ function updateCarousel(year) {
   dots.forEach((dot, index) => {
     dot.classList.toggle('active', index === carouselIndex);
   });
-  
-  section.querySelector('.carousel-prev').style.display = carouselIndex === 0 ? 'none' : 'block';
-  section.querySelector('.carousel-next').style.display = carouselIndex >= maxIndex ? 'none' : 'block';
 }
+
 
 function goToSlide(year, index) {
   carouselIndices[year] = index;
@@ -363,18 +392,17 @@ function goToSlide(year, index) {
 }
 
 function handlePrevClick(year) {
-  if (carouselIndices[year] > 0) {
-    carouselIndices[year]--;
-    updateCarousel(year);
-  }
+  const total = carouselTotalSlides[year];
+  carouselIndices[year] = (carouselIndices[year] - 1 + total) % total;
+  updateCarousel(year);
 }
 
 function handleNextClick(year) {
-  if (carouselIndices[year] < carouselTotalSlides[year] - 1) {
-    carouselIndices[year]++;
-    updateCarousel(year);
-  }
+  const total = carouselTotalSlides[year];
+  carouselIndices[year] = (carouselIndices[year] + 1) % total;
+  updateCarousel(year);
 }
+
 
 async function loadPDFs() {
   try {
