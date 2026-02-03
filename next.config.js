@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Turbopackを有効にしつつ、エラーを解消する設定
-  experimental: {
-    turbopack: {}
-  }
+  // 以前の webpack や experimental 設定をすべて削除
 };
 
 export default nextConfig;
