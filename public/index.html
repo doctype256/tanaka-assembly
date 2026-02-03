@@ -9,10 +9,9 @@
   <link rel="stylesheet" href="src/style.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
 </head>
 
-<body data-page="activity">
+<body data-page="policy">
 
 <header>
   <nav class="header-inner">
@@ -40,20 +39,20 @@
     </a>
   </section>
 
-    <section class="youtube-section">
-      <div class="video-wrapper">
-        <iframe 
-          width="560" 
-          height="315" 
-          src="https://www.youtube.com/embed/_bx_78IZleo" 
-          title="YouTube video player" 
-          frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-          referrerpolicy="strict-origin-when-cross-origin" 
-          allowfullscreen>
-        </iframe>
-      </div>
-    </section>
+  <section class="youtube-section">
+    <div class="video-wrapper">
+      <iframe 
+        width="560" 
+        height="315" 
+        src="https://www.youtube.com/embed/_bx_78IZleo" 
+        title="YouTube video player" 
+        frameborder="0" 
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; compute-pressure" 
+        referrerpolicy="strict-origin-when-cross-origin" 
+        allowfullscreen>
+      </iframe>
+    </div>
+  </section>
 
   <section class="link-nav-section">
     <div class="link-grid">
@@ -81,9 +80,29 @@
   <section class="sns-jump-section">
     <h2 class="section-title">SNS</h2>
     <div class="sns-list">
-      <a href="https://x.com/ishin_tanaka_s" class="sns-row" target="_blank" rel="noopener"><span>X (旧Twitter)</span><span class="arrow">＞</span></a>
-      <a href="https://www.instagram.com/tanaka_shiho_mama/" class="sns-row" target="_blank" rel="noopener"><span>Instagram</span><span class="arrow">＞</span></a>
-      <a href="https://www.facebook.com/people/Shiho-Tanaka/pfbid0..." class="sns-row" target="_blank" rel="noopener"><span>Facebook</span><span class="arrow">＞</span></a>
+      <a href="https://x.com/ishin_tanaka_s" class="sns-row" target="_blank" rel="noopener">
+        <div class="sns-left">
+          <span class="sns-icon x"></span>
+          <span>X (旧Twitter)</span>
+        </div>
+        <span class="arrow">＞</span>
+      </a>
+
+      <a href="https://www.instagram.com/tanaka_shiho_mama/" class="sns-row" target="_blank" rel="noopener">
+        <div class="sns-left">
+          <span class="sns-icon instagram"></span>
+          <span>Instagram</span>
+        </div>
+        <span class="arrow">＞</span>
+      </a>
+
+      <a href="https://www.facebook.com/people/Shiho-Tanaka/pfbid0..." class="sns-row" target="_blank" rel="noopener">
+        <div class="sns-left">
+          <span class="sns-icon facebook"></span>
+          <span>Facebook</span>
+        </div>
+        <span class="arrow">＞</span>
+      </a>
     </div>
   </section>
 </main>
@@ -122,7 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('page-header-text').textContent = header.text;
         const mapWrapper = document.getElementById('page-header-map');
         if (header.mapEmbed) {
-          mapWrapper.innerHTML = `<iframe src="${header.mapEmbed}" loading="lazy" allowfullscreen></iframe>`;
+          // allow="compute-pressure" をiframeに追加
+          mapWrapper.innerHTML = `<iframe src="${header.mapEmbed}" loading="lazy" allowfullscreen allow="compute-pressure"></iframe>`;
         }
         const linksWrapper = document.getElementById('page-header-links');
         if (header.links) {

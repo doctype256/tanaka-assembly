@@ -9,7 +9,7 @@
     { "href": "policy.html", "text": "活動報告" },
     { "href": "contact.html", "text": "お問い合わせ" },
     { "href": "post.html", "text": "ご相談ポスト" },
-    { "href": "pdf-text.html", "text": "Shiho press" }
+    { "href": "pdf-text.html", "text": "Shiho Press" }
   ],
 
   "header": {
@@ -165,7 +165,7 @@
   "privacy": {
     "body": [
       "お寄せいただいた内容は、活動の参考にさせていただきます。",
-      "法令に基づく場合を除き、第三者に提供することはありません。",
+      "投稿いただいた内容は、管理者が内容を確認したうえで、公開しても差し支えないと判断したものに限り、掲載する場合があります。",
       "内容をご確認のうえ、同意いただける場合はチェックを入れて送信してください。"
     ],
     "checkboxLabel": "プライバシーポリシーに同意して送信する"
@@ -177,14 +177,9 @@
   
   "pageHeaders": {
     "policy": {
-      "title": "事務所、リンク集",
-      "text": "〒600-8267 京都府京都市下京区御器屋町51-3",
-      "mapEmbed": "https://www.google.com/maps?q=京都府京都市下京区御器屋町51-3&output=embed",
-      "links": [
-      { "label": "公式X（旧Twitter）", "url": "https://x.com/ishin_tanaka_s" },
-      { "label": "お問い合わせ", "url": "contact.html" }
-      ]
+      "title": "事務所案内",
+      "text": "〒600-8267 京都府京都市下京区御器屋町51-3（七条大宮上る西側1階）",
+      "mapEmbed": "https://www.google.com/maps?q=京都府京都市下京区御器屋町51-3&output=embed"
     }
   }
-
 }
