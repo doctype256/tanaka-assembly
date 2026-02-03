@@ -4,9 +4,7 @@
   "functions": {
     "api/*.ts": {
       "runtime": "nodejs18",
-      "includeFiles": [
-        "db/**"
-      ]
+      "includeFiles": "db/**"
     }
   }
 }
