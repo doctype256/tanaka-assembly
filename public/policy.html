@@ -62,14 +62,11 @@ fetch('data/static-texts.json')
   let activeCategory = 'all';
   let activeYear = null; 
 
-  // ボタンの全消去関数
   function clearAllActive() {
     document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('is-active'));
   }
 
-  // 1. フィルターボタン生成（一つだけ光るロジック）
   const renderFilters = () => {
-    // カテゴリー
     const isCatAllActive = (activeYear === null && activeCategory === 'all');
     catButtons.innerHTML = `<button data-category="all" class="${isCatAllActive ? 'is-active' : ''}">すべて</button>`;
     activity.categories.forEach(cat => {
@@ -77,17 +74,14 @@ fetch('data/static-texts.json')
       catButtons.innerHTML += `<button data-category="${cat.id}" class="${isActive ? 'is-active' : ''}">${cat.label}</button>`;
     });
 
-    // 年代
-    const isYearAllActive = (activeYear === 'all');
-    yearButtons.innerHTML = `<button data-year="all" class="${isYearAllActive ? 'is-active' : ''}">すべての年</button>`;
     const years = [...new Set(activity.reports.map(r => r.year))].sort((a,b)=>b-a);
+    yearButtons.innerHTML = '';
     years.forEach(y => {
       const isActive = (activeYear === y);
       yearButtons.innerHTML += `<button data-year="${y}" class="${isActive ? 'is-active' : ''}">${y}年</button>`;
     });
   };
 
-  // 2. メイン描画関数
   function render(scrollTop = false) {
     const root = document.getElementById('carousel-root');
     root.innerHTML = '';
@@ -98,9 +92,6 @@ fetch('data/static-texts.json')
     if (activeYear !== null && activeYear !== 'all') {
       const filtered = allReports.map((r, i) => ({...r, originalIndex: i})).filter(r => r.year === activeYear);
       if(filtered.length) renderCarousel(`${activeYear}年の活動`, filtered);
-    } else if (activeYear === 'all') {
-      const filtered = allReports.map((r, i) => ({...r, originalIndex: i})).sort((a,b) => b.year - a.year);
-      if(filtered.length) renderCarousel(`すべての活動報告`, filtered);
     } else {
       activity.categories.forEach(cat => {
         if (activeCategory !== 'all' && cat.id !== activeCategory) return;
@@ -111,7 +102,7 @@ fetch('data/static-texts.json')
     if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // 3. カルーセル生成（縦幅を大きくするための構造）
+  // --- カルーセル生成：既存CSSの構造とクラスを100%活用 ---
   function renderCarousel(title, items) {
     const section = document.createElement('div');
     section.className = 'pdf-year-section';
@@ -139,32 +130,58 @@ fetch('data/static-texts.json')
       </div>
     `;
     document.getElementById('carousel-root').appendChild(section);
-    initCarouselLogic(section);
-  }
 
-  function initCarouselLogic(section) {
+    const carousel = section.querySelector('.pdf-carousel');
     const inner = section.querySelector('.pdf-carousel-inner');
-    const items = section.querySelectorAll('.pdf-item');
-    if (items.length === 0) return;
+    const pdfItems = section.querySelectorAll('.pdf-item');
     let currentIndex = 0;
+
+    // 中央に寄せるための計算ロジック
     const update = () => {
-      const isMobile = window.innerWidth < 768;
-      const step = isMobile ? 85 : 33.333; 
-      const offset = isMobile ? 7.5 : 33.333; 
-      inner.style.transform = `translateX(${- (currentIndex * step) + offset}%)`;
-      items.forEach((item, i) => item.classList.toggle('center', i === currentIndex));
+      if (pdfItems.length === 0) return;
+
+      const containerWidth = carousel.offsetWidth;
+      const itemWidth = pdfItems[0].offsetWidth;
+      
+      // 中央配置のオフセット： (コンテナ幅/2) - (カード幅/2)
+      const centerOffset = (containerWidth / 2) - (itemWidth / 2);
+      
+      // 移動量の計算
+      const moveX = (currentIndex * itemWidth) - centerOffset;
+
+      // 既存CSSの transition が効くように transform で移動
+      inner.style.transform = `translateX(${-moveX}px)`;
+
+      // 既存CSSの .center クラス（不透明度・拡大）を切り替え
+      pdfItems.forEach((item, i) => {
+        item.classList.toggle('center', i === currentIndex);
+      });
     };
-    section.querySelector('.carousel-next').onclick = () => { currentIndex = (currentIndex + 1) % items.length; update(); };
-    section.querySelector('.carousel-prev').onclick = () => { currentIndex = (currentIndex - 1 + items.length) % items.length; update(); };
-    update();
+
+    // ボタンイベント
+    section.querySelector('.carousel-next').onclick = () => {
+      currentIndex = (currentIndex + 1) % pdfItems.length;
+      update();
+    };
+
+    section.querySelector('.carousel-prev').onclick = () => {
+      currentIndex = (currentIndex - 1 + pdfItems.length) % pdfItems.length;
+      update();
+    };
+
+    // リサイズ時に中央を維持
+    window.addEventListener('resize', update);
+    
+    // 初回実行（レンダリング後のサイズ確定を待つ）
+    setTimeout(update, 100);
   }
 
-  // --- 4. ご提示いただいたトグル＆クリックイベントの実装 ---
+  // サイドバー・フィルター操作
   catButtons.onclick = e => {
     const btn = e.target.closest('button');
     if (!btn || !btn.dataset.category) return;
     activeCategory = btn.dataset.category;
-    activeYear = null; // 'all'ではなくnullにすることで年代側の「すべて」と重複させない
+    activeYear = null;
     clearAllActive();
     btn.classList.add('is-active');
     render(true);
@@ -175,7 +192,7 @@ fetch('data/static-texts.json')
   yearButtons.onclick = e => {
     const btn = e.target.closest('button');
     if (!btn || !btn.dataset.year) return;
-    activeYear = btn.dataset.year === 'all' ? 'all' : Number(btn.dataset.year);
+    activeYear = Number(btn.dataset.year);
     activeCategory = null; 
     clearAllActive();
     btn.classList.add('is-active');
