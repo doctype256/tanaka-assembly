@@ -1,6 +1,6 @@
-// api/contacts.ts
+// app/api/contacts/route.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import db from "../db/client";
+import db from "@/db/client";
 
 
 export default async function handler(

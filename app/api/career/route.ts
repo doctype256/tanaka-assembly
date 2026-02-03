@@ -1,6 +1,6 @@
-// api/career.ts
+// app/api/career/route.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import db from "../db/client";
+import db from "@/db/client";
 
 
 export default async function handler(
@@ -124,4 +124,14 @@ export default async function handler(
   }
 
   return res.status(405).json({ error: "Method not allowed" });
+}
+
+export async function GET() {
+  try {
+    const result = await db.execute("SELECT * FROM career")
+    return Response.json(result)
+  } catch (error) {
+    console.error(error)
+    return new Response("Internal Server Error", { status: 500 })
+  }
 }

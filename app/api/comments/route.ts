@@ -1,6 +1,6 @@
-// api/comments.ts
+// app/api/comments/route.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import db from "../db/client";
+import db from "@/db/client";
 
 
 
