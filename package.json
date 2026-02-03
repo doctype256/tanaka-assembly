@@ -4,12 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run web\" \"npm run api\"",
-    "web": "vite",
-    "api": "tsx api/server.ts",
-    "build": "vite build",
-    "preview": "vite preview",
-    "vercel-dev": "vercel dev"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@libsql/client": "^0.15.15",
