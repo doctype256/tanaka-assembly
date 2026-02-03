@@ -1,0 +1,116 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/activity-reports",
+      "regex": "^/api/activity\\-reports(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/activity\\-reports(?:/)?$"
+    },
+    {
+      "page": "/api/career",
+      "regex": "^/api/career(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/career(?:/)?$"
+    },
+    {
+      "page": "/api/cases",
+      "regex": "^/api/cases(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/cases(?:/)?$"
+    },
+    {
+      "page": "/api/comments",
+      "regex": "^/api/comments(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/comments(?:/)?$"
+    },
+    {
+      "page": "/api/contacts",
+      "regex": "^/api/contacts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/contacts(?:/)?$"
+    },
+    {
+      "page": "/api/pdfs",
+      "regex": "^/api/pdfs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/pdfs(?:/)?$"
+    },
+    {
+      "page": "/api/posts",
+      "regex": "^/api/posts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/posts(?:/)?$"
+    },
+    {
+      "page": "/api/profile",
+      "regex": "^/api/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/profile(?:/)?$"
+    },
+    {
+      "page": "/api/upload-image",
+      "regex": "^/api/upload\\-image(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/upload\\-image(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

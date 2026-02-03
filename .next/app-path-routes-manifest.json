@@ -1,0 +1,14 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/activity-reports/route": "/api/activity-reports",
+  "/api/career/route": "/api/career",
+  "/api/cases/route": "/api/cases",
+  "/api/comments/route": "/api/comments",
+  "/api/contacts/route": "/api/contacts",
+  "/api/pdfs/route": "/api/pdfs",
+  "/api/posts/route": "/api/posts",
+  "/api/profile/route": "/api/profile",
+  "/api/upload-image/route": "/api/upload-image",
+  "/page": "/"
+}
