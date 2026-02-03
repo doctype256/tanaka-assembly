@@ -1,6 +1,7 @@
 // api/comments.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import db from "../../db/client.ts";  // ← .ts に修正
+import db from "../db/client";
+
 
 
 export default async function handler(

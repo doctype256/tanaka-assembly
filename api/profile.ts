@@ -1,12 +1,12 @@
 // api/profile.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import db from "../../db/client.js";
+import db from "../db/client";
 
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
 ) {
-  // CORS設定
+  // ===== CORS =====
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -15,11 +15,14 @@ export default async function handler(
     return res.status(200).end();
   }
 
-  // ===== GET: プロフィール取得（パスワード不要 - 公開情報） =====
+  // =========================================================
+  // GET : 最新プロフィール取得
+  // =========================================================
   if (req.method === "GET") {
     try {
-      // パスワードが提供されている場合は認証確認（将来の拡張用）
       const { password } = req.query;
+
+      // 管理パスワードが来た場合のみチェック（公開APIとしても使える）
       if (password) {
         const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
         if (password !== adminPassword) {
@@ -27,82 +30,128 @@ export default async function handler(
         }
       }
 
-      let profile;
+      let profile: any;
 
       if (typeof (db as any).execute === "function") {
-        // Turso (Production) - 最新（ID最大）のプロフィールを取得
+        // Turso
         const result = await (db as any).execute({
           sql: "SELECT * FROM profile ORDER BY id DESC LIMIT 1",
         });
+
         profile = result.results?.[0] || result.rows?.[0];
-        console.log('[Profile API] Turso result:', result);
       } else {
-        // SQLite (Local) - 最新（ID最大）のプロフィールを取得
-        profile = (db as any).prepare("SELECT * FROM profile ORDER BY id DESC LIMIT 1").get();
+        // SQLite
+        profile = (db as any)
+          .prepare("SELECT * FROM profile ORDER BY id DESC LIMIT 1")
+          .get();
       }
 
-      console.log('[Profile API] Retrieved profile:', profile);
-
       if (!profile) {
-        console.log('[Profile API] No profile found in database');
         return res.status(404).json({ error: "Profile not found" });
       }
 
-      console.log('[Profile API] Returning profile with IMG_URL:', profile.IMG_URL);
       return res.status(200).json(profile);
     } catch (err: any) {
-      console.error('[Profile API] Error:', err);
+      console.error("[Profile GET] Error:", err);
       return res.status(500).json({ error: err.message });
     }
   }
 
-  // ===== POST: プロフィール保存（管理者のみ） =====
+  // =========================================================
+  // POST : プロフィール保存
+  // =========================================================
   if (req.method === "POST") {
     try {
       const body =
-        typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+        typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
 
-      const { Name, IMG_URL, birthday, From, Family, Job, hobby, password } =
-        body;
+      const {
+        Name,
+        IMG_URL,
+        birthday = null,
+        From = null,
+        Family = null,
+        Job = null,
+        hobby = null,
+        password,
+      } = body;
 
-      console.log('[Profile API POST] Request body:', { Name, IMG_URL, birthday, From, Family, Job, hobby });
+      console.log("[Profile POST] Incoming:", {
+        Name,
+        IMG_URL,
+        birthday,
+        From,
+        Family,
+        Job,
+        hobby,
+      });
 
-      // 管理者認証
+      // ===== 管理者認証 =====
       const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+
       if (password !== adminPassword) {
-        console.log('[Profile API POST] Unauthorized password');
         return res.status(401).json({ error: "Unauthorized" });
       }
 
+      // ===== 必須チェック =====
       if (!Name || !IMG_URL) {
-        console.log('[Profile API POST] Missing required fields:', { Name, IMG_URL });
         return res.status(400).json({
           error: "Name and IMG_URL are required",
         });
       }
 
+      // =========================================================
+      // INSERT
+      // =========================================================
+
       if (typeof (db as any).execute === "function") {
-        // Turso (Production) - 常に新規挿入
-        console.log('[Profile API POST] Inserting new profile (Turso)');
+        // ===== Turso =====
         await (db as any).execute({
-          sql: "INSERT INTO profile (Name, IMG_URL, birthday, From, Family, Job, hobby) VALUES (?, ?, ?, ?, ?, ?, ?)",
-          args: [Name, IMG_URL, birthday, From, Family, Job, hobby],
+          sql: `
+            INSERT INTO profile
+            (Name, IMG_URL, birthday, "From", Family, Job, hobby)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `,
+          args: [
+            Name,
+            IMG_URL,
+            birthday,
+            From,
+            Family,
+            Job,
+            hobby,
+          ],
         });
       } else {
-        // SQLite (Local) - 常に新規挿入
-        console.log('[Profile API POST] Inserting new profile (SQLite)');
+        // ===== SQLite =====
         (db as any)
-          .prepare(
-            "INSERT INTO profile (Name, IMG_URL, birthday, From, Family, Job, hobby) VALUES (?, ?, ?, ?, ?, ?, ?)"
-          )
-          .run(Name, IMG_URL, birthday, From, Family, Job, hobby);
+          .prepare(`
+            INSERT INTO profile
+            (Name, IMG_URL, birthday, "From", Family, Job, hobby)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `)
+          .run(
+            Name,
+            IMG_URL,
+            birthday,
+            From,
+            Family,
+            Job,
+            hobby
+          );
       }
 
-      console.log('[Profile API POST] Profile saved successfully');
-      return res.status(200).json({ success: true, message: "Profile saved" });
+      console.log("[Profile POST] Saved OK");
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile saved",
+      });
     } catch (err: any) {
-      console.error('[Profile API POST] Error:', err);
-      return res.status(500).json({ error: err.message });
+      console.error("[Profile POST] Error:", err);
+      return res.status(500).json({
+        error: err.message || "Unknown error",
+      });
     }
   }
 

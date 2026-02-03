@@ -4,24 +4,26 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run web\" \"npm run api\"",
+    "web": "vite",
+    "api": "tsx api/server.ts",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel-dev": "vercel dev",
-    "init-turso": "tsx scripts/init-turso.ts",
-    "check-turso": "tsx scripts/check-turso.ts",
-    "insert-test-data": "tsx scripts/insert-test-data.ts"
+    "vercel-dev": "vercel dev"
   },
   "dependencies": {
     "@libsql/client": "^0.15.15",
     "better-sqlite3": "^12.5.0",
-    "cloudinary": "^2.9.0"
+    "cloudinary": "^2.9.0",
+    "express": "^5.2.1"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^20.14.0",
     "@vercel/node": "^3.0.0",
     "autoprefixer": "^10.4.22",
     "baseline-browser-mapping": "^2.9.18",
+    "concurrently": "^9.0.0",
     "dotenv": "^17.2.3",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.18",
