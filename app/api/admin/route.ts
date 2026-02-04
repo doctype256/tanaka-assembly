@@ -2,9 +2,14 @@
  * AdminManager クラス
  * 管理画面全体を管理するクラス
  */
-
-
 import Utils from '../utils/route';
+import { NextResponse } from 'next/server';
+import { getAllUsers } from '@/lib/firebase/admin';
+
+export async function GET() {
+  const users = await getAllUsers();
+  return NextResponse.json(users);
+}
 
 /**
  * コメント管理クラス
