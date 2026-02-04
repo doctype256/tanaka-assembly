@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 46, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/user210/Documents/GitHub/tanaka-assembly/app/api/pdfs/route.ts"],"sourcesContent":["import { NextResponse } from 'next/server';\r\n\r\nconst dummyPdfList = [\r\n  { id: \"1\", title: \"テストPDF\", url: \"/dummy/test1.pdf\" },\r\n  { id: \"2\", title: \"ダミー資料\", url: \"/dummy/test2.pdf\" }\r\n];\r\n\r\n// GETリクエスト\r\nexport async function GET() {\r\n  return NextResponse.json(dummyPdfList);\r\n}\r\n\r\n// POSTリクエスト\r\nexport async function POST(request: Request) {\r\n  const body = await request.json();\r\n  const newItem = {\r\n    id: String(Date.now()),\r\n    ...body\r\n  };\r\n  return NextResponse.json(newItem);\r\n}\r\n\r\n// DELETEリクエスト\r\nexport async function DELETE() {\r\n  return NextResponse.json({ success: true });\r\n}"],"names":[],"mappings":";;;;;;;;AAAA;;AAEA,MAAM,eAAe;IACnB;QAAE,IAAI;QAAK,OAAO;QAAU,KAAK;IAAmB;IACpD;QAAE,IAAI;QAAK,OAAO;QAAS,KAAK;IAAmB;CACpD;AAGM,eAAe;IACpB,OAAO,gJAAY,CAAC,IAAI,CAAC;AAC3B;AAGO,eAAe,KAAK,OAAgB;IACzC,MAAM,OAAO,MAAM,QAAQ,IAAI;IAC/B,MAAM,UAAU;QACd,IAAI,OAAO,KAAK,GAAG;QACnB,GAAG,IAAI;IACT;IACA,OAAO,gJAAY,CAAC,IAAI,CAAC;AAC3B;AAGO,eAAe;IACpB,OAAO,gJAAY,CAAC,IAAI,CAAC;QAAE,SAAS;IAAK;AAC3C"}}]
+}
