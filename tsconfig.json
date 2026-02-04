@@ -9,7 +9,7 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
-    "noEmit": true,
+    "noEmit": false,
     "incremental": true,
     "module": "esnext",
     "moduleResolution": "node",
@@ -20,12 +20,15 @@
       {
         "name": "next"
       }
-    ], // ← ここにカンマが必要でした！
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
-    }
-  }, // ← ここも閉じタグの対応を確認
+      "@/*": [
+        "./*"
+      ]
+    },
+    "esModuleInterop": true
+  },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
