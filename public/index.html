@@ -111,6 +111,8 @@
   <div class="page-header-inner">
     <h2 class="page-header-title" id="page-header-title"></h2>
     <p class="page-header-text" id="page-header-text"></p>
+    <p class="page-header-text" id="page-header-tel"></p>
+    <p class="page-header-text" id="page-header-mail"></p>
     <div class="page-header-columns">
       <div class="page-header-left">
         <div class="map-embed-wrapper" id="page-header-map"></div>
@@ -133,27 +135,34 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch('data/static-texts.json')
     .then(res => res.json())
     .then(data => {
-      // 1. ページヘッダー処理
-      const page = document.body.dataset.page;
-      if (data.pageHeaders && data.pageHeaders[page]) {
-        const header = data.pageHeaders[page];
-        document.getElementById('page-header-title').textContent = header.title;
-        document.getElementById('page-header-text').textContent = header.text;
-        const mapWrapper = document.getElementById('page-header-map');
-        if (header.mapEmbed) {
-          // allow="compute-pressure" をiframeに追加
-          mapWrapper.innerHTML = `<iframe src="${header.mapEmbed}" loading="lazy" allowfullscreen allow="compute-pressure"></iframe>`;
-        }
-        const linksWrapper = document.getElementById('page-header-links');
-        if (header.links) {
-          header.links.forEach(item => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = item.url; a.textContent = item.label; a.target = '_blank';
-            li.appendChild(a); linksWrapper.appendChild(li);
-          });
-        }
-      }
+     // 1.ページヘッダー処理
+const page = document.body.dataset.page;
+if (data.pageHeaders && data.pageHeaders[page]) {
+  const header = data.pageHeaders[page];
+
+  document.getElementById('page-header-title').textContent = header.title;
+  document.getElementById('page-header-text').textContent = header.text;
+
+  // ▼ 連絡先（リンクなし） ▼
+document.getElementById('page-header-title').textContent = header.title;
+document.getElementById('page-header-text').textContent = header.text;
+
+document.getElementById('page-header-tel').textContent =
+  header.tel ? `TEL：${header.tel}` : '';
+
+document.getElementById('page-header-mail').textContent =
+  header.mail ? `Mail：${header.mail}` : '';
+
+  // ▲ ここまで ▲
+
+  // 地図
+  const mapWrapper = document.getElementById('page-header-map');
+  if (header.mapEmbed) {
+    mapWrapper.innerHTML = `<iframe src="${header.mapEmbed}" loading="lazy" allowfullscreen></iframe>`;
+  }
+}
+
+
 
       // 2. 活動報告カルーセル
       if (data.activities && data.activities.reports) {
