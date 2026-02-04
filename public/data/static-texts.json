@@ -179,6 +179,8 @@
     "policy": {
       "title": "事務所案内",
       "text": "〒600-8267 京都府京都市下京区御器屋町51-3（七条大宮上る西側1階）",
+      "tel": "070-8468-8865",
+      "mail":"tanaka0721shiho333@yahoo.co.jp",
       "mapEmbed": "https://www.google.com/maps?q=京都府京都市下京区御器屋町51-3&output=embed"
     }
   }
