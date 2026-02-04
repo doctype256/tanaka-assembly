@@ -1,0 +1,12 @@
+[00:15:25.122] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\_not-found\page\build-manifest.json'
+[00:15:25.201] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\api\pdfs\[__metadata_id__]\route\app-paths-manifest.json'
+[00:15:28.136] Server  LOG     ○ Compiling /_error ...
+[00:15:32.327] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\api\posts\[__metadata_id__]\route\app-paths-manifest.json'
+[00:15:49.615] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\_not-found\page\build-manifest.json'
+[00:15:49.937] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\pages-manifest.json'
+[00:15:53.901] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\_not-found\page\build-manifest.json'
+[00:16:32.352] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\api\pdfs\[__metadata_id__]\route\app-paths-manifest.json'
+[00:16:32.409] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\_not-found\page\build-manifest.json'
+[00:16:32.485] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\api\pdfs\[__metadata_id__]\route\app-paths-manifest.json'
+[00:16:37.095] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\app\_not-found\page\build-manifest.json'
+[00:16:37.159] Server  ERROR   ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\user210\Documents\GitHub\tanaka-assembly\.next\dev\server\pages-manifest.json'
