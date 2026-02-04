@@ -3,7 +3,7 @@
  * 管理画面全体を管理するクラス
  */
 
-import APIClient from '../api/route';
+
 import Utils from '../utils/route';
 
 /**
