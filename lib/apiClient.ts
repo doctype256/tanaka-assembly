@@ -61,4 +61,5 @@ export default class APIClient {
     if (!res.ok) throw new Error('Failed to delete contact');
     return res.json();
   }
+  
 }
