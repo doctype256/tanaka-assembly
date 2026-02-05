@@ -1,6 +1,6 @@
 // app/api/contact/route.ts
 import APIClient from '@/lib/apiClient';
-import Utils from '@/lib/utils';
+
 
 interface StaticTexts {
   contact: {
@@ -53,7 +53,7 @@ class ContactManager {
       window.location.href = 'thanks.html?type=contact';
     } catch (err) {
       console.error('Error:', err);
-      Utils.showMessage('contact-form', 'エラーが発生しました。もう一度お試しください。', 0);
+      alert('送信中にエラーが発生しました。時間をおいて再度お試しください。');
     }
   }
 
