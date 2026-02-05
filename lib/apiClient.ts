@@ -1,7 +1,4 @@
 export default class APIClient {
-  /**
-   * コメント一覧を取得
-   */
   async getAllComments(password: string) {
     const res = await fetch(`/api/comments?password=${encodeURIComponent(password)}`, {
       method: 'GET',
@@ -11,9 +8,6 @@ export default class APIClient {
     return res.json();
   }
 
-  /**
-   * コメント承認/非承認
-   */
   async updateCommentApproval(id: number, approved: boolean, password: string) {
     const res = await fetch('/api/comments/approve', {
       method: 'POST',
@@ -24,9 +18,6 @@ export default class APIClient {
     return res.json();
   }
 
-  /**
-   * コメント削除
-   */
   async deleteComment(id: number, password: string) {
     const res = await fetch('/api/comments/delete', {
       method: 'POST',
@@ -37,9 +28,6 @@ export default class APIClient {
     return res.json();
   }
 
-  /**
-   * お問い合わせ一覧を取得
-   */
   async getAllContacts(password: string) {
     const res = await fetch(`/api/contacts?password=${encodeURIComponent(password)}`, {
       method: 'GET',
@@ -49,9 +37,6 @@ export default class APIClient {
     return res.json();
   }
 
-  /**
-   * お問い合わせ削除
-   */
   async deleteContact(id: number, password: string) {
     const res = await fetch('/api/contacts/delete', {
       method: 'POST',
@@ -61,5 +46,18 @@ export default class APIClient {
     if (!res.ok) throw new Error('Failed to delete contact');
     return res.json();
   }
-  
+
+  /**
+   * お問い合わせ送信（←これが必要）
+   */
+  async createContact(name: string, furigana: string, email: string, message: string) {
+    const res = await fetch('/api/contact-submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, furigana, email, message }),
+    });
+
+    if (!res.ok) throw new Error('Failed to create contact');
+    return res.json();
+  }
 }

@@ -1,6 +1,6 @@
 // app/api/contact/route.ts
-import APIClient from '../api/route';
-import Utils from '../utils/route';
+import APIClient from '@/lib/apiClient';
+import Utils from '@/lib/utils';
 
 interface StaticTexts {
   contact: {
