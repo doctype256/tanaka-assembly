@@ -62,33 +62,33 @@ class ContactManager {
    */
   async initializePage(): Promise<void> {
     try {
-      const response = await fetch('data/static-texts.json');
-      const data: StaticTexts = await response.json();
-      const contact = data.contact;
+      // const response = await fetch('data/static-texts.json');
+      // const data: StaticTexts = await response.json();
+      // const contact = data.contact;
 
-      // タイトル
-      document.title = contact.title;
+      // // タイトル
+      // document.title = contact.title;
 
-      // ヘッダー名
-      if (data.rinen && data.rinen.name) {
-        (document.getElementById('header-name') as HTMLElement).textContent = data.rinen.name;
-      }
+      // // ヘッダー名
+      // if (data.rinen && data.rinen.name) {
+      //   (document.getElementById('header-name') as HTMLElement).textContent = data.rinen.name;
+      // }
 
-      // ページヘッダー
-      (document.getElementById('contact-title') as HTMLElement).textContent = contact.title;
-      (document.getElementById('contact-text') as HTMLElement).textContent = contact.text;
+      // // ページヘッダー
+      // (document.getElementById('contact-title') as HTMLElement).textContent = contact.title;
+      // (document.getElementById('contact-text') as HTMLElement).textContent = contact.text;
 
-      // プライバシーポリシー
-      if (contact.privacy) {
-        const bodyWrapper = document.getElementById('privacy-body') as HTMLElement;
-        bodyWrapper.innerHTML = '';
+      // // プライバシーポリシー
+      // if (contact.privacy) {
+      //   const bodyWrapper = document.getElementById('privacy-body') as HTMLElement;
+      //   bodyWrapper.innerHTML = '';
 
-        contact.privacy.body.forEach(text => {
-          const p = document.createElement('p');
-          p.textContent = text;
-          bodyWrapper.appendChild(p);
-        });
-      }
+      //   contact.privacy.body.forEach(text => {
+      //     const p = document.createElement('p');
+      //     p.textContent = text;
+      //     bodyWrapper.appendChild(p);
+      //   });
+      // }
 
       //this.initializeForm();
     } catch (error) {
