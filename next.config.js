@@ -2,11 +2,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    ignoreBuildErrors: true, // これを追加
+    ignoreBuildErrors: true, // 型エラーを無視してビルドを進める
   },
-  eslint: {
-    ignoreDuringBuilds: true, // これも追加しておくと安心
-  },
+  // 他の設定もここに追加できます
 };
 
 export default nextConfig;

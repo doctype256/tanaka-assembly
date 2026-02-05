@@ -9,9 +9,13 @@
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
-    "noEmit": true,
+    "noEmit": false,
+    "emitDeclarationOnly": true,
+    "declaration": true,
     "incremental": true,
     "module": "esnext",
+    "outDir": "public/js",
+    "rootDir": ".",        // プロジェクト全体を rootDir に設定
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -20,7 +24,7 @@
       {
         "name": "next"
       }
-    ], // ← ここにカンマが必要でした！
+    ],
     "baseUrl": ".",
     "paths": {
       "@/*": [
@@ -28,16 +32,23 @@
       ]
     },
     "esModuleInterop": true
-  }, // ← ここも閉じタグの対応を確認
+  },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts",
-    "**/*.ts",
-    "**/*.tsx"
+    "app/**/*",   // app フォルダ内の全ての TypeScript ファイルを対象にする
+    "src/**/*",    // src フォルダ内の全ての TypeScript ファイルも対象にする
+    "db/**/*",     // db フォルダ内も対象にする
+    "**/*.tsx"     // TypeScript の JSX ファイルも対象に
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "public",      // public フォルダを除外
+    ".next",       // next.js による自動生成ファイルを除外
+    "dist",        // 出力ファイルを除外
+    "scripts",     // スクリプトファイルを除外
+    "**/*.js",     // JS ファイルを除外（必要に応じて）
+    "**/*.d.ts"    // 型定義ファイルも除外
   ]
 }
