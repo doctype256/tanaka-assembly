@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>田中しほ 公式サイト | TOPページ</title>
+  <title>TOPページ</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/style.css">
@@ -258,7 +258,6 @@ async function loadLatestShihoPress() {
     const pdfs = response.ok ? await response.json() : [];
     renderShihoPressCarousel(pdfs);
   } catch (e) { console.error(e); }
-  } catch (e) { console.error(e); }
 }
 
 function renderShihoPressCarousel(pdfs) {
@@ -277,21 +276,16 @@ async function generateThumbnails(pdfs, year) {
   for (let i = 0; i < pdfs.length; i++) {
     const thumbContainer = document.getElementById(`thumb-${year}-${i}`);
     try {
-      // 修正: オブジェクト形式 { url: pdfPath } で渡す
-      const loadingTask = pdfjsLib.getDocument({ url: pdfs[i].file_path });
+      const loadingTask = pdfjsLib.getDocument(pdfs[i].file_path);
       const pdf = await loadingTask.promise;
       const page = await pdf.getPage(1);
       const viewport = page.getViewport({ scale: 0.4 });
       const canvas = document.createElement('canvas');
       canvas.height = viewport.height; canvas.width = viewport.width;
-      canvas.height = viewport.height; canvas.width = viewport.width;
       await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
       const img = document.createElement('img');
       img.src = canvas.toDataURL(); img.className = 'pdf-thumbnail-img';
-      img.src = canvas.toDataURL(); img.className = 'pdf-thumbnail-img';
       img.onclick = () => window.open(pdfs[i].file_path, '_blank');
-      thumbContainer.innerHTML = ''; thumbContainer.appendChild(img);
-    } catch (err) { thumbContainer.innerHTML = '📄'; }
       thumbContainer.innerHTML = ''; thumbContainer.appendChild(img);
     } catch (err) { thumbContainer.innerHTML = '📄'; }
   }
@@ -303,45 +297,17 @@ function updateCarouselIndex(key) {
   const inner = section.querySelector('.pdf-carousel-inner');
   const items = section.querySelectorAll('.pdf-item');
   const index = carouselIndices[key];
-  
-  // 表示数の計算
   const visibleItems = window.innerWidth < 768 ? 1 : (window.innerWidth < 1024 ? 2 : 3);
   const itemWidth = 100 / visibleItems;
   const offset = (visibleItems - 1) / 2;
-  
   inner.style.transform = `translateX(${-(index - offset) * itemWidth}%)`;
   items.forEach((item, i) => item.classList.toggle('center', i === index));
-  
   const dots = section.querySelectorAll('.dot');
   dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
-
-  // ボタンを常に表示（ループ対応）
-  const prevBtn = section.querySelector('.carousel-prev');
-  const nextBtn = section.querySelector('.carousel-next');
-  if (prevBtn) prevBtn.style.display = 'block';
-  if (nextBtn) nextBtn.style.display = 'block';
 }
 
-function handlePrevClickIndex(key) { 
-  const total = carouselTotalSlides[key];
-  if (carouselIndices[key] > 0) {
-    carouselIndices[key]--;
-  } else {
-    carouselIndices[key] = total - 1; // 最初なら最後へ
-  }
-  updateCarouselIndex(key);
-}
-
-function handleNextClickIndex(key) { 
-  const total = carouselTotalSlides[key];
-  if (carouselIndices[key] < total - 1) {
-    carouselIndices[key]++;
-  } else {
-    carouselIndices[key] = 0; // 最後なら最初へ
-  }
-  updateCarouselIndex(key);
-}
-
+function handlePrevClickIndex(key) { if (carouselIndices[key] > 0) { carouselIndices[key]--; updateCarouselIndex(key); } }
+function handleNextClickIndex(key) { if (carouselIndices[key] < carouselTotalSlides[key] - 1) { carouselIndices[key]++; updateCarouselIndex(key); } }
 function goToSlideIndex(key, index) { carouselIndices[key] = index; updateCarouselIndex(key); }
 window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
 </script>
