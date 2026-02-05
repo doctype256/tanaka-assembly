@@ -1,60 +1,69 @@
 // app/api/pdfs/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import db from "@/db/client";
 
-// ダミーPDFリスト
-const dummyPdfList = [
-  { id: "1", title: "テストPDF", url: "/dummy/test1.pdf" },
-  { id: "2", title: "ダミー資料", url: "/dummy/test2.pdf" }
-];
-
-// GETリクエスト：PDFリストを返す
+// ===== GET =====
 export async function GET() {
   try {
-    // 通常、ここでデータベースや外部APIからPDFリストを取得します。
-    // ここではダミーのリストを返しています。
-    return NextResponse.json(dummyPdfList);
+    const result = await db.execute(`
+      SELECT *
+      FROM pdfs
+      ORDER BY created_at DESC
+    `);
+
+    return NextResponse.json(result.rows);
   } catch (error) {
-    console.error("Error fetching PDFs:", error);
-    return NextResponse.json({ error: "PDFデータの取得に失敗しました" }, { status: 500 });
+    console.error("GET PDFs error:", error);
+    return NextResponse.json({ error: "Failed to fetch PDFs" }, { status: 500 });
   }
 }
 
-// POSTリクエスト：新しいPDFアイテムを追加
-export async function POST(request) {
+// ===== POST =====
+export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const newItem = {
-      id: String(Date.now()),  // 新しいIDを生成
-      ...body  // 送信されたPDF情報
-    };
 
-    // 通常、ここで新しいPDFをデータベースに保存します。
-    // 現在はダミーデータとして保存せず、新しいアイテムを即座に返却します。
-    dummyPdfList.push(newItem);  // ダミーリストに追加
+    await db.execute({
+      sql: `
+        INSERT INTO pdfs (
+          title,
+          description,
+          file_path,
+          file_name,
+          created_at
+        )
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `,
+      args: [
+        body.title,
+        body.description,
+        body.file_path,
+        body.file_name
+      ]
+    });
 
-    return NextResponse.json(newItem, { status: 201 });  // 作成成功のレスポンス
+    return NextResponse.json({ success: true });
+
   } catch (error) {
-    console.error("Error adding PDF:", error);
-    return NextResponse.json({ error: "PDFの追加に失敗しました" }, { status: 500 });
+    console.error("POST PDFs error:", error);
+    return NextResponse.json({ error: "Failed to save PDF" }, { status: 500 });
   }
 }
 
-// DELETEリクエスト：指定されたPDFを削除
-export async function DELETE(request) {
+// ===== DELETE =====
+export async function DELETE(request: Request) {
   try {
-    const { id } = await request.json();
-    const index = dummyPdfList.findIndex(pdf => pdf.id === id);
+    const body = await request.json();
 
-    if (index === -1) {
-      return NextResponse.json({ error: "PDFが見つかりません" }, { status: 404 });
-    }
+    await db.execute({
+      sql: `DELETE FROM pdfs WHERE id = ?`,
+      args: [body.id]
+    });
 
-    // 通常、ここでデータベースからPDFを削除します。
-    dummyPdfList.splice(index, 1);  // ダミーリストから削除
+    return NextResponse.json({ success: true });
 
-    return NextResponse.json({ success: true, message: "PDFが削除されました" });
   } catch (error) {
-    console.error("Error deleting PDF:", error);
-    return NextResponse.json({ error: "PDFの削除に失敗しました" }, { status: 500 });
+    console.error("DELETE PDFs error:", error);
+    return NextResponse.json({ error: "Failed to delete PDF" }, { status: 500 });
   }
 }
