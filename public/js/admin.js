@@ -1306,100 +1306,69 @@ var AdminManager = /** @class */ (function () {
     /**
      * PDF追加ハンドラー
      */
-    AdminManager.prototype.handlePDFAdd = function (e) {
-        return __awaiter(this, void 0, void 0, function () {
-            var title_1, description_1, fileInput, file_1, reader;
-            var _this = this;
-            return __generator(this, function (_a) {
-                e.preventDefault();
-                if (!this.adminPassword)
-                    return [2 /*return*/];
-                try {
-                    title_1 = document.getElementById('pdf-title').value;
-                    description_1 = document.getElementById('pdf-description').value;
-                    fileInput = document.getElementById('pdf-file');
-                    if (!title_1 || !fileInput.files || !fileInput.files[0]) {
-                        Utils.showMessage('error-message-pdf', '必須項目を入力してください', 3000);
-                        return [2 /*return*/];
-                    }
-                    file_1 = fileInput.files[0];
-                    console.log('[PDF Upload] File selected:', { name: file_1.name, size: file_1.size, type: file_1.type });
-                    reader = new FileReader();
-                    reader.onload = function (event) { return __awaiter(_this, void 0, void 0, function () {
-                        var base64Data, uploadResponse, error, uploadResult, response, error, err_13;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    _a.trys.push([0, 8, , 9]);
-                                    base64Data = event.target.result;
-                                    console.log('[PDF Upload] Base64 encoded, size:', base64Data.length);
-                                    return [4 /*yield*/, fetch('/api/upload-image', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                                file_data: base64Data,
-                                                filename: "pdf_".concat(Date.now(), "_").concat(file_1.name),
-                                                folder: 'pdfs',
-                                                password: this.adminPassword
-                                            })
-                                        })];
-                                case 1:
-                                    uploadResponse = _a.sent();
-                                    console.log('[PDF Upload] Response status:', uploadResponse.status);
-                                    if (!!uploadResponse.ok) return [3 /*break*/, 3];
-                                    return [4 /*yield*/, uploadResponse.json()];
-                                case 2:
-                                    error = _a.sent();
-                                    console.error('[PDF Upload] Error response:', error);
-                                    throw new Error(error.error || 'Upload failed');
-                                case 3: return [4 /*yield*/, uploadResponse.json()];
-                                case 4:
-                                    uploadResult = _a.sent();
-                                    console.log('[PDF Upload] Success:', uploadResult);
-                                    return [4 /*yield*/, fetch('/api/pdfs', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                                title: title_1,
-                                                description: description_1,
-                                                file_path: uploadResult.url,
-                                                file_name: file_1.name,
-                                                cloudinary_id: uploadResult.public_id,
-                                                password: this.adminPassword
-                                            })
-                                        })];
-                                case 5:
-                                    response = _a.sent();
-                                    if (!!response.ok) return [3 /*break*/, 7];
-                                    return [4 /*yield*/, response.json()];
-                                case 6:
-                                    error = _a.sent();
-                                    console.error('[PDF Save] Error response:', error);
-                                    throw new Error(error.error || 'Save failed');
-                                case 7:
-                                    // フォームをクリア
-                                    document.getElementById('pdf-form').reset();
-                                    Utils.showMessage('success-message-pdf', 'PDFファイルをアップロードしました', 3000);
-                                    return [3 /*break*/, 9];
-                                case 8:
-                                    err_13 = _a.sent();
-                                    console.error('Upload error:', err_13);
-                                    Utils.showMessage('error-message-pdf', 'アップロードに失敗しました: ' + err_13.message, 3000);
-                                    return [3 /*break*/, 9];
-                                case 9: return [2 /*return*/];
-                            }
-                        });
-                    }); };
-                    reader.readAsDataURL(file_1);
-                }
-                catch (err) {
-                    console.error('Error:', err);
-                    Utils.showMessage('error-message-pdf', 'エラーが発生しました', 3000);
-                }
-                return [2 /*return*/];
-            });
+    AdminManager.prototype.handlePDFAdd = async function (e) {
+    e.preventDefault();
+
+    if (!this.adminPassword) return;
+
+    try {
+        const title = document.getElementById('pdf-title').value;
+        const description = document.getElementById('pdf-description').value;
+        const fileInput = document.getElementById('pdf-file');
+
+        if (!title || !fileInput.files || !fileInput.files[0]) {
+            Utils.showMessage('error-message-pdf', '必須項目を入力してください', 3000);
+            return;
+        }
+
+        const file = fileInput.files[0];
+
+        const formData = new FormData();
+        formData.append("file_data", file);
+        formData.append("filename", "pdf_" + Date.now() + "_" + file.name);
+        formData.append("folder", "pdfs");
+        formData.append("password", this.adminPassword);
+
+        const uploadResponse = await fetch('/api/upload-image', {
+            method: 'POST',
+            body: formData
         });
-    };
+
+        if (!uploadResponse.ok) {
+            const error = await uploadResponse.json();
+            throw new Error(error.error || 'Upload failed');
+        }
+
+        const uploadResult = await uploadResponse.json();
+
+        const saveResponse = await fetch('/api/pdfs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title,
+                description,
+                file_path: uploadResult.url,
+                file_name: file.name,
+                cloudinary_id: uploadResult.public_id,
+                password: this.adminPassword
+            })
+        });
+
+        if (!saveResponse.ok) {
+            const error = await saveResponse.json();
+            throw new Error(error.error || 'Save failed');
+        }
+
+        document.getElementById('pdf-form').reset();
+        Utils.showMessage('success-message-pdf', 'PDFファイルをアップロードしました', 3000);
+
+    } catch (err) {
+        console.error(err);
+        Utils.showMessage('error-message-pdf', 'アップロードに失敗しました: ' + err.message, 3000);
+    }
+};
+
+
     /**
      * 画像をCloudinaryにアップロード（汎用）
      */
@@ -1531,71 +1500,89 @@ var AdminManager = /** @class */ (function () {
         }
     };
     /**
-     * 活動報告追加ハンドラー
-     */
-    AdminManager.prototype.handleActivityReportAdd = function (e) {
-        return __awaiter(this, void 0, void 0, function () {
-            var title, date, content, imageFile, imageUrl, err_16, previewImg, placeholder, err_17;
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        e.preventDefault();
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _b.label = 1;
-                    case 1:
-                        _b.trys.push([1, 8, , 9]);
-                        title = document.getElementById('activity-report-title').value;
-                        date = document.getElementById('activity-report-date').value;
-                        content = document.getElementById('activity-report-content').value;
-                        imageFile = (_a = document.getElementById('activity-report-image').files) === null || _a === void 0 ? void 0 : _a[0];
-                        if (!title || !date || !content) {
-                            Utils.showMessage('error-message-activity-reports', '必須項目（タイトル、日付、内容）を入力してください', 3000);
-                            return [2 /*return*/];
-                        }
-                        imageUrl = '';
-                        if (!imageFile) return [3 /*break*/, 5];
-                        _b.label = 2;
-                    case 2:
-                        _b.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.uploadImageToCloudinary(imageFile, 'activity-reports')];
-                    case 3:
-                        imageUrl = _b.sent();
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_16 = _b.sent();
-                        Utils.showMessage('error-message-activity-reports', '画像のアップロードに失敗しました', 3000);
+ * 活動報告追加ハンドラー
+ */
+AdminManager.prototype.handleActivityReportAdd = function (e) {
+    return __awaiter(this, void 0, void 0, function () {
+        var title, date, content, imageFile, imageUrl, err_16, previewImg, placeholder, err_17;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    e.preventDefault();
+                    if (!this.adminPassword)
                         return [2 /*return*/];
-                    case 5: return [4 /*yield*/, this.activityReports.add(title, content, date, imageUrl, this.adminPassword)];
-                    case 6:
-                        _b.sent();
-                        // フォームをクリア
-                        document.getElementById('activity-report-form').reset();
-                        previewImg = document.getElementById('activity-report-preview-img');
-                        placeholder = document.getElementById('activity-report-preview-placeholder');
-                        if (previewImg)
-                            previewImg.style.display = 'none';
-                        if (placeholder)
-                            placeholder.style.display = 'block';
-                        // リストを更新
-                        return [4 /*yield*/, this.activityReports.fetch(this.adminPassword)];
-                    case 7:
-                        // リストを更新
-                        _b.sent();
-                        this.activityReports.render(document.getElementById('activity-reports-list-container'));
-                        Utils.showMessage('success-message-activity-reports', '活動報告を追加しました', 3000);
-                        return [3 /*break*/, 9];
-                    case 8:
-                        err_17 = _b.sent();
-                        console.error('Error:', err_17);
-                        Utils.showMessage('error-message-activity-reports', '追加に失敗しました: ' + err_17.message, 3000);
-                        return [3 /*break*/, 9];
-                    case 9: return [2 /*return*/];
-                }
-            });
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 8, , 9]);
+                    title = document.getElementById('activity-report-title');
+                    date = document.getElementById('activity-report-date');
+                    content = document.getElementById('activity-report-content');
+                    // nullチェックを追加
+                    var imageElement = document.getElementById('activity-report-image');
+                    if (!title || !date || !content || !imageElement) {
+                        Utils.showMessage('error-message-activity-reports', 'タイトル、日付、内容、または画像が正しく指定されていません', 3000);
+                        return [2 /*return*/];
+                    }
+
+                    // `files` プロパティにアクセスする前に `imageElement` が null でないことを確認
+                    imageFile = imageElement.files ? imageElement.files[0] : null;
+
+                    title = title.value;
+                    date = date.value;
+                    content = content.value;
+
+                    // 必須項目チェック
+                    if (!title || !date || !content) {
+                        Utils.showMessage('error-message-activity-reports', '必須項目（タイトル、日付、内容）を入力してください', 3000);
+                        return [2 /*return*/];
+                    }
+
+                    imageUrl = ''; // 初期化
+                    if (!imageFile) return [3 /*break*/, 5];
+
+                    _b.label = 2;
+                case 2:
+                    _b.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, this.uploadImageToCloudinary(imageFile, 'activity-reports')];
+                case 3:
+                    imageUrl = _b.sent();  // 画像URLを取得
+                    return [3 /*break*/, 5];
+                case 4:
+                    err_16 = _b.sent();
+                    Utils.showMessage('error-message-activity-reports', '画像のアップロードに失敗しました: ' + err_16.message, 3000);
+                    return [2 /*return*/];
+                case 5:
+                    return [4 /*yield*/, this.activityReports.add(title, content, date, imageUrl, this.adminPassword)];
+                case 6:
+                    _b.sent();
+                    // フォームをクリア
+                    document.getElementById('activity-report-form').reset();
+                    previewImg = document.getElementById('activity-report-preview-img');
+                    placeholder = document.getElementById('activity-report-preview-placeholder');
+
+                    if (previewImg) previewImg.style.display = 'none';
+                    if (placeholder) placeholder.style.display = 'block';
+
+                    // リストを更新
+                    return [4 /*yield*/, this.activityReports.fetch(this.adminPassword)];
+                case 7:
+                    // リストを更新
+                    _b.sent();
+                    this.activityReports.render(document.getElementById('activity-reports-list-container'));
+                    Utils.showMessage('success-message-activity-reports', '活動報告を追加しました', 3000);
+                    return [3 /*break*/, 9];
+                case 8:
+                    err_17 = _b.sent();
+                    console.error('Error:', err_17);
+                    Utils.showMessage('error-message-activity-reports', '追加に失敗しました: ' + err_17.message, 3000);
+                    return [3 /*break*/, 9];
+                case 9: return [2 /*return*/];
+            }
         });
-    };
+    });
+};
+
     /**
      * 活動報告削除ハンドラー
      */
@@ -1759,6 +1746,7 @@ var ActivityReportManager = /** @class */ (function () {
         this.api = api;
         this.reports = [];
     }
+
     /**
      * 活動報告一覧を取得
      */
@@ -1767,20 +1755,26 @@ var ActivityReportManager = /** @class */ (function () {
             var response, _a;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: return [4 /*yield*/, fetch("/api/activity-reports?password=".concat(encodeURIComponent(password)))];
+                    case 0: 
+                        console.log('Fetching activity reports...');
+                        return [4 /*yield*/, fetch("/api/activity-reports?password=".concat(encodeURIComponent(password)))];
                     case 1:
                         response = _b.sent();
-                        if (!response.ok)
+                        if (!response.ok) {
+                            console.error('Failed to fetch activity reports: ', response.statusText);
                             throw new Error('Failed to fetch activity reports');
+                        }
                         _a = this;
                         return [4 /*yield*/, response.json()];
                     case 2:
                         _a.reports = _b.sent();
+                        console.log('Fetched reports: ', this.reports);
                         return [2 /*return*/, this.reports];
                 }
             });
         });
     };
+
     /**
      * 活動報告を追加
      */
@@ -1789,20 +1783,26 @@ var ActivityReportManager = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/activity-reports', {
+                    case 0: 
+                        console.log('Adding new activity report...');
+                        return [4 /*yield*/, fetch('/api/activity-reports', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ title: title, content: content, date: date, image_url: image_url, password: password })
                         })];
                     case 1:
                         response = _a.sent();
-                        if (!response.ok)
+                        if (!response.ok) {
+                            console.error('Failed to add activity report: ', response.statusText);
                             throw new Error('Failed to add activity report');
+                        }
+                        console.log('Activity report added successfully');
                         return [2 /*return*/];
                 }
             });
         });
     };
+
     /**
      * 活動報告を更新
      */
@@ -1811,20 +1811,26 @@ var ActivityReportManager = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/activity-reports', {
+                    case 0: 
+                        console.log('Updating activity report with id: ', id);
+                        return [4 /*yield*/, fetch('/api/activity-reports', {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ id: id, title: title, content: content, date: date, image_url: image_url, password: password })
                         })];
                     case 1:
                         response = _a.sent();
-                        if (!response.ok)
+                        if (!response.ok) {
+                            console.error('Failed to update activity report: ', response.statusText);
                             throw new Error('Failed to update activity report');
+                        }
+                        console.log('Activity report updated successfully');
                         return [2 /*return*/];
                 }
             });
         });
     };
+
     /**
      * 活動報告を削除
      */
@@ -1833,20 +1839,26 @@ var ActivityReportManager = /** @class */ (function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/activity-reports', {
+                    case 0: 
+                        console.log('Deleting activity report with id: ', id);
+                        return [4 /*yield*/, fetch('/api/activity-reports', {
                             method: 'DELETE',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ id: id, password: password })
                         })];
                     case 1:
                         response = _a.sent();
-                        if (!response.ok)
+                        if (!response.ok) {
+                            console.error('Failed to delete activity report: ', response.statusText);
                             throw new Error('Failed to delete activity report');
+                        }
+                        console.log('Activity report deleted successfully');
                         return [2 /*return*/];
                 }
             });
         });
     };
+
     /**
      * 活動報告一覧を表示
      */
@@ -1858,8 +1870,10 @@ var ActivityReportManager = /** @class */ (function () {
         var html = "\n      <table class=\"comments-table\">\n        <thead>\n          <tr>\n            <th>\u65E5\u4ED8</th>\n            <th>\u30BF\u30A4\u30C8\u30EB</th>\n            <th>\u5185\u5BB9</th>\n            <th>\u753B\u50CF</th>\n            <th>\u64CD\u4F5C</th>\n          </tr>\n        </thead>\n        <tbody>\n          ".concat(this.reports.map(function (report) { return "\n            <tr>\n              <td>".concat(report.date, "</td>\n              <td>").concat(Utils.escapeHtml(report.title), "</td>\n              <td class=\"comment-message\">").concat(Utils.escapeHtml(report.content.substring(0, 50)), "...</td>\n              <td>").concat(report.image_url ? '<a href="' + report.image_url + '" target="_blank">表示</a>' : 'なし', "</td>\n              <td>\n                <button class=\"edit-button\" onclick=\"window.adminManager.editActivityReportHandler(").concat(report.id, ")\">\n                  \u7DE8\u96C6\n                </button>\n                <button class=\"delete-button\" onclick=\"window.adminManager.deleteActivityReportHandler(").concat(report.id, ")\">\n                  \u524A\u9664\n                </button>\n              </td>\n            </tr>\n          "); }).join(''), "\n        </tbody>\n      </table>\n    ");
         container.innerHTML = html;
     };
+
     return ActivityReportManager;
 }());
+
 // ページ読み込み時に初期化
 document.addEventListener('DOMContentLoaded', function () {
     console.log('[Main] DOMContentLoaded event fired');
