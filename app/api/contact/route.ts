@@ -25,12 +25,12 @@ class ContactManager {
   /**
    * お問い合わせフォームの初期化と送信処理
    */
-  initializeForm(): void {
-    const form = document.getElementById('contact-form') as HTMLFormElement;
-    if (!form) return;
+  // initializeForm(): void {
+  //   const form = document.getElementById('contact-form') as HTMLFormElement;
+  //   if (!form) return;
 
-    form.addEventListener('submit', (e) => this.handleFormSubmit(e));
-  }
+  //   form.addEventListener('submit', (e) => this.handleFormSubmit(e));
+  // }
 
   /**
    * フォーム送信ハンドラー
@@ -90,7 +90,7 @@ class ContactManager {
         });
       }
 
-      this.initializeForm();
+      //this.initializeForm();
     } catch (error) {
       console.error('Failed to initialize contact page:', error);
     }
