@@ -173,15 +173,5 @@
   "thanksTitle": "投書を承りました",
   "thanksText": "活動報告へのご感想をいただき、ありがとうございます。\n皆さまの声は、今後の府政活動の大切な指針とさせていただきます。",
   "backBtn": "活動報告一覧へ戻る"  
-},
-  
-  "pageHeaders": {
-    "policy": {
-      "title": "事務所案内",
-      "text": "〒600-8267 京都府京都市下京区御器屋町51-3（七条大宮上る西側1階）",
-      "tel": "070-8468-8865",
-      "mail":"tanaka0721shiho333@yahoo.co.jp",
-      "mapEmbed": "https://www.google.com/maps?q=京都府京都市下京区御器屋町51-3&output=embed"
-    }
-  }
+}
 }
