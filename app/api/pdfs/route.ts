@@ -1,26 +1,69 @@
-import { NextResponse } from 'next/server';
+// app/api/pdfs/route.ts
+import { NextResponse } from "next/server";
+import db from "@/db/client";
 
-const dummyPdfList = [
-  { id: "1", title: "テストPDF", url: "/dummy/test1.pdf" },
-  { id: "2", title: "ダミー資料", url: "/dummy/test2.pdf" }
-];
-
-// GETリクエスト
+// ===== GET =====
 export async function GET() {
-  return NextResponse.json(dummyPdfList);
+  try {
+    const result = await db.execute(`
+      SELECT *
+      FROM pdfs
+      ORDER BY created_at DESC
+    `);
+
+    return NextResponse.json(result.rows);
+  } catch (error) {
+    console.error("GET PDFs error:", error);
+    return NextResponse.json({ error: "Failed to fetch PDFs" }, { status: 500 });
+  }
 }
 
-// POSTリクエスト
+// ===== POST =====
 export async function POST(request: Request) {
-  const body = await request.json();
-  const newItem = {
-    id: String(Date.now()),
-    ...body
-  };
-  return NextResponse.json(newItem);
+  try {
+    const body = await request.json();
+
+    await db.execute({
+      sql: `
+        INSERT INTO pdfs (
+          title,
+          description,
+          file_path,
+          file_name,
+          created_at
+        )
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `,
+      args: [
+        body.title,
+        body.description,
+        body.file_path,
+        body.file_name
+      ]
+    });
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error("POST PDFs error:", error);
+    return NextResponse.json({ error: "Failed to save PDF" }, { status: 500 });
+  }
 }
 
-// DELETEリクエスト
-export async function DELETE() {
-  return NextResponse.json({ success: true });
+// ===== DELETE =====
+export async function DELETE(request: Request) {
+  try {
+    const body = await request.json();
+
+    await db.execute({
+      sql: `DELETE FROM pdfs WHERE id = ?`,
+      args: [body.id]
+    });
+
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error("DELETE PDFs error:", error);
+    return NextResponse.json({ error: "Failed to delete PDF" }, { status: 500 });
+  }
 }

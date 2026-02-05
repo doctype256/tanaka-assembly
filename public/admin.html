@@ -378,228 +378,268 @@
   </header> -->
 
   <main>
-    <div class="admin-container">
-      <div class="admin-header">
-        <h1>管理者ページ</h1>
-        <p>コメント・お問い合わせの管理</p>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>管理者ページ</h1>
+      <p>コメント・お問い合わせの管理</p>
+    </div>
+
+    <!-- ログインフォーム -->
+    <div id="login-form" class="admin-login show">
+      <h2>管理者ログイン</h2>
+      <div class="error-message" id="login-error"></div>
+      <form id="login-input" autocomplete="off">
+        <div class="form-group">
+          <label for="password">パスワード</label>
+          <input type="password" id="password" placeholder="パスワードを入力" autocomplete="new-password" required>
+        </div>
+        <button type="submit" class="login-button">ログイン</button>
+      </form>
+    </div>
+
+    <!-- 管理画面 -->
+    <div id="admin-content" class="admin-content">
+      <button class="logout-button" id="logout-button">ログアウト</button>
+
+      <!-- タブナビゲーション -->
+      <div class="tabs">
+        <button class="tab-button active" data-tab="comments-tab">コメント</button>
+        <button class="tab-button" data-tab="contacts-tab">お問い合わせ</button>
+        <button class="tab-button" data-tab="posts-tab">ご相談ポスト</button>
+        <button class="tab-button" data-tab="profile-tab">自己紹介</button>
+        <button class="tab-button" data-tab="pdf-tab">PDFファイル</button>
+        <button class="tab-button" data-tab="activity-reports-tab">活動報告</button>
       </div>
 
-      <!-- ログインフォーム -->
-      <div id="login-form" class="admin-login show">
-        <h2>管理者ログイン</h2>
-        <div class="error-message" id="login-error"></div>
-        <form id="login-input" autocomplete="off">
+      <!-- コメントタブ -->
+      <div id="comments-tab" class="tab-content active">
+        <div class="admin-stats">
+          <div class="stat-item">
+            <div class="stat-label">総コメント数</div>
+            <div class="stat-value" id="total-comments">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">記事数</div>
+            <div class="stat-value" id="article-count">0</div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <input type="text" id="filter-article" class="filter-input" placeholder="記事タイトルで検索...">
+          <button class="filter-button" id="filter-button">検索</button>
+          <button class="clear-filter-button" id="clear-filter">クリア</button>
+        </div>
+
+        <div class="error-message" id="error-message"></div>
+        <div class="success-message" id="success-message"></div>
+
+        <div id="comments-container"></div>
+      </div>
+
+      <!-- お問い合わせタブ -->
+      <div id="contacts-tab" class="tab-content">
+        <div class="admin-stats">
+          <div class="stat-item">
+            <div class="stat-label">総お問い合わせ数</div>
+            <div class="stat-value" id="total-contacts">0</div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <input type="text" id="filter-contact-email" class="filter-input" placeholder="メールアドレスで検索...">
+          <button class="filter-button" id="filter-contact-button">検索</button>
+          <button class="clear-filter-button" id="clear-contact-filter">クリア</button>
+        </div>
+
+        <div class="error-message" id="error-message-contact"></div>
+        <div class="success-message" id="success-message-contact"></div>
+
+        <div id="contacts-container"></div>
+      </div>
+
+      <!-- ご相談ポストタブ -->
+      <div id="posts-tab" class="tab-content">
+        <div class="admin-stats">
+          <div class="stat-item">
+            <div class="stat-label">総ポスト数</div>
+            <div class="stat-value" id="total-posts">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">未承認</div>
+            <div class="stat-value" id="unapproved-posts">0</div>
+          </div>
+        </div>
+
+        <div class="error-message" id="error-message-posts"></div>
+        <div class="success-message" id="success-message-posts"></div>
+
+        <div id="posts-container"></div>
+      </div>
+
+      <!-- プロフィール編集タブ -->
+      <div id="profile-tab" class="tab-content">
+        <h3>自己紹介編集</h3>
+        
+        <form id="profile-form" class="profile-edit-form">
           <div class="form-group">
-            <label for="password">パスワード</label>
-            <input type="password" id="password" placeholder="パスワードを入力" autocomplete="new-password" required>
+            <label for="profile-name">名前</label>
+            <input type="text" id="profile-name" placeholder="例：京都府議会 田中　しほ" required>
           </div>
-          <button type="submit" class="login-button">ログイン</button>
+
+          <div class="form-group">
+            <label for="profile-img-file">写真を選択（保存時に自動アップロード）</label>
+            <input type="file" id="profile-img-file" accept="image/*" style="width: 100%;">
+          </div>
+
+          <div class="form-group">
+            <label>写真プレビュー</label>
+            <div id="profile-img-preview" style="margin: 10px 0; border: 1px solid #ccc; padding: 10px; text-align: center; min-height: 150px; display: flex; align-items: center; justify-content: center; background: #f9f9f9;"> 
+              <img id="profile-preview-img" src="" alt="プレビュー" style="max-width: 100%; max-height: 200px; display: none;">
+              <span id="profile-preview-placeholder" style="color: #999;">画像がアップロードされるとここに表示されます</span>
+            </div>
+            <input type="hidden" id="profile-img-url">
+          </div>
+
+          <div class="form-group">
+            <label for="profile-birthday">生年月日</label>
+            <input type="text" id="profile-birthday" placeholder="例：1994年7月21日" required>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-from">出身地</label>
+            <input type="text" id="profile-from" placeholder="例：京都市" required>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-family">家族構成</label>
+            <input type="text" id="profile-family" placeholder="例：夫・子ども2人" required>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-job">前職</label>
+            <input type="text" id="profile-job" placeholder="例：ICU看護師" required>
+          </div>
+
+          <div class="form-group">
+            <label for="profile-hobby">趣味・特技</label>
+            <input type="text" id="profile-hobby" placeholder="例：ボランティア活動" required>
+          </div>
+
+          <button type="submit" class="login-button">プロフィール保存</button>
         </form>
+
+        <div class="error-message" id="error-message-profile"></div>
+        <div class="success-message" id="success-message-profile"></div>
+
+        <!-- 経歴管理 -->
+        <h3 style="margin-top: 40px;">経歴管理</h3>
+        
+        <form id="career-form" class="profile-edit-form" style="margin-bottom: 30px;">
+          <div class="form-group">
+            <label for="career-year">年</label>
+            <input type="text" id="career-year" placeholder="例：2017" required>
+          </div>
+
+          <div class="form-group">
+            <label for="career-month">月</label>
+            <input type="text" id="career-month" placeholder="例：4月" required>
+          </div>
+
+          <div class="form-group">
+            <label for="career-content">内容</label>
+            <input type="text" id="career-content" placeholder="例：看護師としてICU勤務開始" required>
+          </div>
+
+          <button type="submit" class="login-button">経歴追加</button>
+        </form>
+
+        <div class="error-message" id="error-message-career"></div>
+        <div class="success-message" id="success-message-career"></div>
+
+        <!-- 経歴一覧 -->
+        <div id="career-list-container"></div>
       </div>
 
-      <!-- 管理画面 -->
-      <div id="admin-content" class="admin-content">
-        <button class="logout-button" id="logout-button">ログアウト</button>
-
-        <!-- タブナビゲーション -->
-        <div class="tabs">
-          <button class="tab-button active" data-tab="comments-tab">コメント</button>
-          <button class="tab-button" data-tab="contacts-tab">お問い合わせ</button>
-          <button class="tab-button" data-tab="posts-tab">ご相談ポスト</button>
-          <button class="tab-button" data-tab="profile-tab">自己紹介</button>
-          <button class="tab-button" data-tab="pdf-tab">PDFファイル</button>
-          <button class="tab-button" data-tab="activity-reports-tab">活動報告</button>
-        </div>
-
-        <!-- コメントタブ -->
-        <div id="comments-tab" class="tab-content active">
-          <div class="admin-stats">
-            <div class="stat-item">
-              <div class="stat-label">総コメント数</div>
-              <div class="stat-value" id="total-comments">0</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">記事数</div>
-              <div class="stat-value" id="article-count">0</div>
-            </div>
+      <!-- PDFファイルタブ -->
+      <div id="pdf-tab" class="tab-content">
+        <h3>PDFファイル管理</h3>
+        
+        <form id="pdf-form" class="profile-edit-form">
+          <div class="form-group">
+            <label for="pdf-title">タイトル</label>
+            <input type="text" id="pdf-title" placeholder="例：活動報告書" required>
           </div>
 
-          <div class="filter-section">
-            <input type="text" id="filter-article" class="filter-input" placeholder="記事タイトルで検索...">
-            <button class="filter-button" id="filter-button">検索</button>
-            <button class="clear-filter-button" id="clear-filter">クリア</button>
+          <div class="form-group">
+            <label for="pdf-description">説明</label>
+            <textarea id="pdf-description" placeholder="ファイルの説明" rows="4"></textarea>
           </div>
 
-          <div class="error-message" id="error-message"></div>
-          <div class="success-message" id="success-message"></div>
-
-          <div id="comments-container"></div>
-        </div>
-
-        <!-- お問い合わせタブ -->
-        <div id="contacts-tab" class="tab-content">
-          <div class="admin-stats">
-            <div class="stat-item">
-              <div class="stat-label">総お問い合わせ数</div>
-              <div class="stat-value" id="total-contacts">0</div>
-            </div>
+          <div class="form-group">
+            <label for="pdf-file">PDFファイル</label>
+            <input type="file" id="pdf-file" accept=".pdf" required>
           </div>
 
-          <div class="filter-section">
-            <input type="text" id="filter-contact-email" class="filter-input" placeholder="メールアドレスで検索...">
-            <button class="filter-button" id="filter-contact-button">検索</button>
-            <button class="clear-filter-button" id="clear-contact-filter">クリア</button>
+          <button type="submit" class="login-button">ファイルアップロード</button>
+        </form>
+
+        <div class="error-message" id="error-message-pdf"></div>
+        <div class="success-message" id="success-message-pdf"></div>
+
+        <!-- PDFファイル一覧 -->
+        <div id="pdf-list-container" style="margin-top: 40px;"></div>
+      </div>
+
+      <!-- 活動報告タブ -->
+      <div id="activity-reports-tab" class="tab-content">
+        <h3>活動報告編集</h3>
+
+        <!-- 活動報告フォーム -->
+        <form id="activity-report-form" class="profile-edit-form">
+          <div class="form-group">
+            <label for="activity-report-id">ID</label>
+            <input type="text" id="activity-report-id" placeholder="活動報告ID" readonly>
           </div>
 
-          <div class="error-message" id="error-message-contact"></div>
-          <div class="success-message" id="success-message-contact"></div>
-
-          <div id="contacts-container"></div>
-        </div>
-
-        <!-- ご相談ポストタブ -->
-        <div id="posts-tab" class="tab-content">
-          <div class="admin-stats">
-            <div class="stat-item">
-              <div class="stat-label">総ポスト数</div>
-              <div class="stat-value" id="total-posts">0</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-label">未承認</div>
-              <div class="stat-value" id="unapproved-posts">0</div>
-            </div>
+          <div class="form-group">
+            <label for="activity-category">カテゴリー</label>
+            <input type="text" id="activity-category" placeholder="例：地域活動" required>
           </div>
 
-          <div class="error-message" id="error-message-posts"></div>
-          <div class="success-message" id="success-message-posts"></div>
+          <div class="form-group">
+            <label for="activity-title">タイトル</label>
+            <input type="text" id="activity-title" placeholder="活動報告のタイトル" required>
+          </div>
 
-          <div id="posts-container"></div>
-        </div>
+          <div class="form-group">
+            <label for="activity-year">年</label>
+            <input type="number" id="activity-year" placeholder="例：2021" required>
+          </div>
 
-        <!-- プロフィール編集タブ -->
-        <div id="profile-tab" class="tab-content">
-          <h3>自己紹介編集</h3>
-          
-          <form id="profile-form" class="profile-edit-form">
-            <div class="form-group">
-              <label for="profile-name">名前</label>
-              <input type="text" id="profile-name" placeholder="例：京都府議会 田中　しほ" required>
-            </div>
+          <div class="form-group">
+            <label for="activity-items">活動内容</label>
+            <textarea id="activity-items" placeholder="活動の内容を記入" rows="4" required></textarea>
+          </div>
 
-            <div class="form-group">
-              <label for="profile-img-file">写真を選択（保存時に自動アップロード）</label>
-              <input type="file" id="profile-img-file" accept="image/*" style="width: 100%;">
-            </div>
+          <div class="form-group">
+            <label for="activity-photos">写真</label>
+            <input type="file" id="activity-photos" accept="image/*" multiple>
+          </div>
 
-            <div class="form-group">
-                <label>写真プレビュー</label>
-                <div id="profile-img-preview"style="margin: 10px 0; border: 1px solid #ccc; padding: 10px; text-align: center; min-height: 150px; display: flex; align-items: center; justify-content: center; background: #f9f9f9;"> 
-                 <img id="profile-preview-img"
-                      src=""
-                      alt="プレビュー"
-                    style="max-width: 100%; max-height: 200px; display: none;">
-                  <span id="profile-preview-placeholder" style="color: #999;">
-                                  画像がアップロードされるとここに表示されます
-                </span>
-                  </div>
-                      <input type="hidden" id="profile-img-url">
-                </div>
+          <button type="submit" class="login-button">活動報告を保存</button>
+        </form>
 
-            <div class="form-group">
-              <label for="profile-birthday">生年月日</label>
-              <input type="text" id="profile-birthday" placeholder="例：1994年7月21日" required>
-            </div>
+        <div class="error-message" id="error-message-activity-report"></div>
+        <div class="success-message" id="success-message-activity-report"></div>
 
-            <div class="form-group">
-              <label for="profile-from">出身地</label>
-              <input type="text" id="profile-from" placeholder="例：京都市" required>
-            </div>
-
-            <div class="form-group">
-              <label for="profile-family">家族構成</label>
-              <input type="text" id="profile-family" placeholder="例：夫・子ども2人" required>
-            </div>
-
-            <div class="form-group">
-              <label for="profile-job">前職</label>
-              <input type="text" id="profile-job" placeholder="例：ICU看護師" required>
-            </div>
-
-            <div class="form-group">
-              <label for="profile-hobby">趣味・特技</label>
-              <input type="text" id="profile-hobby" placeholder="例：ボランティア活動" required>
-            </div>
-
-            <button type="submit" class="login-button">プロフィール保存</button>
-          </form>
-
-          <div class="error-message" id="error-message-profile"></div>
-          <div class="success-message" id="success-message-profile"></div>
-
-          <!-- 経歴管理 -->
-          <h3 style="margin-top: 40px;">経歴管理</h3>
-          
-          <form id="career-form" class="profile-edit-form" style="margin-bottom: 30px;">
-            <div class="form-group">
-              <label for="career-year">年</label>
-              <input type="text" id="career-year" placeholder="例：2017" required>
-            </div>
-
-            <div class="form-group">
-              <label for="career-month">月</label>
-              <input type="text" id="career-month" placeholder="例：4月" required>
-            </div>
-
-            <div class="form-group">
-              <label for="career-content">内容</label>
-              <input type="text" id="career-content" placeholder="例：看護師としてICU勤務開始" required>
-            </div>
-
-            <button type="submit" class="login-button">経歴追加</button>
-          </form>
-
-          <div class="error-message" id="error-message-career"></div>
-          <div class="success-message" id="success-message-career"></div>
-
-          <!-- 経歴一覧 -->
-          <div id="career-list-container"></div>
-          <div class="success-message" id="success-message-profile"></div>
-        </div>
-
-        <!-- PDFファイルタブ -->
-        <div id="pdf-tab" class="tab-content">
-          <h3>PDFファイル管理</h3>
-          
-          <form id="pdf-form" class="profile-edit-form">
-            <div class="form-group">
-              <label for="pdf-title">タイトル</label>
-              <input type="text" id="pdf-title" placeholder="例：活動報告書" required>
-            </div>
-
-            <div class="form-group">
-              <label for="pdf-description">説明</label>
-              <textarea id="pdf-description" placeholder="ファイルの説明" rows="4"></textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="pdf-file">PDFファイル</label>
-              <input type="file" id="pdf-file" accept=".pdf" required>
-            </div>
-
-            <button type="submit" class="login-button">ファイルアップロード</button>
-          </form>
-
-          <div class="error-message" id="error-message-pdf"></div>
-          <div class="success-message" id="success-message-pdf"></div>
-
-          <!-- PDFファイル一覧 -->
-          <div id="pdf-list-container" style="margin-top: 40px;"></div>
-        </div>
+        <!-- 活動報告一覧 -->
+        <div id="activity-reports-container"></div>
       </div>
     </div>
-  </main>
+  </div>
+</main>
 
   <script src="src/header.js"></script>
-  <script type="module" src="src/admin.ts"></script>
+  <script type="module" src="/js/admin.js"></script>
 </body>
 </html>

@@ -723,7 +723,7 @@ h2 {
    経歴
 ========================== */
 .profile-history h3 {
-  font-size: 1.2rem;
+  font-size: 2rem;
   margin-bottom: 1rem;
   border-bottom: 1px solid #000;
   display: inline-block;
@@ -737,7 +737,7 @@ h2 {
 
 .history-row .year {
   min-width: 3rem;
-  font-weight: 600;
+  font-weight: 900;
 }
 
 .history-row p {
@@ -1980,14 +1980,28 @@ body.font-large {
   text-align: center;
   margin-top: 50px;
 }
+.back-link-area--comment {
+  text-align: center;
+  margin-top: 0px;
+}
 
 .back-button {
   display: inline-block;
   border: 2px solid #333;
   color: #ffffff;
+  padding: 10px 80px;
+  text-decoration: none;
+  font-weight: 700;
+}
+.back-button--comment {
+  display: inline-block;
+  border: 2px solid #333;
+  background-color: #333;
+  color: #ffffff;
   padding: 10px 40px;
   text-decoration: none;
   font-weight: 700;
+  margin-bottom: 50px;
 }
 
 /* コメント欄スタイル */

@@ -1,66 +1,92 @@
 // app/api/upload-image/route.ts
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
+import { Readable } from "stream";
 
-// Cloudinary設定
+// Cloudinary 設定
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export default async function handler(
-  req: VercelRequest,
-  res: VercelResponse
-) {
-  // CORS設定
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+const setCorsHeaders = (res: NextResponse) => {
+  res.headers.set("Access-Control-Allow-Origin", "*");
+  res.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+};
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+// OPTIONS
+export async function OPTIONS(req: NextRequest) {
+  const res = NextResponse.json({});
+  setCorsHeaders(res);
+  return res;
+}
 
-  // ===== POST: 画像をCloudinaryにアップロード =====
-  if (req.method === "POST") {
-    try {
-      const { file_data, filename, folder, password } = req.body;
+// POST
+export async function POST(req: NextRequest) {
+  try {
+    const formData = await req.formData();
 
-      // 管理者認証
-      const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
-      if (password !== adminPassword) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
+    const file = formData.get("file_data");
+    const filename = formData.get("filename");
+    const folder = formData.get("folder") || "uploads";
+    const password = formData.get("password");
 
-      // ファイルデータのバリデーション
-      if (!file_data || !filename) {
-        return res.status(400).json({ error: "Missing file_data or filename" });
-      }
+    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    if (password !== adminPassword) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-      // Cloudinaryにアップロード
-      const uploadResult = await cloudinary.uploader.upload(file_data, {
-        resource_type: "auto",
-        public_id: filename.split(".")[0],
-        folder: folder || "uploads",
-        overwrite: false,
-      });
+    if (!file || !filename || !(file instanceof File)) {
+      return NextResponse.json({ error: "Invalid file" }, { status: 400 });
+    }
 
-      return res.status(200).json({
-        success: true,
-        url: uploadResult.secure_url,
-        public_id: uploadResult.public_id,
-        filename: filename,
-        uploaded_at: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error("Upload error:", error);
-      return res.status(500).json({
+    // ✅ File → Buffer 変換
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // ✅ Cloudinary upload_stream 使用
+    const uploadResult = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: "auto",
+          public_id: filename.toString().split(".")[0],
+          folder: folder.toString(),
+          overwrite: false,
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+
+      Readable.from(buffer).pipe(uploadStream);
+    });
+
+    const res = NextResponse.json({
+      success: true,
+      url: (uploadResult as any).secure_url,
+      public_id: (uploadResult as any).public_id,
+      filename,
+      uploaded_at: new Date().toISOString(),
+    });
+
+    setCorsHeaders(res);
+    return res;
+
+  } catch (error) {
+    console.error("Upload error:", error);
+
+    const res = NextResponse.json(
+      {
         error: "Upload failed",
         details: error instanceof Error ? error.message : "Unknown error",
-      });
-    }
-  }
+      },
+      { status: 500 }
+    );
 
-  return res.status(405).json({ error: "Method not allowed" });
+    setCorsHeaders(res);
+    return res;
+  }
 }
