@@ -452,6 +452,11 @@ h2 {
   color: #03709b;
   margin-bottom: 1.5rem;
 }
+.shihopress-section-title{
+  text-align: center;
+  color: #03709b;
+  margin-bottom: 0.5rem;
+}
 .more-btn {
   display: block;
   width: 120px;
@@ -752,9 +757,7 @@ h2 {
   .profile {
     max-width: 720px;   /* ← PCで読みやすい幅（好みで変更OK） */
   }
-
 }
-
 .hero {
   font-size: 2rem;
   text-align: center;
@@ -1032,9 +1035,9 @@ body.font-large {
   text-align: center;
   font-family: "Noto Serif JP", serif;
   font-size: 2rem;
+  margin-top: 2rem;
   margin-bottom: 0.1rem;
 }
-
 /* ===== グリッド ===== */
 .activity-grid {
   display: grid;
@@ -2204,6 +2207,7 @@ body.font-large {
   transition: transform 0.3s ease, box-shadow 0.3s ease; /* ホバー演出 */
   min-height: 80px;   /* 高さを抑える */
   color: #ffffff;
+  margin-top: 50px;
 }
 
 /* 個別カラー（既存のトーンに合わせる） */
@@ -2224,14 +2228,15 @@ body.font-large {
 
 /* 中のテキストサイズ調整 */
 .link-card .en {
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   font-weight: bold;
   letter-spacing: 0.05em;
   margin-bottom: 2px;
+  margin-left: -12px; /* 左に2pxずらす */
 }
 
 .link-card .jp {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   font-weight: 700;
 }
 
@@ -2361,6 +2366,32 @@ body.font-large {
 }
 .dot.active { background-color: #ff6b9d; }
 
+/* ページ専用 Dots Navigation */
+.custom-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.custom-dot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ccc;         /* 非アクティブの背景色 */
+  border: 2px solid #ccc;         /* 非アクティブの線の色も同じ */
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s, border-color 0.3s;
+}
+
+.custom-dot.active {
+  background-color: #ff6b9d;      /* アクティブ背景 */
+  border-color: #ff6b9d;          /* アクティブ線 */
+  transform: scale(1.2);
+}
+
+
 /* --- Shiho Press サムネイル表示用スタイル --- */
 .pdf-thumbnail-container {
   width: 100%;
@@ -2420,6 +2451,10 @@ body.font-large {
   flex: 1;
   min-width: 0;
 }
+.news-block {
+  margin-bottom: 80px;
+}
+
 
 /* --- カルーセル表示 --- */
 .pdf-year-section { margin-bottom: 50px; width: 100%; }
