@@ -1,3 +1,4 @@
+// app/api/pdfs/route.ts
 import { NextResponse } from 'next/server';
 
 // ダミーPDFリスト

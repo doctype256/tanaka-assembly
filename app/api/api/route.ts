@@ -1,3 +1,4 @@
+// app/api/api/route.ts
 interface Comment {
   id: number;
   article_title: string;
