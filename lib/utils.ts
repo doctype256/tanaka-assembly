@@ -1,4 +1,4 @@
-// app/api/utils/route.ts
+// lib/utils.ts
 class Utils {
   /**
    * HTML内の特殊文字をエスケープしXSS対策
