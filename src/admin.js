@@ -465,6 +465,7 @@ class AdminManager {
     this.profile = new ProfileManager(this.api);
     this.career = new CareerManager(this.api);
     this.pdf = new PDFManager(this.api);
+    this.topPage = new TopPageManager(this.api); // ★追加
     this.adminPassword = null;
   }
 
@@ -545,6 +546,7 @@ class AdminManager {
         this.profile.fetch(password),
         this.career.fetch(password),
         this.pdf.fetch(password),
+        this.topPage.fetch(password) // ★追加
       ]);
 
       this.adminPassword = password;
@@ -557,6 +559,7 @@ class AdminManager {
       this.profile.loadForm();
       this.career.render(document.getElementById('career-list-container'));
       this.pdf.render(document.getElementById('pdf-list-container'));
+      this.topPage.loadForm(); // ★ここに追記（取得したデータをフォームに反映）
     } catch (err) {
       console.error('[Admin] Login error:', err);
       Utils.showMessage('login-error', 'パスワードが間違っています', 0);
@@ -904,6 +907,23 @@ class AdminManager {
       Utils.showMessage('error-message-pdf', 'PDFの削除に失敗しました: ' + err.message, 3000);
     }
   }
+
+  /**
+ * トップページ設定保存ハンドラー
+ */
+async handleTopPageSave(e) {
+  e.preventDefault();
+  if (!this.adminPassword) return;
+
+  try {
+    const data = this.topPage.getFormData();
+    await this.topPage.save(data, this.adminPassword);
+    Utils.showMessage('success-message-top-page', '設定を保存しました', 3000);
+  } catch (err) {
+    console.error('Error:', err);
+    Utils.showMessage('error-message-top-page', '保存に失敗しました', 3000);
+  }
+}
 }
 
 /**
@@ -975,6 +995,140 @@ class PDFManager {
       </table>
     `;
     container.innerHTML = html;
+  }
+}
+
+/**
+ * directory: src/admin.js
+ */
+
+/**
+ * トップページ設定管理クラス
+ * 議員（IT初心者）がソースコードを触らずに運用できる動的SNS管理を実装
+ */
+class TopPageManager {
+  constructor(api) {
+    this.api = api;
+    this.settings = null;
+    this.snsList = []; // SNSの配列 {platform: string, url: string} を保持
+  }
+
+  /**
+   * 設定情報を取得
+   */
+  async fetch() {
+    const response = await fetch('/api/top-page');
+    if (!response.ok) throw new Error('Failed to fetch top page settings');
+    this.settings = await response.json();
+    
+    // SNSデータのパース (安全策としてエラーハンドリング)
+    try {
+      this.snsList = JSON.parse(this.settings.snsJson || "[]");
+    } catch (e) {
+      console.error("SNSデータ形式エラー:", e);
+      this.snsList = [];
+    }
+    return this.settings;
+  }
+
+  /**
+   * 設定情報を保存
+   */
+  async save(data, password) {
+    const response = await fetch('/api/top-page', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, password })
+    });
+    if (!response.ok) throw new Error('Failed to save settings');
+  }
+
+  /**
+   * フォームにデータを読み込む
+   */
+  loadForm() {
+    if (!this.settings) return;
+    
+    const setVal = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val || '';
+    };
+
+    setVal('hero-img-path', this.settings.heroImg);
+    setVal('office-address', this.settings.address);
+    setVal('map-url', this.settings.mapUrl);
+    setVal('youtube-url', this.settings.ytUrl);
+
+    // SNS一覧の描画
+    this.renderSnsList();
+  }
+
+  /**
+   * SNSアイテムの追加 (議員がボタン操作で使用)
+   */
+  addSnsItem() {
+    const platformEl = document.getElementById('sns-platform-select');
+    const urlEl = document.getElementById('sns-url-input');
+    
+    if (!urlEl || !urlEl.value) {
+      alert("URLを入力してください");
+      return;
+    }
+
+    const newItem = {
+      platform: platformEl.value,
+      url: urlEl.value
+    };
+
+    this.snsList.push(newItem);
+    urlEl.value = ''; // 入力欄をクリア
+    this.renderSnsList();
+  }
+
+  /**
+   * SNSアイテムの削除
+   */
+  removeSnsItem(index) {
+    this.snsList.splice(index, 1);
+    this.renderSnsList();
+  }
+
+  /**
+   * SNSリストのHTML描画
+   */
+  renderSnsList() {
+    const container = document.getElementById('sns-list-container');
+    if (!container) return;
+
+    if (this.snsList.length === 0) {
+      container.innerHTML = '<p style="color: #666; font-size: 0.9em;">登録されたSNSはありません</p>';
+      return;
+    }
+
+    container.innerHTML = this.snsList.map((sns, index) => `
+      <div class="sns-item" style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+        <span style="font-weight: bold; min-width: 80px;">${sns.platform}</span>
+        <span style="flex: 1; word-break: break-all; font-size: 0.9em;">${sns.url}</span>
+        <button type="button" onclick="window.adminManager.topPage.removeSnsItem(${index})" 
+                style="background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+          削除
+        </button>
+      </div>
+    `).join('');
+  }
+
+  /**
+   * フォームからデータを取得 (保存用)
+   */
+  getFormData() {
+    return {
+      heroImg: document.getElementById('hero-img-path')?.value || '',
+      address: document.getElementById('office-address')?.value || '',
+      mapUrl: document.getElementById('map-url')?.value || '',
+      ytUrl: document.getElementById('youtube-url')?.value || '',
+      // SNSリストを文字列化してDBへ
+      snsJson: JSON.stringify(this.snsList)
+    };
   }
 }
 
