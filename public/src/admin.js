@@ -221,7 +221,7 @@ class AdminManager {
     this.api = new APIClient();
     this.comments = new CommentManager(this.api);
     this.contacts = new ContactListManager(this.api);
-    this.adminPassword = null;
+    this.adminPassword = undefined;
   }
 
   /**
@@ -277,7 +277,7 @@ class AdminManager {
    * ログアウト処理
    */
   handleLogout() {
-    this.adminPassword = null;
+    this.adminPassword = undefined;
     Utils.showElement('login-form', true);
     Utils.showElement('admin-content', false);
   }

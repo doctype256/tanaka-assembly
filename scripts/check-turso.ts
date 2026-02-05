@@ -61,6 +61,30 @@ async function checkTurso() {
       });
     }
 
+    // --- ここから追記 ---
+    console.log("\n--- 📂 全テーブル一覧確認 ---");
+    
+    // 存在するテーブル一覧を取得
+    const tablesRes = await db.execute(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';"
+    );
+    const tableNames = tablesRes.rows.map(row => row.name as string);
+
+    for (const tableName of tableNames) {
+      // 既に上で表示しているテーブルはスキップ（重複を避ける場合）
+      if (tableName === 'comments' || tableName === 'contacts') continue;
+
+      const content = await db.execute(`SELECT * FROM ${tableName} LIMIT 5;`);
+      console.log(`\n📊 TABLE: ${tableName} (${content.rows.length} records)`);
+      
+      if (content.rows.length > 0) {
+        console.table(content.rows);
+      } else {
+        console.log("   (データなし)");
+      }
+    }
+    // --- ここまで追記 ---
+
     console.log("\n✅ Turso database check complete");
   } catch (error) {
     console.error("❌ Error checking Turso database:", error);
