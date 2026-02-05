@@ -1,3 +1,7 @@
-画像のアップロードはフリー素材のみ
+マジでカスみたいなコードすぎる
 
-vercelのビルド設定に「npm install firebase-admin」追加する
+アクセス拒否された場合のコマンド
+
+npm instal next
+
+Remove-Item -Recurse -Force .next
