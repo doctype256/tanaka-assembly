@@ -1374,83 +1374,33 @@ var AdminManager = /** @class */ (function () {
      */
     AdminManager.prototype.uploadImageToCloudinary = function (file_2) {
         return __awaiter(this, arguments, void 0, function (file, folder) {
-            var reader;
-            var _this = this;
             if (folder === void 0) { folder = 'uploads'; }
+            var formData, response, result;
             return __generator(this, function (_a) {
-                console.log('[uploadImageToCloudinary] Starting with file:', file.name, ', folder:', folder);
-                reader = new FileReader();
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        reader.onload = function (event) { return __awaiter(_this, void 0, void 0, function () {
-                            var base64Data, uploadPayload, fetchPromise, response, errorText, error, result, err_14;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
-                                    case 0:
-                                        _a.trys.push([0, 5, , 6]);
-                                        base64Data = event.target.result;
-                                        console.log('[uploadImageToCloudinary] Base64 data created, length:', base64Data.length);
-                                        uploadPayload = {
-                                            file_data: base64Data,
-                                            filename: "".concat(Date.now(), "_").concat(file.name),
-                                            folder: folder,
-                                            password: this.adminPassword
-                                        };
-                                        console.log('[uploadImageToCloudinary] Payload prepared:', {
-                                            filename: uploadPayload.filename,
-                                            folder: uploadPayload.folder,
-                                            fileDataLength: uploadPayload.file_data.length
-                                        });
-                                        console.log('[uploadImageToCloudinary] Sending POST to /api/upload-image');
-                                        console.log('[uploadImageToCloudinary] Payload size:', JSON.stringify(uploadPayload).length);
-                                        fetchPromise = fetch('/api/upload-image', {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify(uploadPayload)
-                                        });
-                                        console.log('[uploadImageToCloudinary] Fetch promise created');
-                                        return [4 /*yield*/, fetchPromise];
-                                    case 1:
-                                        response = _a.sent();
-                                        console.log('[uploadImageToCloudinary] Fetch completed, response:', response);
-                                        console.log('[uploadImageToCloudinary] Response received, status:', response.status);
-                                        if (!!response.ok) return [3 /*break*/, 3];
-                                        return [4 /*yield*/, response.text()];
-                                    case 2:
-                                        errorText = _a.sent();
-                                        console.error('[uploadImageToCloudinary] Error response text:', errorText);
-                                        try {
-                                            error = JSON.parse(errorText);
-                                            throw new Error(error.error || 'Upload failed');
-                                        }
-                                        catch (_b) {
-                                            throw new Error('Upload failed: ' + errorText.substring(0, 100));
-                                        }
-                                        _a.label = 3;
-                                    case 3: return [4 /*yield*/, response.json()];
-                                    case 4:
-                                        result = _a.sent();
-                                        console.log('[uploadImageToCloudinary] Success! Result:', result);
-                                        resolve(result.url);
-                                        return [3 /*break*/, 6];
-                                    case 5:
-                                        err_14 = _a.sent();
-                                        console.error('[uploadImageToCloudinary] Error:', err_14);
-                                        console.error('[uploadImageToCloudinary] Error name:', err_14.name);
-                                        console.error('[uploadImageToCloudinary] Error message:', err_14.message);
-                                        console.error('[uploadImageToCloudinary] Error stack:', err_14.stack);
-                                        reject(err_14);
-                                        return [3 /*break*/, 6];
-                                    case 6: return [2 /*return*/];
-                                }
-                            });
-                        }); };
-                        reader.onerror = function () {
-                            console.error('[uploadImageToCloudinary] FileReader error');
-                            reject(new Error('FileReader error'));
-                        };
-                        console.log('[uploadImageToCloudinary] Calling readAsDataURL');
-                        reader.readAsDataURL(file);
-                    })];
+                switch (_a.label) {
+                    case 0:
+                        console.log('[uploadImageToCloudinary] Starting with file:', file.name, ', folder:', folder);
+                        formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('filename', Date.now() + '_' + file.name);
+                        formData.append('folder', folder);
+                        formData.append('password', this.adminPassword);
+                        return [4 /*yield*/, fetch('/api/upload-image', {
+                            method: 'POST',
+                            body: formData
+                        })];
+                    case 1:
+                        response = _a.sent();
+                        if (!response.ok) return [3 /*break*/, 3];
+                        return [4 /*yield*/, response.json()];
+                    case 2:
+                        result = _a.sent();
+                        console.log('[uploadImageToCloudinary] Success! Result:', result);
+                        return [2 /*return*/, result.url];
+                    case 3: return [4 /*yield*/, response.text()];
+                    case 4:
+                        throw new Error('Upload failed: ' + (_a.sent()).substring(0, 100));
+                }
             });
         });
     };
