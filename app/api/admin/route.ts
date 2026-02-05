@@ -5,14 +5,10 @@
  */
 import Utils from '../utils/route';
 import { NextResponse } from 'next/server';
-import { getAllUsers } from '@/lib/firebase/admin';
+// import { getAllUsers } from '@/lib/firebase/admin';
 import APIClient from '@/lib/apiClient';
 
 
-export async function GET() {
-  const users = await getAllUsers();
-  return NextResponse.json(users);
-}
 
 /**
  * コメント管理クラス
