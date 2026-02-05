@@ -1,37 +1,32 @@
-// [project]/app/api/contacts/route.ts
-
-import { NextRequest, NextResponse } from 'next/server';  // `import type` を通常のインポートに変更
+import { NextRequest, NextResponse } from 'next/server';  
 import db from "@/db/client";
 
 // CORS設定
 const setCorsHeaders = (res: NextResponse) => {
-  res.headers.set("Access-Control-Allow-Origin", "*");  // 任意のドメインからアクセス可能
-  res.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");  // 許可するHTTPメソッド
-  res.headers.set("Access-Control-Allow-Headers", "Content-Type");  // 許可するヘッダー
+  res.headers.set("Access-Control-Allow-Origin", "*");
+  res.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type");
 };
 
 // OPTIONSメソッドへの対応（CORSプリフライトリクエスト）
 export async function OPTIONS(req: NextRequest) {
   const res = NextResponse.json({});  // 空のレスポンスを返す
   setCorsHeaders(res);  // CORSヘッダーを設定
-  return res;  // status(200) は不要、NextResponse.json() はデフォルトで200ステータスを返す
+  return new NextResponse(JSON.stringify({}), { status: 200 });  // ステータスコードを設定して新しいレスポンスを返す
 }
 
 // GETメソッド
 export async function GET(req: NextRequest) {
   try {
-    // URLSearchParams から password を取得
-    const password = req.nextUrl.searchParams.get('password'); // get() メソッドで取得
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123"; // 文字列として設定
+    const password = req.nextUrl.searchParams.get('password');
+    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
 
-    // パスワードを文字列として比較
     if (password !== adminPassword) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
     let contacts;
 
-    // データベースからお問い合わせを取得
     if (typeof (db as any).execute === "function") {
       const result = await (db as any).execute({
         sql: "SELECT id, name, furigana, email, message, created_at FROM contacts ORDER BY created_at DESC",
@@ -43,12 +38,12 @@ export async function GET(req: NextRequest) {
         .all();
     }
 
-    const res = NextResponse.json(contacts); // レスポンスには200ステータスコードがデフォルト
-    setCorsHeaders(res);  // CORSヘッダーを設定
+    const res = new NextResponse(JSON.stringify(contacts), { status: 200 });
+    setCorsHeaders(res);
     return res;
   } catch (err: any) {
-    const res = NextResponse.json({ error: err.message }, { status: 500 });
-    setCorsHeaders(res);  // CORSヘッダーを設定
+    const res = new NextResponse(JSON.stringify({ error: err.message }), { status: 500 });
+    setCorsHeaders(res);
     return res;
   }
 }
@@ -57,11 +52,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
     const { name, furigana, email, message } = body;
 
     if (!name || !email || !message) {
-      return NextResponse.json({ error: "name, email, and message are required" }, { status: 400 });
+      return new NextResponse(JSON.stringify({ error: "name, email, and message are required" }), { status: 400 });
     }
 
     if (typeof (db as any).execute === "function") {
@@ -76,12 +70,12 @@ export async function POST(req: NextRequest) {
         .run(name, furigana || null, email, message);
     }
 
-    const res = NextResponse.json({ success: true, message: "Contact created" }, { status: 201 });
-    setCorsHeaders(res);  // CORSヘッダーを設定
+    const res = new NextResponse(JSON.stringify({ success: true, message: "Contact created" }), { status: 201 });
+    setCorsHeaders(res);
     return res;
   } catch (err: any) {
-    const res = NextResponse.json({ error: err.message }, { status: 500 });
-    setCorsHeaders(res);  // CORSヘッダーを設定
+    const res = new NextResponse(JSON.stringify({ error: err.message }), { status: 500 });
+    setCorsHeaders(res);
     return res;
   }
 }
@@ -94,11 +88,11 @@ export async function DELETE(req: NextRequest) {
 
     const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
     if (password !== adminPassword) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
     if (!id) {
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+      return new NextResponse(JSON.stringify({ error: "id is required" }), { status: 400 });
     }
 
     if (typeof (db as any).execute === "function") {
@@ -113,12 +107,12 @@ export async function DELETE(req: NextRequest) {
         .run(id);
     }
 
-    const res = NextResponse.json({ success: true, message: "Contact deleted" }, { status: 200 });
-    setCorsHeaders(res);  // CORSヘッダーを設定
+    const res = new NextResponse(JSON.stringify({ success: true, message: "Contact deleted" }), { status: 200 });
+    setCorsHeaders(res);
     return res;
   } catch (err: any) {
-    const res = NextResponse.json({ error: err.message }, { status: 500 });
-    setCorsHeaders(res);  // CORSヘッダーを設定
+    const res = new NextResponse(JSON.stringify({ error: err.message }), { status: 500 });
+    setCorsHeaders(res);
     return res;
   }
 }

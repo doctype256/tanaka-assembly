@@ -1,3 +1,4 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-export default function handler(req: VercelRequest, res: VercelResponse): Promise<VercelResponse>;
-export declare function GET(): Promise<Response>;
+import { NextResponse } from "next/server";
+export declare function GET(req: Request): Promise<NextResponse<unknown>>;
+export declare function POST(req: Request): Promise<NextResponse<unknown>>;
+export declare function DELETE(req: Request): Promise<NextResponse<unknown>>;

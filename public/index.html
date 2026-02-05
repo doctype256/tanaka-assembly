@@ -111,30 +111,10 @@ let carouselTotalSlides = {};
 
 // --- データの読み込み ---
 document.addEventListener('DOMContentLoaded', () => {
-  fetch('data/static-texts.json')
+  fetch('/data/static-texts.json')
     .then(res => res.json())
     .then(data => {
       // 1. ページヘッダー処理
-      const page = document.body.dataset.page;
-      if (data.pageHeaders && data.pageHeaders[page]) {
-        const header = data.pageHeaders[page];
-        document.getElementById('page-header-title').textContent = header.title;
-        document.getElementById('page-header-text').textContent = header.text;
-        const mapWrapper = document.getElementById('page-header-map');
-        if (header.mapEmbed) {
-          mapWrapper.innerHTML = `<iframe src="${header.mapEmbed}" loading="lazy" allowfullscreen></iframe>`;
-        }
-        const linksWrapper = document.getElementById('page-header-links');
-        if (header.links) {
-          header.links.forEach(item => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = item.url; a.textContent = item.label; a.target = '_blank';
-            li.appendChild(a); linksWrapper.appendChild(li);
-          });
-        }
-      }
-
       // 2. 活動報告カルーセル
       if (data.activities && data.activities.reports) {
         const reports = data.activities.reports
@@ -292,6 +272,7 @@ function goToSlideIndex(key, index) { carouselIndices[key] = index; updateCarous
 
 window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
 </script>
+<script src="src/footer.js"></script>
 <script src="src/header.js"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+
 /**
  * AdminManager クラス
  * 管理画面全体を管理するクラス
@@ -1480,43 +1481,49 @@ class PDFManager {
     if (!response.ok) throw new Error('Failed to delete PDF');
   }
 
-  /**
-   * PDFリストを描画
-   */
   render(container: HTMLElement): void {
-    if (this.pdfs.length === 0) {
-      container.innerHTML = '<p>登録されたPDFファイルはありません</p>';
-      return;
-    }
-
-    const html = `
-      <table class="comments-table" style="margin-top: 20px;">
-        <thead>
-          <tr>
-            <th>タイトル</th>
-            <th>ファイル名</th>
-            <th>アップロード日時</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${this.pdfs.map(pdf => `
-            <tr>
-              <td>${pdf.title}</td>
-              <td>${pdf.file_name}</td>
-              <td>${new Date(pdf.created_at).toLocaleDateString('ja-JP')}</td>
-              <td>
-                <button class="delete-button" onclick="window.adminManager.deletePDFHandler(${pdf.id})">削除</button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-    container.innerHTML = html;
+  if (this.pdfs.length === 0) {
+    container.innerHTML = '<p>登録されたPDFファイルはありません</p>';
+    return;
   }
-}
 
+  const html = `
+    <table class="comments-table" style="margin-top: 20px;">
+      <thead>
+        <tr>
+          <th>タイトル</th>
+          <th>ファイル名</th>
+          <th>アップロード日時</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${this.pdfs.map(pdf => `
+          <tr>
+            <td>${pdf.title}</td>
+
+            ⭐ ここ重要
+            <td>
+              <a href="${pdf.file_path}" target="_blank">
+                ${pdf.file_name}
+              </a>
+            </td>
+
+            <td>${new Date(pdf.created_at).toLocaleDateString('ja-JP')}</td>
+            <td>
+              <button class="delete-button" onclick="window.adminManager.deletePDFHandler(${pdf.id})">
+                削除
+              </button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+
+  container.innerHTML = html;
+}
+}
 /**
  * 活動報告管理クラス
  */
@@ -1526,7 +1533,7 @@ class ActivityReportManager {
 
   constructor(api: APIClient) {
     this.api = api;
-    this.reports = [];
+    this.reports = [];  // 初期化時に空の配列
   }
 
   /**
@@ -1535,7 +1542,16 @@ class ActivityReportManager {
   async fetch(password: string): Promise<any[]> {
     const response = await fetch(`/api/activity-reports?password=${encodeURIComponent(password)}`);
     if (!response.ok) throw new Error('Failed to fetch activity reports');
-    this.reports = await response.json();
+    const data = await response.json();
+    
+    // レスポンスが配列かどうかを確認
+    if (!Array.isArray(data.reports)) {
+      console.error('Error: Reports data is not an array:', data.reports);
+      this.reports = [];  // 空の配列を設定
+    } else {
+      this.reports = data.reports;  // 正常に配列を設定
+    }
+    
     return this.reports;
   }
 
@@ -1579,6 +1595,12 @@ class ActivityReportManager {
    * 活動報告一覧を表示
    */
   render(container: HTMLElement): void {
+    // `this.reports` が配列でない場合には空の配列を使用
+    if (!Array.isArray(this.reports)) {
+      console.error('Reports is not an array, initializing as an empty array.');
+      this.reports = [];
+    }
+
     if (this.reports.length === 0) {
       container.innerHTML = '<p style="text-align: center; color: #999;">活動報告はまだ登録されていません</p>';
       return;
@@ -1599,8 +1621,8 @@ class ActivityReportManager {
           ${this.reports.map(report => `
             <tr>
               <td>${report.date}</td>
-              <td>${Utils.escapeHtml(report.title)}</td>
-              <td class="comment-message">${Utils.escapeHtml(report.content.substring(0, 50))}...</td>
+              <td>${this.escapeHtml(report.title)}</td>
+              <td class="comment-message">${this.escapeHtml(report.content.substring(0, 50))}...</td>
               <td>${report.image_url ? '<a href="' + report.image_url + '" target="_blank">表示</a>' : 'なし'}</td>
               <td>
                 <button class="edit-button" onclick="window.adminManager.editActivityReportHandler(${report.id})">
@@ -1617,6 +1639,24 @@ class ActivityReportManager {
     `;
     container.innerHTML = html;
   }
+
+  /**
+   * HTMLエスケープ処理
+   * @param {string} str エスケープする文字列
+   * @returns {string} エスケープされた文字列
+   */
+  escapeHtml(str: string): string {
+    return str.replace(/[&<>"']/g, function (match) {
+      const escapeMap: { [key: string]: string } = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+      };
+      return escapeMap[match] || match;
+    });
+  }
 }
 
 // ページ読み込み時に初期化
@@ -1629,4 +1669,3 @@ document.addEventListener('DOMContentLoaded', () => {
   (window as any).adminManager = manager; // グローバルにアクセス可能にする
   console.log('[Main] Initialization complete');
 });
-

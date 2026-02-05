@@ -1,15 +1,14 @@
-import { NextResponse } from 'next/server';
-export declare function GET(): Promise<NextResponse<{
-    id: string;
-    title: string;
-    url: string;
-}[]> | NextResponse<{
+import { NextResponse } from "next/server";
+export declare function GET(): Promise<NextResponse<import("@libsql/core/api").Row[]> | NextResponse<{
     error: string;
 }>>;
-export declare function POST(request: any): Promise<NextResponse<any>>;
-export declare function DELETE(request: any): Promise<NextResponse<{
-    error: string;
-}> | NextResponse<{
+export declare function POST(request: Request): Promise<NextResponse<{
     success: boolean;
-    message: string;
+}> | NextResponse<{
+    error: string;
+}>>;
+export declare function DELETE(request: Request): Promise<NextResponse<{
+    success: boolean;
+}> | NextResponse<{
+    error: string;
 }>>;

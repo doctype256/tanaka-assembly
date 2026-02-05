@@ -41,7 +41,7 @@
     "src/**/*",    // src フォルダ内の全ての TypeScript ファイルも対象にする
     "db/**/*",     // db フォルダ内も対象にする
     "**/*.tsx"     // TypeScript の JSX ファイルも対象に
-  ],
+, "public/js/header.js", "public/js/footer.js"  ],
   "exclude": [
     "node_modules",
     "public",      // public フォルダを除外
