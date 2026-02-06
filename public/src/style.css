@@ -13,32 +13,35 @@ html {
 
 /* style.css */
 body {
-  margin:0;
-  font-family:"Noto Sans JP",sans-serif;
-  background:#f5f7fa;
-  color:#1f2937;
+  margin:0;     /*　ページの余白　*/
+  font-family:"Noto Sans JP",sans-serif;/*　文字フォントを日本語対応に設定　*/
+  background:#f5f7fa;/*　背景色　*/
+  color:#1f2937;/*　文字色　*/
 }
 
-/* header */
+/* ヘッダー全体 */
 header {
-  position:fixed;
-  top:0; left:0; right:0;
-  background:#03709b;
-  color:white;
-  z-index: 10001;
+  position:fixed;     /*　画面上部を固定　*/
+  top:0; left:0; right:0;   
+  background:#03709b;   /*　背景色　*/
+  color:white;   /*　文字色　*/
+  z-index: 10001;  /*　全面表示　*/
 }
+
+  /*　ヘッダー内のナビゲーション　*/
 header nav {
-  max-width:1200px;
-  margin:auto;
-  display:flex;
-  align-items:center;
-  padding:1rem;
+  max-width:1200px;   /*　最大横幅　*/
+  margin:auto;        /*　中央寄せ　*/   
+  display:flex;       /*　横並びを　*/
+  align-items:center; /*　縦方向を中央揃え　*/
+  padding:1rem;       /*　内側の余白　*/
 
   overflow-x: auto;        /* ← 横スクロール */
   white-space: nowrap;    /* ← 改行させない */
   -webkit-overflow-scrolling: touch; /* iOSでなめらか */
 }
 
+/*　画面幅が768px以下（スマホ・タブレット）　*/
 @media (max-width: 768px) {
   header nav {
     overflow-x: visible;   /* ← 横スクロールを殺す */
@@ -46,26 +49,29 @@ header nav {
   }
 }
 
+/*　ヘッダー内リンク　*/
 header a {
   color:white;
-  text-decoration:none;
+  text-decoration:none;    /*　下線消去　*/
   margin-left:1rem;
   font-weight:600;
 }
 
+/*　ヘッダー内SNSアイコン　*/
 .header-social img {
   width: 22px;
   height: 22px;
-  display: block;
-  filter: brightness(0) invert(1);
+  display: block;     /*　隙間防止　*/
+  filter: brightness(0) invert(1);    /*　アイコン表示の色指定（白色）　*/
 }
 
-/* layout */
+/* レイアウト全体 */
 .layout {
   display:flex;
-  padding-top:90px;
+  padding-top:90px;   /*ヘッダー分の余白を確保*/
 }
 
+/*　記事・ページ見出し部分　*/
 .site-header {
   padding: 1.5rem 2.5rem;
   font-family: "Noto Serif JP", serif;
@@ -74,25 +80,48 @@ header a {
   border-bottom: 1px solid #eee;
 }
 
+/*　メインタイトル　*/
 .site-header h1 {
   font-size: 2rem;
   margin: 0;
 }
 
+/*　サブテキスト　*/
 .site-header p {
   font-size: 0.95rem;
   margin: 0.4rem 0 0;
 }
 
-/* main */
+#menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent; /* ← 完全に透明 */
+  z-index: 10000;
+  display: none;
+}
+
+#menu-overlay.active {
+  display: block;
+}
+
+
+/*==============================
+    全体共通スタイル
+    =============================*/
+
+/* ヘッダー分の余白を確保 */
 main {
   padding-top: 90px; /* headerの高さ＋少し余裕 */
 }
+
+/* 各セクションの基本レイアウト */
 section {
   padding:4rem 1rem;
   max-width:1000px;
   margin:auto;
 }
+
+/* 見出しフォント */
 h1,h2,h3 {
   font-family:"Noto Serif JP",serif;
 }
@@ -100,6 +129,10 @@ h1,h2,h3 {
 h2 {
     font-weight: 700;  /* 太字にする場合 */
 }
+
+/*==============================
+    ボタン
+    =============================*/
 
 .contact-button {
     display: inline-block;
@@ -116,6 +149,9 @@ h2 {
     background-color: #0056d4;  /* ホバー時の色 */
 }
 
+/*==============================
+    ファーストビュー（Hero）
+    =============================*/
 
 .hero {
   font-size: 2rem;   /* タイトルを大きく */
@@ -125,6 +161,7 @@ h2 {
   background:#e6eef6;
 }
 
+/* 背景画像＋人物レイヤー用コンテナ */
 .hero-image {
   max-width: none;     /* ← 1000px制限を解除 */
   padding: 0;          /* 余白を消す */
@@ -138,7 +175,10 @@ h2 {
   margin-top: 3rem;
 }
 
-/* 人物レイヤー：背景の上に重ねる */
+/*==============================
+    人物レイヤー（左配置）
+    =============================*/
+
 .hero-person-layer {
   position: absolute; /* 背景の上に重ねるために絶対配置に変更 */
   bottom: 0;          /* 下端にくっつける */
@@ -159,6 +199,10 @@ h2 {
   filter: drop-shadow(10px 0 15px rgba(0,0,0,0.1));
 }
 
+/*==============================
+    人物レイヤー（index用）
+    =============================*/
+
 .hero-person-layer-index {
   position: absolute;
   top: 0;
@@ -178,7 +222,10 @@ h2 {
   object-fit: contain;
 }
 
-/* --- タイルナビゲーション全体 --- */
+/*==============================
+   トップ:タイルナビゲーション
+   =============================*/
+
 .top-tile-nav {
   max-width: 1000px;
   margin: 40px auto;
@@ -260,7 +307,10 @@ h2 {
 .contact-box { background-color: #7bc1e4; }
 .post-box { background-color: #e07491; }
 
-/* --- スマホレスポンシブ --- */
+/*=============================
+   タイル : スマホ対応
+   =============================*/
+
 @media (max-width: 768px) {
   .tile-grid {
     flex-direction: column;
@@ -308,6 +358,10 @@ h2 {
   }
 }
 
+/*==============================
+   共通カード・グリッド
+   =============================*/
+
 .grid {
   display:grid;
   gap:2rem;
@@ -322,7 +376,11 @@ h2 {
   position: relative; /* ← 読み上げボタンの基準 */
 }
 
-/* 写真の下の横並びナビ */
+/*==============================
+   ヒーロー下ナビ
+   =============================*/
+
+/* 全体配置 */
 .hero-cards {
   display: flex;
   gap: 24px;
@@ -362,7 +420,10 @@ h2 {
   opacity: 0.7;
 }
 
-/* ヒーローセクションの微調整 */
+/*==============================
+   ヒーローセクション
+   =============================*/
+
 .hero-container {
   position: relative;
   width: 100%;
@@ -392,7 +453,10 @@ h2 {
 }
 .hero-sub { font-size: 1.2rem; display: block; color: #333; }
 
-/* ご相談ポスト (背景やわらかめ) */
+/*==============================
+   バナー・動画・リスト系
+   =============================*/
+
 .consultation-banner {
   display: flex;
   justify-content: space-between;
@@ -446,7 +510,10 @@ h2 {
 }
 .sns-row:hover { background: #f9f9f9; }
 
-/* 共通タイトルとボタン */
+/*==============================
+   共通見出し・事務所情報
+   =============================*/
+
 .section-title {
   text-align: center;
   color: #03709b;
