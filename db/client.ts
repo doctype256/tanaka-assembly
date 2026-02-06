@@ -22,4 +22,6 @@ db = createClient({
 
 console.log("✅ Using Turso database");
 
+
+
 export default db;

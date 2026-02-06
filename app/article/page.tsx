@@ -2,6 +2,7 @@
 import { notFound } from 'next/navigation';
 import db from '@/db/client';
 
+
 export default async function ArticleDetailPage({ searchParams }: { searchParams: { id?: string } }) {
   const id = searchParams.id;
   if (!id) return notFound();
