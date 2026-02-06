@@ -606,52 +606,55 @@
       </div>
 
       <!-- 活動報告タブ -->
-      <div id="activity-reports-tab" class="tab-content">
-        <h3>活動報告編集</h3>
+<div id="activity-reports-tab" class="tab-content">
+  <h3>活動報告編集</h3>
 
-        <!-- 活動報告フォーム -->
-        <form id="activity-report-form" class="profile-edit-form">
-          <div class="form-group">
-            <label for="activity-report-id">ID</label>
-            <input type="text" id="activity-report-id" placeholder="活動報告ID" readonly>
-          </div>
-
-          <div class="form-group">
-            <label for="activity-category">カテゴリー</label>
-            <input type="text" id="activity-category" placeholder="例：地域活動" required>
-          </div>
-
-          <div class="form-group">
-            <label for="activity-title">タイトル</label>
-            <input type="text" id="activity-title" placeholder="活動報告のタイトル" required>
-          </div>
-
-          <div class="form-group">
-            <label for="activity-year">年</label>
-            <input type="number" id="activity-year" placeholder="例：2021" required>
-          </div>
-
-          <div class="form-group">
-            <label for="activity-items">活動内容</label>
-            <textarea id="activity-items" placeholder="活動の内容を記入" rows="4" required></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="activity-photos">写真</label>
-            <input type="file" id="activity-photos" accept="image/*" multiple>
-          </div>
-
-          <button type="submit" class="login-button">活動報告を保存</button>
-        </form>
-
-        <div class="error-message" id="error-message-activity-report"></div>
-        <div class="success-message" id="success-message-activity-report"></div>
-
-        <!-- 活動報告一覧 -->
-        <div id="activity-reports-container"></div>
-      </div>
+  <!-- 活動報告フォーム -->
+  <form id="activity-report-form" class="profile-edit-form">
+    <div class="form-group">
+      <label for="activity-category">カテゴリー</label>
+      <select id="activity-category" required>
+        <option value="">選択してください</option>
+        <option value="committee">危機管理・健康福祉常任委員会</option>
+        <option value="childcare">子育て環境の充実に関する特別委員会</option>
+        <option value="reform">身を切る改革の断行</option>
+        <option value="topics">京都府庁の保育ルーム</option>
+      </select>
     </div>
+
+    <div class="form-group">
+      <label for="activity-title">タイトル</label>
+      <input type="text" id="activity-title" placeholder="活動報告のタイトル" required>
+    </div>
+
+    <div class="form-group">
+      <label for="activity-year">年</label>
+      <input type="number" id="activity-year" placeholder="例：2021" required>
+    </div>
+
+    <div class="form-group">
+      <label for="activity-items">活動内容</label>
+      <textarea id="activity-items" placeholder="活動の内容を記入" rows="10" style="min-height:200px;font-size:18px;width:100%;max-width:900px;" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="activity-photos">写真</label>
+      <input type="file" id="activity-photos" accept="image/*" multiple>
+      <div id="activity-photos-preview" style="margin-top: 10px;"></div> <!-- プレビュー用 -->
+    </div>
+
+    <button type="submit" class="login-button">活動報告を保存</button>
+  </form>
+
+  <div class="error-message" id="error-message-activity-report"></div>
+  <div class="success-message" id="success-message-activity-report"></div>
+
+  <!-- 活動報告一覧 -->
+  <h4>活動報告一覧</h4>
+  <div id="activity-reports-list">
+    <!-- 活動報告がここに動的に表示されます -->
   </div>
+</div>
 </main>
 
   <script src="src/header.js"></script>
