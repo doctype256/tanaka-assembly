@@ -409,6 +409,7 @@
         <button class="tab-button" data-tab="profile-tab">自己紹介</button>
         <button class="tab-button" data-tab="pdf-tab">PDFファイル</button>
         <button class="tab-button" data-tab="activity-reports-tab">活動報告</button>
+        <button class="tab-button" data-tab="consultation-new-tab" style="background-color: #fff1f2; color: #e11d48; font-weight: bold;">相談管理(最新)</button>
         <button class="tab-button" data-tab="top-page-edit" style="background-color: #e0f2fe; color: #0369a1;">トップページ編集</button>
       </div>
 
@@ -650,6 +651,17 @@
         <!-- 活動報告一覧 -->
         <div id="activity-reports-container"></div>
       </div>
+      <div id="consultation-new-tab" class="tab-content">
+  <div class="card" style="padding: 0; border: none; background: transparent;">
+    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0;">最新相談管理システム</h2>
+      <a href="/admin/consultations" target="_blank" class="login-button" style="width: auto; padding: 8px 15px; font-size: 13px; text-decoration: none; background-color: #e11d48;">
+        別ウィンドウで開く
+      </a>
+    </div>
+    <iframe src="/admin/consultations" style="width: 100%; height: 900px; border: 1px solid #ddd; border-radius: 8px; background: white;"></iframe>
+  </div>
+</div>
     </div>
   </div>
 </main>
