@@ -2407,24 +2407,127 @@ body.font-large {
 }
 
 /* --- カルーセル表示 --- */
-.pdf-year-section { margin-bottom: 50px; width: 100%; }
-.pdf-list { position: relative; overflow: hidden; padding: 20px 0; }
-.pdf-carousel { position: relative; width: 100%; overflow: hidden; }
+.pdf-year-section { 
+  margin-bottom: 50px; 
+  width: 100%; 
+}
+
+.pdf-list { 
+  position: relative; 
+  overflow: hidden; 
+  padding: 20px 0; 
+}
+
+.pdf-carousel { 
+  position: relative; 
+  width: 100%; 
+  overflow: hidden; 
+}
+
 .pdf-carousel-inner { 
   display: flex; 
   transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-  align-items: center;
+  justify-content: center; /* アイテムを中央に配置 */
+  align-items: center; /* 高さ方向で中央揃え */
+}
+
+.pdf-item {
+  flex: 0 0 340px; /* アイテムの幅 */
+  margin: 0 10px; /* アイテム間のマージン */
+  display: flex;
+  justify-content: center; /* アイテム内で中央揃え */
+  align-items: center; /* アイテム内で中央揃え */
+}
+
+/* --- 活動報告レイアウト --- */
+.activity {
+  display: flex;
+  max-width: 1200px;
+  margin: 80px auto 0;
+  padding: 20px;
+  gap: 30px;
+  align-items: flex-start;
+}
+
+.activity-grid {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- カルーセル表示 --- */
+.pdf-year-section { 
+  margin-bottom: 50px; 
+  width: 100%; 
+}
+
+.pdf-list { 
+  position: relative; 
+  overflow: hidden; 
+  padding: 20px 0; 
+}
+
+.pdf-carousel { 
+  position: relative; 
+  width: 100%; 
+  overflow: hidden; 
+}
+
+.pdf-carousel-inner { 
+  display: flex; 
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  justify-content: center; /* アイテムを中央に配置 */
+  align-items: center; /* 高さ方向で中央揃え */
+  width: 100%;
+  /* アイテムが初めて中央に来るように配置 */
+}
+
+.pdf-item {
+  flex: 0 0 340px; /* アイテムの幅 */
+  margin: 0 10px; /* アイテム間のマージン */
+  display: flex;
+  justify-content: center; /* アイテム内で中央揃え */
+  align-items: center; /* アイテム内で中央揃え */
 }
 
 /* カードサムネイル */
 .report-thumb {
-  width: 100%; height: 160px; background: #ddd;
-  border-radius: 4px; margin-bottom: 15px; overflow: hidden;
+  width: 100%; 
+  height: 160px; 
+  background: #ddd;
+  border-radius: 4px; 
+  margin-bottom: 15px; 
+  overflow: hidden;
 }
-.report-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.report-thumb img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+}
+
+/* ナビゲーションボタン */
+.carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.carousel-prev {
+  left: 10px;
+}
+
+.carousel-next {
+  right: 10px;
+}
 
 /* モバイル対応 */
 @media (max-width: 1024px) {
   .activity { flex-direction: column; }
   .activity-sidebar { width: 100%; }
 }
+

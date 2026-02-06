@@ -57,6 +57,7 @@
   const params = new URLSearchParams(window.location.search);
   const typeParam = params.get('type'); 
   const indexParam = params.get('index');
+  const articleTitleParam = params.get('article_title');
   
   fetch('data/static-texts.json')
     .then(res => res.json())
@@ -93,25 +94,33 @@
         document.getElementById('privacy-agree-text').textContent = commentConfig.privacy.checkboxLabel;
       }
 
-      // 3. 対象記事の特定と表示
-      let article;
-      if (typeParam === 'topics') {
-        article = data.activities.topics;
-      } else if (indexParam !== null && data.activities.reports) {
-        article = data.activities.reports[indexParam];
-      }
 
+      // 3. 対象記事の特定と表示
       const infoBox = document.getElementById('target-article-info');
       const titleInput = document.getElementById('article-title-input');
-
-      if (article) {
+      if (articleTitleParam) {
+        // クエリパラメータ優先
         infoBox.innerHTML = `
           <p class="target-label" style="font-size:0.85rem; color:#666; margin-bottom:4px;">対象の活動報告：</p>
-          <p class="target-title" style="font-weight:bold; color:#03709b; margin-bottom:20px;">「${article.title}」</p>
+          <p class="target-title" style="font-weight:bold; color:#03709b; margin-bottom:20px;">「${articleTitleParam}」</p>
         `;
-        titleInput.value = article.title;
+        titleInput.value = articleTitleParam;
       } else {
-        titleInput.value = '一般的なご意見';
+        let article;
+        if (typeParam === 'topics') {
+          article = data.activities.topics;
+        } else if (indexParam !== null && data.activities.reports) {
+          article = data.activities.reports[indexParam];
+        }
+        if (article) {
+          infoBox.innerHTML = `
+            <p class="target-label" style="font-size:0.85rem; color:#666; margin-bottom:4px;">対象の活動報告：</p>
+            <p class="target-title" style="font-weight:bold; color:#03709b; margin-bottom:20px;">「${article.title}」</p>
+          `;
+          titleInput.value = article.title;
+        } else {
+          titleInput.value = '一般的なご意見';
+        }
       }
 
       // 4. フォーム送信処理

@@ -762,7 +762,7 @@ var AdminManager = /** @class */ (function () {
                         this.profile.loadForm();
                         this.career.render(document.getElementById('career-list-container'));
                         this.pdf.render(document.getElementById('pdf-list-container'));
-                        this.activityReports.render(document.getElementById('activity-reports-list-container'));
+                        this.activityReports.render(document.getElementById('activity-reports-list'));
                         return [3 /*break*/, 8];
                     case 7:
                         err_2 = _b.sent();
@@ -1499,13 +1499,9 @@ var AdminManager = /** @class */ (function () {
             urlInput.value = dataUrl; // プレビュー用に一時的に保存
         }
     };
-    /**
- * 活動報告追加ハンドラー
- */
-AdminManager.prototype.handleActivityReportAdd = function (e) {
+    AdminManager.prototype.handleActivityReportAdd = function (e) {
     return __awaiter(this, void 0, void 0, function () {
-        var title, date, content, imageFile, imageUrl, err_16, previewImg, placeholder, err_17;
-        var _a;
+        var category, title, year, items, photosInput, imageFiles, imageUrls, err_16, err_17;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1515,67 +1511,51 @@ AdminManager.prototype.handleActivityReportAdd = function (e) {
                     _b.label = 1;
                 case 1:
                     _b.trys.push([1, 8, , 9]);
-                    title = document.getElementById('activity-report-title');
-                    date = document.getElementById('activity-report-date');
-                    content = document.getElementById('activity-report-content');
-                    // nullチェックを追加
-                    var imageElement = document.getElementById('activity-report-image');
-                    if (!title || !date || !content || !imageElement) {
-                        Utils.showMessage('error-message-activity-reports', 'タイトル、日付、内容、または画像が正しく指定されていません', 3000);
+                    category = document.getElementById('activity-category');
+                    title = document.getElementById('activity-title');
+                    year = document.getElementById('activity-year');
+                    items = document.getElementById('activity-items');
+                    photosInput = document.getElementById('activity-photos');
+                    if (!category || !title || !year || !items) {
+                        Utils.showMessage('error-message-activity-report', '必須項目（カテゴリー、タイトル、年、内容）を入力してください', 3000);
                         return [2 /*return*/];
                     }
-
-                    // `files` プロパティにアクセスする前に `imageElement` が null でないことを確認
-                    imageFile = imageElement.files ? imageElement.files[0] : null;
-
+                    category = category.value;
                     title = title.value;
-                    date = date.value;
-                    content = content.value;
-
-                    // 必須項目チェック
-                    if (!title || !date || !content) {
-                        Utils.showMessage('error-message-activity-reports', '必須項目（タイトル、日付、内容）を入力してください', 3000);
-                        return [2 /*return*/];
+                    year = parseInt(year.value, 10);
+                    items = [items.value];
+                    imageFiles = photosInput && photosInput.files ? Array.from(photosInput.files) : [];
+                    imageUrls = [];
+                    if (imageFiles.length > 0) {
+                        _b.label = 2;
+                    } else {
+                        _b.label = 5;
                     }
-
-                    imageUrl = ''; // 初期化
-                    if (!imageFile) return [3 /*break*/, 5];
-
-                    _b.label = 2;
+                    return [3 /*break*/, 2];
                 case 2:
                     _b.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, this.uploadImageToCloudinary(imageFile, 'activity-reports')];
+                    return [4 /*yield*/, Promise.all(imageFiles.map(function(file){ return this.uploadImageToCloudinary(file, 'activity-reports'); }.bind(this)) )];
                 case 3:
-                    imageUrl = _b.sent();  // 画像URLを取得
+                    imageUrls = _b.sent();
                     return [3 /*break*/, 5];
                 case 4:
                     err_16 = _b.sent();
-                    Utils.showMessage('error-message-activity-reports', '画像のアップロードに失敗しました: ' + err_16.message, 3000);
+                    Utils.showMessage('error-message-activity-report', '画像のアップロードに失敗しました', 3000);
                     return [2 /*return*/];
-                case 5:
-                    return [4 /*yield*/, this.activityReports.add(title, content, date, imageUrl, this.adminPassword)];
+                case 5: return [4 /*yield*/, this.activityReports.add(category, title, year, items, imageUrls, this.adminPassword)];
                 case 6:
                     _b.sent();
-                    // フォームをクリア
                     document.getElementById('activity-report-form').reset();
-                    previewImg = document.getElementById('activity-report-preview-img');
-                    placeholder = document.getElementById('activity-report-preview-placeholder');
-
-                    if (previewImg) previewImg.style.display = 'none';
-                    if (placeholder) placeholder.style.display = 'block';
-
-                    // リストを更新
+                    Utils.showMessage('success-message-activity-report', '活動報告を追加しました', 3000);
                     return [4 /*yield*/, this.activityReports.fetch(this.adminPassword)];
                 case 7:
-                    // リストを更新
                     _b.sent();
-                    this.activityReports.render(document.getElementById('activity-reports-list-container'));
-                    Utils.showMessage('success-message-activity-reports', '活動報告を追加しました', 3000);
+                    this.activityReports.render(document.getElementById('activity-reports-list'));
                     return [3 /*break*/, 9];
                 case 8:
                     err_17 = _b.sent();
                     console.error('Error:', err_17);
-                    Utils.showMessage('error-message-activity-reports', '追加に失敗しました: ' + err_17.message, 3000);
+                    Utils.showMessage('error-message-activity-report', '追加に失敗しました: ' + err_17.message, 3000);
                     return [3 /*break*/, 9];
                 case 9: return [2 /*return*/];
             }
@@ -1635,11 +1615,12 @@ AdminManager.prototype.handleActivityReportAdd = function (e) {
                     Utils.showMessage('error-message-activity-reports', 'レポートが見つかりません', 3000);
                     return [2 /*return*/];
                 }
-                // フォームに値を埋める
-                document.getElementById('activity-report-title').value = report.title;
-                document.getElementById('activity-report-date').value = report.date;
-                document.getElementById('activity-report-content').value = report.content;
-                document.getElementById('activity-report-img-url').value = report.image_url || '';
+                // フォームに値を埋める（admin.htmlのIDに合わせる）
+                document.getElementById('activity-category').value = report.category || '';
+                document.getElementById('activity-title').value = report.title || '';
+                document.getElementById('activity-year').value = report.year || '';
+                document.getElementById('activity-items').value = Array.isArray(report.items) ? report.items.join('\n') : '';
+                // 画像はプレビューやinputの仕様に応じて別途対応
                 // プレビュー画像を表示
                 if (report.image_url) {
                     imgElement = document.getElementById('activity-report-preview-img');
@@ -1752,10 +1733,10 @@ var ActivityReportManager = /** @class */ (function () {
      */
     ActivityReportManager.prototype.fetch = function (password) {
         return __awaiter(this, void 0, void 0, function () {
-            var response, _a;
+            var response, data;
             return __generator(this, function (_b) {
                 switch (_b.label) {
-                    case 0: 
+                    case 0:
                         console.log('Fetching activity reports...');
                         return [4 /*yield*/, fetch("/api/activity-reports?password=".concat(encodeURIComponent(password)))];
                     case 1:
@@ -1764,10 +1745,10 @@ var ActivityReportManager = /** @class */ (function () {
                             console.error('Failed to fetch activity reports: ', response.statusText);
                             throw new Error('Failed to fetch activity reports');
                         }
-                        _a = this;
                         return [4 /*yield*/, response.json()];
                     case 2:
-                        _a.reports = _b.sent();
+                        data = _b.sent();
+                        this.reports = Array.isArray(data.reports) ? data.reports : [];
                         console.log('Fetched reports: ', this.reports);
                         return [2 /*return*/, this.reports];
                 }
@@ -1778,17 +1759,24 @@ var ActivityReportManager = /** @class */ (function () {
     /**
      * 活動報告を追加
      */
-    ActivityReportManager.prototype.add = function (title, content, date, image_url, password) {
+    ActivityReportManager.prototype.add = function (category, title, year, items, photos, password) {
         return __awaiter(this, void 0, void 0, function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: 
+                    case 0:
                         console.log('Adding new activity report...');
                         return [4 /*yield*/, fetch('/api/activity-reports', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ title: title, content: content, date: date, image_url: image_url, password: password })
+                            body: JSON.stringify({
+                                category: category,
+                                title: title,
+                                year: year,
+                                items: items,
+                                photos: photos,
+                                password: password
+                            })
                         })];
                     case 1:
                         response = _a.sent();
@@ -1797,6 +1785,12 @@ var ActivityReportManager = /** @class */ (function () {
                             throw new Error('Failed to add activity report');
                         }
                         console.log('Activity report added successfully');
+                        this.fetch(password).then(function () {
+                            var container = document.getElementById('activity-reports-list');
+                            if (container) {
+                                this.render(container);
+                            }
+                        }.bind(this));
                         return [2 /*return*/];
                 }
             });
@@ -1860,19 +1854,66 @@ var ActivityReportManager = /** @class */ (function () {
     };
 
     /**
-     * 活動報告一覧を表示
-     */
-    ActivityReportManager.prototype.render = function (container) {
-        if (this.reports.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #999;">活動報告はまだ登録されていません</p>';
-            return;
-        }
-        var html = "\n      <table class=\"comments-table\">\n        <thead>\n          <tr>\n            <th>\u65E5\u4ED8</th>\n            <th>\u30BF\u30A4\u30C8\u30EB</th>\n            <th>\u5185\u5BB9</th>\n            <th>\u753B\u50CF</th>\n            <th>\u64CD\u4F5C</th>\n          </tr>\n        </thead>\n        <tbody>\n          ".concat(this.reports.map(function (report) { return "\n            <tr>\n              <td>".concat(report.date, "</td>\n              <td>").concat(Utils.escapeHtml(report.title), "</td>\n              <td class=\"comment-message\">").concat(Utils.escapeHtml(report.content.substring(0, 50)), "...</td>\n              <td>").concat(report.image_url ? '<a href="' + report.image_url + '" target="_blank">表示</a>' : 'なし', "</td>\n              <td>\n                <button class=\"edit-button\" onclick=\"window.adminManager.editActivityReportHandler(").concat(report.id, ")\">\n                  \u7DE8\u96C6\n                </button>\n                <button class=\"delete-button\" onclick=\"window.adminManager.deleteActivityReportHandler(").concat(report.id, ")\">\n                  \u524A\u9664\n                </button>\n              </td>\n            </tr>\n          "); }).join(''), "\n        </tbody>\n      </table>\n    ");
-        container.innerHTML = html;
-    };
+ * 活動報告を表示
+ */
+ActivityReportManager.prototype.render = function (container) {
+    // containerがnullまたはundefinedかチェック
+    if (!container) {
+        console.error("Error: container is null or undefined");
+        return;
+    }
+
+    console.log(this.reports); // データの中身を確認
+
+    // reportsが配列か、それともreportsプロパティが配列であるかを確認
+    const reportsArray = Array.isArray(this.reports) ? this.reports : (this.reports.reports || []);
+
+    if (reportsArray.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #999;">活動報告はまだ登録されていません</p>';
+        return;
+    }
+
+    let html = `
+    <table class="comments-table">
+        <thead>
+            <tr>
+                <th>年</th>
+                <th>カテゴリー</th>
+                <th>タイトル</th>
+                <th>内容</th>
+                <th>画像</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${reportsArray.map(function (report) {
+                return `
+                <tr>
+                    <td>${report.year}</td>
+                    <td>${Utils.escapeHtml(report.category)}</td>
+                    <td>${Utils.escapeHtml(report.title)}</td>
+                    <td class="comment-message">${Array.isArray(report.items) ? Utils.escapeHtml(report.items.join('<br>')).substring(0, 50) : ''}...</td>
+                    <td>${Array.isArray(report.photos) && report.photos.length > 0 ? report.photos.map(function(url){return '<a href="'+url+'" target="_blank">表示</a>';}).join('<br>') : 'なし'}</td>
+                    <td>
+                        <button class="edit-button" onclick="window.adminManager.editActivityReportHandler(${report.id})">
+                            編集
+                        </button>
+                        <button class="delete-button" onclick="window.adminManager.deleteActivityReportHandler(${report.id})">
+                            削除
+                        </button>
+                    </td>
+                </tr>
+                `;
+            }).join('')}
+        </tbody>
+    </table>
+    `;
+    container.innerHTML = html;
+};
+
 
     return ActivityReportManager;
-}());
+})();
 
 // ページ読み込み時に初期化
 document.addEventListener('DOMContentLoaded', function () {
@@ -1884,4 +1925,5 @@ document.addEventListener('DOMContentLoaded', function () {
     window.adminManager = manager; // グローバルにアクセス可能にする
     console.log('[Main] Initialization complete');
 });
+
 
