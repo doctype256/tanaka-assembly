@@ -22,17 +22,12 @@
 
   <aside class="activity-sidebar" id="activity-sidebar">
     <div class="sidebar-section">
-      <div class="sidebar-collapsible" id="cat-trigger">
-        <h3 class="sidebar-title">カテゴリー <span class="arrow">▼</span></h3>
-      </div>
-      <div class="category-buttons collapsible-content" id="category-buttons"></div>
+      <h3 class="sidebar-title">カテゴリー</h3>
+      <div class="category-buttons" id="category-buttons"></div>
     </div>
-    
     <div class="sidebar-section">
-      <div class="sidebar-collapsible" id="year-trigger">
-        <h3 class="sidebar-title">年代 <span class="arrow">▼</span></h3>
-      </div>
-      <div class="category-buttons collapsible-content" id="year-buttons"></div>
+      <h3 class="sidebar-title">年代</h3>
+      <div class="category-buttons" id="year-buttons"></div>
     </div>
   </aside>
 
@@ -42,18 +37,11 @@
   </div>
 </main>
 
+<script src="js/activity-reports.js"></script>
+<script src="js/header.js"></script>
 <script>
-fetch('data/static-texts.json')
-.then(res => res.json())
-.then(data => {
-  document.getElementById('header-name').textContent = data.profile.name;
-  
-  const nav = document.getElementById('header-nav');
-  nav.innerHTML = '';
-  data.navigation.forEach(n => {
-    const a = document.createElement('a');
-    a.href = n.href; a.textContent = n.text;
-    nav.appendChild(a);
+  window.addEventListener('DOMContentLoaded', () => {
+    renderActivityReportsList();  // 新しいロジックを呼び出す
   });
 
   const activity = data.activities;
@@ -254,8 +242,7 @@ dots.forEach(dot => {
   };
 
   render();
-});
+
 </script>
-<script src="src/header.js"></script>
 </body>
 </html>
