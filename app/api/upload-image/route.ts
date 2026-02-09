@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    const file = formData.get("file_data");
+    // 🔥 フロントと合わせる
+    const file = formData.get("file") as File;
     const filename = formData.get("filename");
     const folder = formData.get("folder") || "uploads";
     const password = formData.get("password");
@@ -38,15 +39,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!file || !filename || !(file instanceof File)) {
+    if (!file || !filename) {
       return NextResponse.json({ error: "Invalid file" }, { status: 400 });
     }
 
-    // ✅ File → Buffer 変換
+    // File → Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // ✅ Cloudinary upload_stream 使用
+    // Cloudinary upload_stream
     const uploadResult = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {

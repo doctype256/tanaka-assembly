@@ -19,3 +19,6 @@ console.log("✅ Using Turso database");
 
 // 既存コードへの影響を最小限にするため default も残す（任意）
 export default client;
+
+
+export default db;
