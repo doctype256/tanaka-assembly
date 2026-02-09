@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ConsultationRepository } from '@/db/repository/ConsultationRepository';
+import { client } from "@/db/client"; // Tursoクライアントをインポート
 
 /**
  * 一覧取得 (GET)
@@ -17,6 +18,7 @@ export async function GET() {
 
 /**
  * DELETE メソッド: 単一または複数IDの削除に対応
+ * 物理削除をデータベースに対して実行します。
  */
 export async function DELETE(request: Request) {
   try {
@@ -28,22 +30,31 @@ export async function DELETE(request: Request) {
     }
 
     // カンマで分割して数値の配列に変換
-    // "14,13,12" -> [14, 13, 12]
     const ids = idString.split(',').map(id => {
       const num = Number(id.trim());
       if (isNaN(num)) throw new Error(`無効なIDが含まれています: ${id}`);
       return num;
     });
 
-    // --- データベース削除ロジック ---
-    // 例: Prismaを使用している場合の一括削除
-    // await prisma.consultation.deleteMany({
-    //   where: {
-    //     id: { in: ids }
-    //   }
-    // });
+    if (ids.length === 0) {
+      return NextResponse.json({ error: '有効なIDがありません' }, { status: 400 });
+    }
 
-    console.log(`削除完了対象ID: ${ids.join(', ')}`);
+    // --- データベース削除実行ロジック ---
+    // SQLの IN 句を使用して、渡されたすべてのIDを一括削除します
+    const placeholders = ids.map(() => '?').join(',');
+    const sql = `DELETE FROM consultations WHERE id IN (${placeholders})`;
+
+    /**
+     * オブジェクト指向に基づき、一括実行。
+     * argsに配列を渡すことで、LibSQLのドライバが安全に値をバインドします。
+     */
+    await client.execute({
+      sql: sql,
+      args: ids
+    });
+
+    console.log(`DB削除完了対象ID: ${ids.join(', ')}`);
 
     return NextResponse.json({ 
       message: `${ids.length}件の削除に成功しました`,
@@ -60,7 +71,7 @@ export async function DELETE(request: Request) {
 
 /**
  * ステータスまたはメモの更新 (PATCH)
- * 統合版：一つのPATCHメソッドで複数のフィールド更新に対応します
+ * 一つのPATCHメソッドで複数のフィールド更新に対応します
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -71,12 +82,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'IDは必須です' }, { status: 400 });
     }
     
-    // statusが送られてきた場合は更新
+    // 状態管理: statusが送られてきた場合はリポジトリ経由で更新
     if (status !== undefined) {
       await ConsultationRepository.updateStatus(id, status);
     }
     
-    // admin_memoが送られてきた場合は更新
+    // メモ管理: admin_memoが送られてきた場合はリポジトリ経由で更新
     if (admin_memo !== undefined) {
       await ConsultationRepository.updateAdminMemo(id, admin_memo);
     }
