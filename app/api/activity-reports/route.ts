@@ -13,7 +13,8 @@ export async function createTables() {
         title TEXT NOT NULL,
         year INTEGER NOT NULL,
         items TEXT NOT NULL,  -- itemsはJSON形式で保存される前提
-        photos TEXT           -- photosもJSON形式で保存
+        photos TEXT,          -- photosもJSON形式で保存
+        updated_at DATETIME DEFAULT (datetime('now', 'localtime'))
       );
     `);
     console.log("Tables created or already exist.");
@@ -118,8 +119,8 @@ async function createInitialData() {
     // 初期データをDBに挿入
     for (const report of initialData) {
       await db.execute(`
-        INSERT INTO activity_reports (category, title, year, items, photos)
-        VALUES (?, ?, ?, ?, ?);
+        INSERT INTO activity_reports (category, title, year, items, photos, updated_at)
+        VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'));
       `, [
         report.category,
         report.title,
@@ -153,8 +154,8 @@ export async function GET(req: Request) {
     headers.set("Access-Control-Allow-Headers", "Content-Type");
 
     if (password) {
-      const adminPassword = "admin777";
-      if (password !== adminPassword) {
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      if (!adminPassword || password !== adminPassword) {
         return new NextResponse(
           JSON.stringify({ error: "Unauthorized" }),
           { status: 401, headers }
@@ -167,13 +168,13 @@ export async function GET(req: Request) {
     let result;
     if (id) {
       result = await db.execute(`
-        SELECT id, category, title, year, items, photos
+        SELECT id, category, title, year, items, photos, updated_at
         FROM activity_reports
         WHERE id = ?
       `, [id]);
     } else {
       result = await db.execute(`
-        SELECT id, category, title, year, items, photos
+        SELECT id, category, title, year, items, photos, updated_at
         FROM activity_reports
         ORDER BY year DESC, id DESC;
       `);
@@ -187,6 +188,7 @@ export async function GET(req: Request) {
       year: row.year,
       items: JSON.parse(row.items),
       photos: row.photos ? JSON.parse(row.photos) : [],
+      updated_at: row.updated_at || null,
     }));
 
     return new NextResponse(JSON.stringify({ success: true, reports }), { status: 200, headers });
@@ -206,8 +208,8 @@ export async function POST(req: Request) {
     console.log("POST body:", body); // 追加: 受信データをログ出力
     const { category, title, year, items, photos, password } = body;
 
-    const adminPassword = "admin777";
-    if (password !== adminPassword) {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || password !== adminPassword) {
       return new NextResponse(JSON.stringify({ success: false, error: "Unauthorized" }), {
         status: 401,
       });
@@ -226,8 +228,8 @@ export async function POST(req: Request) {
 
     // データベースに新しい活動報告を保存
     await db.execute(`
-      INSERT INTO activity_reports (category, title, year, items, photos)
-      VALUES (?, ?, ?, ?, ?);
+      INSERT INTO activity_reports (category, title, year, items, photos, updated_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'));
     `, [category, title, year, itemsJSON, photosJSON]);
 
     return new NextResponse(
@@ -247,14 +249,57 @@ export async function POST(req: Request) {
   }
 }
 
+// PATCH メソッド: 活動報告の編集（updated_atも更新）
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { id, category, title, year, items, photos, password } = body;
+
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || password !== adminPassword) {
+      return new NextResponse(JSON.stringify({ success: false, error: "Unauthorized" }), {
+        status: 401,
+      });
+    }
+
+    if (!id || !category || !title || !year || !items || !Array.isArray(items)) {
+      return new NextResponse(
+        JSON.stringify({ success: false, error: "必要なデータが不足しています。" }),
+        { status: 400 }
+      );
+    }
+
+    const itemsJSON = JSON.stringify(items);
+    const photosJSON = photos ? JSON.stringify(photos) : null;
+
+    // データベースで該当レコードを更新し、updated_atも現在時刻に
+    await db.execute(`
+      UPDATE activity_reports
+      SET category = ?, title = ?, year = ?, items = ?, photos = ?, updated_at = datetime('now', 'localtime')
+      WHERE id = ?;
+    `, [category, title, year, itemsJSON, photosJSON, id]);
+
+    return new NextResponse(
+      JSON.stringify({ success: true, message: "活動報告が更新されました。" }),
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating activity report:", error);
+    return new NextResponse(
+      JSON.stringify({ success: false, error: "更新に失敗しました。" }),
+      { status: 500 }
+    );
+  }
+}
+
 // DELETE メソッド: 活動報告の削除
 export async function DELETE(req: Request) {
   try {
     const body = await req.json();
     const { id, password } = body;
 
-    const adminPassword = "admin777";
-    if (password !== adminPassword) {
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword || password !== adminPassword) {
       return new NextResponse(JSON.stringify({ success: false, error: "Unauthorized" }), {
         status: 401,
       });

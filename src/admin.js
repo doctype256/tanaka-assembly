@@ -515,6 +515,7 @@ class AdminManager {
         this.pdf = new PDFManager(this.api);
         this.activityReports = new ActivityReportManager(this.api);
         this.adminPassword = null;
+        this.editingPhotos = [];
     }
     /**
      * 初期化
@@ -1221,44 +1222,55 @@ class AdminManager {
     async handleActivityReportAdd(e) {
         var _a;
         e.preventDefault();
-        if (!this.adminPassword)
-            return;
+        if (!this.adminPassword) return;
         try {
-            const title = document.getElementById('activity-report-title').value;
-            const date = document.getElementById('activity-report-date').value;
-            const content = document.getElementById('activity-report-content').value;
-            const imageFile = (_a = document.getElementById('activity-report-image').files) === null || _a === void 0 ? void 0 : _a[0];
-            if (!title || !date || !content) {
-                Utils.showMessage('error-message-activity-reports', '必須項目（タイトル、日付、内容）を入力してください', 3000);
-                return;
-            }
-            let imageUrl = '';
-            if (imageFile) {
-                try {
-                    imageUrl = await this.uploadImageToCloudinary(imageFile, 'activity-reports');
+            // 必須項目取得
+            const category = document.getElementById('activity-category')?.value || '';
+            const title = document.getElementById('activity-title')?.value || '';
+            const year = document.getElementById('activity-year')?.value || '';
+            const itemsRaw = document.getElementById('activity-items')?.value || '';
+            const photosInput = document.getElementById('activity-photos');
+            let photos = [];
+            const idInput = document.getElementById('activity-report-id');
+            console.log('[ActivityReportAdd] hidden id value:', idInput ? idInput.value : '(none)');
+            const editId = idInput && idInput.value && !isNaN(Number(idInput.value)) && idInput.value !== '' ? Number(idInput.value) : null;
+            if (photosInput && photosInput.files && photosInput.files.length > 0) {
+                // 新画像があれば既存photos＋新画像URL
+                photos = this.editingPhotos ? [...this.editingPhotos] : [];
+                for (let i = 0; i < photosInput.files.length; i++) {
+                    try {
+                        const url = await this.uploadImageToCloudinary(photosInput.files[i], 'activity-reports');
+                        photos.push(url);
+                    } catch (err) {
+                        Utils.showMessage('error-message-activity-report', '画像のアップロードに失敗しました', 3000);
+                        return;
+                    }
                 }
-                catch (err) {
-                    Utils.showMessage('error-message-activity-reports', '画像のアップロードに失敗しました', 3000);
-                    return;
-                }
+            } else if (editId) {
+                // 写真inputが空なら既存photosを送信
+                photos = this.editingPhotos ? [...this.editingPhotos] : [];
             }
-            await this.activityReports.add(title, content, date, imageUrl, this.adminPassword);
+            // itemsは改行区切り→配列化
+            const items = itemsRaw.split('\n').map(s => s.trim()).filter(Boolean);
+            // 編集か新規か判定
+            if (editId !== null) {
+                await this.activityReports.update(editId, category, title, year, items, photos, this.adminPassword);
+                // 編集完了後、hiddenフィールドをクリア
+                if (idInput) idInput.value = '';
+                Utils.showMessage('success-message-activity-reports', '活動報告を編集しました', 3000);
+            } else {
+                await this.activityReports.add(category, title, year, items, photos, this.adminPassword);
+                Utils.showMessage('success-message-activity-reports', '活動報告を追加しました', 3000);
+            }
             // フォームをクリア
             document.getElementById('activity-report-form').reset();
-            const previewImg = document.getElementById('activity-report-preview-img');
-            const placeholder = document.getElementById('activity-report-preview-placeholder');
-            if (previewImg)
-                previewImg.style.display = 'none';
-            if (placeholder)
-                placeholder.style.display = 'block';
             // リストを更新
             await this.activityReports.fetch(this.adminPassword);
             this.activityReports.render(document.getElementById('activity-reports-list-container'));
-            Utils.showMessage('success-message-activity-reports', '活動報告を追加しました', 3000);
         }
         catch (err) {
             console.error('Error:', err);
-            Utils.showMessage('error-message-activity-reports', '追加に失敗しました: ' + err.message, 3000);
+            Utils.showMessage('error-message-activity-reports', '追加・編集に失敗しました: ' + err.message, 3000);
         }
     }
     /**
@@ -1290,24 +1302,40 @@ class AdminManager {
             return;
         const report = this.activityReports.reports.find(r => r.id === id);
         if (!report) {
-            Utils.showMessage('error-message-activity-reports', 'レポートが見つかりません', 3000);
+            Utils.showMessage('error-message-activity-report', 'レポートが見つかりません', 3000);
             return;
         }
-        // フォームに値を埋める
-        document.getElementById('activity-report-title').value = report.title;
-        document.getElementById('activity-report-date').value = report.date;
-        document.getElementById('activity-report-content').value = report.content;
-        document.getElementById('activity-report-img-url').value = report.image_url || '';
-        // プレビュー画像を表示
-        if (report.image_url) {
-            const imgElement = document.getElementById('activity-report-preview-img');
-            const placeholderElement = document.getElementById('activity-report-preview-placeholder');
-            if (imgElement && placeholderElement) {
-                imgElement.src = report.image_url;
-                imgElement.style.display = 'block';
-                placeholderElement.style.display = 'none';
-            }
+        // フォームに値をセット
+        document.getElementById('activity-category').value = report.category || '';
+        document.getElementById('activity-title').value = report.title || '';
+        document.getElementById('activity-year').value = report.year || '';
+        // items配列→改行区切りテキスト
+        document.getElementById('activity-items').value = Array.isArray(report.items) ? report.items.join('\n') : '';
+        // 写真プレビュー（ファイルinputは空にする）
+        const photosPreview = document.getElementById('activity-photos-preview');
+        photosPreview.innerHTML = '';
+        if (Array.isArray(report.photos) && report.photos.length > 0) {
+            report.photos.forEach(url => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.maxWidth = '120px';
+                img.style.margin = '4px';
+                photosPreview.appendChild(img);
+            });
         }
+        // ファイルinputは空にする
+        document.getElementById('activity-photos').value = '';
+        // 編集対象idをhiddenフィールドに保存
+        let idInput = document.getElementById('activity-report-id');
+        if (!idInput) {
+            idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.id = 'activity-report-id';
+            idInput.name = 'activity-report-id';
+            document.getElementById('activity-report-form').appendChild(idInput);
+        }
+        idInput.value = String(report.id);
+        console.log('[EditActivityReportHandler] hidden id value set:', idInput.value);
         // ウィンドウをスクロール
         (_a = document.getElementById('activity-reports-tab')) === null || _a === void 0 ? void 0 : _a.scrollIntoView({ behavior: 'smooth' });
     }
@@ -1408,11 +1436,11 @@ class ActivityReportManager {
     /**
      * 活動報告を追加
      */
-    async add(title, content, date, image_url, password) {
+    async add(category, title, year, items, photos, password) {
         const response = await fetch('/api/activity-reports', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, content, date, image_url, password })
+            body: JSON.stringify({ category, title, year, items, photos, password })
         });
         if (!response.ok)
             throw new Error('Failed to add activity report');
@@ -1420,14 +1448,17 @@ class ActivityReportManager {
     /**
      * 活動報告を更新
      */
-    async update(id, title, content, date, image_url, password) {
+    async update(id, category, title, year, items, photos, password) {
         const response = await fetch('/api/activity-reports', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id, title, content, date, image_url, password })
+            body: JSON.stringify({ id, category, title, year, items, photos, password })
         });
-        if (!response.ok)
-            throw new Error('Failed to update activity report');
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('Failed to update activity report:', error);
+            throw new Error(error.error || 'Failed to update activity report');
+        }
     }
     /**
      * 活動報告を削除
@@ -1449,38 +1480,40 @@ class ActivityReportManager {
             container.innerHTML = '<p style="text-align: center; color: #999;">活動報告はまだ登録されていません</p>';
             return;
         }
-        const html = `
-      <table class="comments-table">
-        <thead>
-          <tr>
-            <th>日付</th>
-            <th>タイトル</th>
-            <th>内容</th>
-            <th>画像</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${this.reports.map(report => `
-            <tr>
-              <td>${report.date}</td>
-              <td>${Utils.escapeHtml(report.title)}</td>
-              <td class="comment-message">${Utils.escapeHtml(report.content.substring(0, 50))}...</td>
-              <td>${report.image_url ? '<a href="' + report.image_url + '" target="_blank">表示</a>' : 'なし'}</td>
-              <td>
-                <button class="edit-button" onclick="window.adminManager.editActivityReportHandler(${report.id})">
-                  編集
-                </button>
-                <button class="delete-button" onclick="window.adminManager.deleteActivityReportHandler(${report.id})">
-                  削除
-                </button>
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-        container.innerHTML = html;
+                const html = `
+            <table class="comments-table">
+                <thead>
+                    <tr>
+                        <th>年</th>
+                        <th>タイトル</th>
+                        <th>内容</th>
+                        <th>画像</th>
+                        <th>編集時刻</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${this.reports.map(report => `
+                        <tr>
+                            <td>${report.year}</td>
+                            <td>${Utils.escapeHtml(report.title)}</td>
+                            <td class="comment-message">${Array.isArray(report.items) ? Utils.escapeHtml(report.items[0] || '') : ''}</td>
+                            <td>${Array.isArray(report.photos) && report.photos.length > 0 ? report.photos.map(url => `<a href="${url}" target="_blank">画像</a>`).join(' ') : 'なし'}</td>
+                            <td>${report.updated_at ? report.updated_at : ''}</td>
+                            <td>
+                                <button class="edit-button" onclick="window.adminManager.editActivityReportHandler(${report.id})">
+                                    編集
+                                </button>
+                                <button class="delete-button" onclick="window.adminManager.deleteActivityReportHandler(${report.id})">
+                                    削除
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+                container.innerHTML = html;
     }
 }
 // ページ読み込み時に初期化

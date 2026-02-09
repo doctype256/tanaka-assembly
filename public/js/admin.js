@@ -184,12 +184,41 @@ var ContactListManager = /** @class */ (function () {
      * お問い合わせを描画
      */
     ContactListManager.prototype.renderContacts = function (container) {
-        if (this.filteredContacts.length === 0) {
-            container.innerHTML = Utils.getEmptyStateHtml('📧', 'お問い合わせはありません');
-            return;
-        }
-        var html = "\n      <table class=\"comments-table\">\n        <thead>\n          <tr>\n            <th>\u304A\u540D\u524D</th>\n            <th>\u30D5\u30EA\u30AC\u30CA</th>\n            <th>\u30E1\u30FC\u30EB\u30A2\u30C9\u30EC\u30B9</th>\n            <th>\u304A\u554F\u3044\u5408\u308F\u305B\u5185\u5BB9</th>\n            <th>\u65E5\u6642</th>\n            <th>\u64CD\u4F5C</th>\n          </tr>\n        </thead>\n        <tbody>\n          ".concat(this.filteredContacts.map(function (contact) { return "\n            <tr>\n              <td>".concat(Utils.escapeHtml(contact.name), "</td>\n              <td>").concat(Utils.escapeHtml(contact.furigana), "</td>\n              <td>").concat(Utils.escapeHtml(contact.email), "</td>\n              <td class=\"comment-message\">").concat(Utils.escapeHtml(contact.message), "</td>\n              <td>").concat(Utils.formatDateJP(contact.created_at), "</td>\n              <td>\n                <button class=\"delete-button\" onclick=\"window.adminManager.deleteContactHandler(").concat(contact.id, ")\">\n                  \u524A\u9664\n                </button>\n              </td>\n            </tr>\n          "); }).join(''), "\n        </tbody>\n      </table>\n    ");
-        container.innerHTML = html;
+                if (this.filteredContacts.length === 0) {
+                        container.innerHTML = Utils.getEmptyStateHtml('📧', 'お問い合わせはありません');
+                        return;
+                }
+                const html = `
+                    <table class="comments-table">
+                        <thead>
+                            <tr>
+                                <th>お名前</th>
+                                <th>フリガナ</th>
+                                <th>メールアドレス</th>
+                                <th>お問い合わせ内容</th>
+                                <th>日時</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.filteredContacts.map(contact => `
+                                <tr>
+                                    <td>${Utils.escapeHtml(contact.name)}</td>
+                                    <td>${Utils.escapeHtml(contact.furigana)}</td>
+                                    <td>${Utils.escapeHtml(contact.email)}</td>
+                                    <td class="comment-message">${Utils.escapeHtml(contact.message)}</td>
+                                    <td>${Utils.formatDateJP(contact.created_at)}</td>
+                                    <td>
+                                        <button class="delete-button" onclick="window.adminManager.deleteContactHandler(${contact.id})">
+                                            削除
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                container.innerHTML = html;
     };
     /**
      * お問い合わせを削除
@@ -269,7 +298,46 @@ var PostManager = /** @class */ (function () {
             container.innerHTML = Utils.getEmptyStateHtml('📝', 'ポストはありません');
             return;
         }
-        var html = "\n      <div style=\"display: flex; flex-direction: column; gap: 15px;\">\n        ".concat(this.allPosts.map(function (post) { return "\n          <div style=\"border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f9f9f9;\">\n            <div style=\"margin-bottom: 10px;\">\n              <strong>\u76F8\u8AC7\u8005:</strong> ".concat(post.name || '（未入力）', " | <strong>\u4EF6\u540D:</strong> ").concat(post.subject || '（未入力）', "<br/>\n              <strong>\u6295\u7A3F\u65E5:</strong> ").concat(new Date(post.created_at).toLocaleString('ja-JP'), "<br/>\n              <strong>\u30B9\u30C6\u30FC\u30BF\u30B9:</strong> ").concat(post.approved ? '<span style="color: green;">✓ 承認済み</span>' : '<span style="color: red;">✗ 未承認</span>', "\n            </div>\n            <div style=\"margin-bottom: 10px; padding: 10px; background: white; border-radius: 3px;\">\n              <strong>\u76F8\u8AC7\u5185\u5BB9:</strong><br/>\n              ").concat(post.content, "\n            </div>\n            <div style=\"margin-bottom: 10px;\">\n              <label style=\"display: block; margin-bottom: 5px;\"><strong>\u8FD4\u4FE1\u5185\u5BB9:</strong></label>\n              <textarea \n                id=\"reply-").concat(post.id, "\" \n                placeholder=\"\u8FD4\u4FE1\u5185\u5BB9\u3092\u5165\u529B\u3057\u3066\u304F\u3060\u3055\u3044\"\n                style=\"width: 100%; min-height: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-family: inherit;\"\n              >").concat(post.reply || '', "</textarea>\n            </div>\n            <div style=\"display: flex; gap: 10px;\">\n              <button \n                class=\"login-button\" \n                style=\"flex: 1;\"\n                onclick=\"window.adminManager.savePostReplyAndApprove(").concat(post.id, ")\">\n                \u8FD4\u4FE1\u3092\u4FDD\u5B58\u3057\u3066\u627F\u8A8D\n              </button>\n              <button \n                class=\"login-button\" \n                style=\"flex: 1; background-color: #666;\"\n                onclick=\"window.adminManager.savePostReply(").concat(post.id, ")\">\n                \u8FD4\u4FE1\u3092\u4FDD\u5B58\n              </button>\n              <button class=\"delete-button\" onclick=\"window.adminManager.deletePostHandler(").concat(post.id, ")\">\u524A\u9664</button>\n            </div>\n          </div>\n        "); }).join(''), "\n      </div>\n    ");
+        const html = `
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            ${this.allPosts.map(post => `
+              <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f9f9f9;">
+                <div style="margin-bottom: 10px;">
+                  <strong>相談者:</strong> ${post.name || '（未入力）'} | <strong>件名:</strong> ${post.subject || '（未入力）'}<br/>
+                  <strong>投稿日:</strong> ${new Date(post.created_at).toLocaleString('ja-JP')}<br/>
+                  <strong>ステータス:</strong> ${post.approved ? '<span style="color: green;">✓ 承認済み</span>' : '<span style="color: red;">✗ 未承認</span>'}
+                </div>
+                <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 3px;">
+                  <strong>相談内容:</strong><br/>
+                  ${post.content}
+                </div>
+                <div style="margin-bottom: 10px;">
+                  <label style="display: block; margin-bottom: 5px;"><strong>返信内容:</strong></label>
+                  <textarea 
+                    id="reply-${post.id}" 
+                    placeholder="返信内容を入力してください"
+                    style="width: 100%; min-height: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-family: inherit;"
+                  >${post.reply || ''}</textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                  <button 
+                    class="login-button" 
+                    style="flex: 1;"
+                    onclick="window.adminManager.savePostReplyAndApprove(${post.id})">
+                    返信を保存して承認
+                  </button>
+                  <button 
+                    class="login-button" 
+                    style="flex: 1; background-color: #666;"
+                    onclick="window.adminManager.savePostReply(${post.id})">
+                    返信を保存
+                  </button>
+                  <button class="delete-button" onclick="window.adminManager.deletePostHandler(${post.id})">削除</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
         container.innerHTML = html;
     };
     /**
@@ -386,30 +454,26 @@ var ProfileManager = /** @class */ (function () {
      */
     ProfileManager.prototype.fetch = function (password) {
         return __awaiter(this, void 0, void 0, function () {
-            var response, _a, err_1;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
+            var response, data, err;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        _b.trys.push([0, 3, , 4]);
-                        return [4 /*yield*/, fetch("/api/profile?password=".concat(encodeURIComponent(password)))];
+                        _a.trys.push([0, 3, , 4]);
+                        return [4 /*yield*/, fetch('/api/profile?password=' + encodeURIComponent(password))];
                     case 1:
-                        response = _b.sent();
-                        if (!response.ok) {
-                            console.error('[ProfileManager] fetch failed:', response.status, response.statusText);
-                            throw new Error('Failed to fetch profile');
-                        }
-                        _a = this;
+                        response = _a.sent();
+                        if (!response.ok) throw new Error('プロフィール情報の取得に失敗しました');
                         return [4 /*yield*/, response.json()];
                     case 2:
-                        _a.profile = _b.sent();
-                        // 編集前のデータを深くコピーして保持
+                        data = _a.sent();
+                        this.profile = data.profile || data;
                         this.originalProfile = JSON.parse(JSON.stringify(this.profile));
-                        console.log('[ProfileManager] Profile fetched:', this.profile);
-                        return [2 /*return*/, this.profile];
+                        return [3 /*break*/, 4];
                     case 3:
-                        err_1 = _b.sent();
-                        console.error('[ProfileManager] fetch error:', err_1);
-                        throw err_1;
+                        err = _a.sent();
+                        console.error('[ProfileManager.fetch] Error:', err);
+                        Utils.showMessage('error-message-profile', 'プロフィール情報の取得に失敗しました', 3000);
+                        return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
             });
@@ -577,12 +641,35 @@ var CareerManager = /** @class */ (function () {
      * 経歴一覧を表示
      */
     CareerManager.prototype.render = function (container) {
-        if (this.careers.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #999;">経歴が登録されていません</p>';
-            return;
-        }
-        var html = "\n      <table class=\"comments-table\">\n        <thead>\n          <tr>\n            <th>\u5E74</th>\n            <th>\u6708</th>\n            <th>\u5185\u5BB9</th>\n            <th>\u64CD\u4F5C</th>\n          </tr>\n        </thead>\n        <tbody>\n          ".concat(this.careers.map(function (career) { return "\n            <tr>\n              <td>".concat(career.year, "</td>\n              <td>").concat(career.month, "</td>\n              <td>").concat(career.Content, "</td>\n              <td>\n                <button class=\"delete-button\" onclick=\"window.adminManager.deleteCareerHandler(").concat(career.id, ")\">\u524A\u9664</button>\n              </td>\n            </tr>\n          "); }).join(''), "\n        </tbody>\n      </table>\n    ");
-        container.innerHTML = html;
+                if (this.careers.length === 0) {
+                        container.innerHTML = '<p style="text-align: center; color: #999;">経歴が登録されていません</p>';
+                        return;
+                }
+                const html = `
+                    <table class="comments-table">
+                        <thead>
+                            <tr>
+                                <th>年</th>
+                                <th>月</th>
+                                <th>内容</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${this.careers.map(career => `
+                                <tr>
+                                    <td>${career.year}</td>
+                                    <td>${career.month}</td>
+                                    <td>${career.Content}</td>
+                                    <td>
+                                        <button class="delete-button" onclick="window.adminManager.deleteCareerHandler(${career.id})">削除</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                container.innerHTML = html;
     };
     return CareerManager;
 }());
@@ -612,6 +699,100 @@ var AdminManager = /** @class */ (function () {
      * イベントリスナーを設定
      */
     AdminManager.prototype.setupEventListeners = function () {
+                        // --- カテゴリのローカルストレージ管理 ---
+                        var CATEGORY_KEY = 'activity_custom_categories';
+                        var select = document.getElementById('activity-category');
+                        // 初期化時にlocalStorageから復元
+                        function loadCustomCategories() {
+                            if (!select) return;
+                            var saved = localStorage.getItem(CATEGORY_KEY);
+                            if (saved) {
+                                try {
+                                    var arr = JSON.parse(saved);
+                                    arr.forEach(function(val) {
+                                        if (!Array.from(select.options).some(function(opt){return opt.value===val;})) {
+                                            var opt = document.createElement('option');
+                                            opt.value = val;
+                                            opt.textContent = val;
+                                            select.appendChild(opt);
+                                        }
+                                    });
+                                } catch(e) {}
+                            }
+                        }
+                        loadCustomCategories();
+
+                        function saveCustomCategories() {
+                            if (!select) return;
+                            var defaultVals = ['committee','childcare','reform','topics',''];
+                            var arr = Array.from(select.options)
+                                .map(function(opt){return opt.value;})
+                                .filter(function(val){return val && !defaultVals.includes(val);});
+                            localStorage.setItem(CATEGORY_KEY, JSON.stringify(arr));
+                        }
+                // 活動報告カテゴリ追加ボタン
+                var addCategoryBtn = document.getElementById('add-activity-category');
+                if (addCategoryBtn) {
+                    addCategoryBtn.addEventListener('click', function () {
+                        var input = document.getElementById('new-activity-category');
+                        var select = document.getElementById('activity-category');
+                        if (!input || !select) return;
+                        var val = input.value.trim();
+                        if (!val) return;
+                        // value属性はvalueそのまま、表示もそのまま
+                        var exists = Array.from(select.options).some(function(opt){ return opt.value === val; });
+                        if (exists) {
+                            Utils.showMessage('error-message-activity-report', '同じカテゴリが既に存在します', 2000);
+                            return;
+                        }
+                        var opt = document.createElement('option');
+                        opt.value = val;
+                        opt.textContent = val;
+                        select.appendChild(opt);
+                        select.value = val;
+                        input.value = '';
+                        Utils.showMessage('success-message-activity-report', 'カテゴリを追加しました', 1500);
+                        saveCustomCategories();
+                    });
+                }
+
+                // 活動報告カテゴリ削除ボタン
+                var deleteCategoryBtn = document.getElementById('delete-activity-category');
+                if (deleteCategoryBtn) {
+                    deleteCategoryBtn.addEventListener('click', function () {
+                        var select = document.getElementById('activity-category');
+                        if (!select) return;
+                        var val = select.value;
+                        if (!val) {
+                            Utils.showMessage('error-message-activity-report', '削除するカテゴリを選択してください', 2000);
+                            return;
+                        }
+                        // デフォルトカテゴリは削除不可
+                        var defaultVals = ['committee','childcare','reform','topics',''];
+                        if (defaultVals.includes(val)) {
+                            var msgElem = document.getElementById('error-message-activity-report');
+                            if (msgElem) {
+                                msgElem.textContent = 'このカテゴリは削除できません';
+                                msgElem.style.color = 'red';
+                                msgElem.style.fontWeight = 'bold';
+                                msgElem.style.display = 'block';
+                                setTimeout(function(){
+                                    msgElem.textContent = '';
+                                    msgElem.style.display = '';
+                                }, 2000);
+                            }
+                            return;
+                        }
+                        var idx = select.selectedIndex;
+                        if (idx > -1) {
+                            select.remove(idx);
+                            // 先頭に戻す
+                            select.value = '';
+                            Utils.showMessage('success-message-activity-report', 'カテゴリを削除しました', 1500);
+                            saveCustomCategories();
+                        }
+                    });
+                }
         var _this = this;
         // ログインフォーム
         document.getElementById('login-input').addEventListener('submit', function (e) { return _this.handleLogin(e); });
@@ -676,21 +857,36 @@ var AdminManager = /** @class */ (function () {
         // 活動報告フォーム
         var activityReportForm = document.getElementById('activity-report-form');
         if (activityReportForm) {
-            activityReportForm.addEventListener('submit', function (e) { return _this.handleActivityReportAdd(e); });
+            // デフォルトは新規作成
+            activityReportForm.addEventListener('submit', function (e) {
+                if (activityReportForm.dataset.mode === 'edit') {
+                    _this.handleActivityReportEditSubmit(e);
+                } else {
+                    _this.handleActivityReportAdd(e);
+                }
+            });
         }
         // 活動報告画像ファイル選択時のイベント
-        var activityImageInput = document.getElementById('activity-report-image');
-        if (activityImageInput) {
-            activityImageInput.addEventListener('change', function (e) {
+        var activityPhotosInput = document.getElementById('activity-photos');
+        if (activityPhotosInput) {
+            activityPhotosInput.addEventListener('change', function (e) {
                 var input = e.target;
-                if (input.files && input.files[0]) {
-                    var file = input.files[0];
-                    var reader = new FileReader();
-                    reader.onload = function (event) {
-                        var dataUrl = event.target.result;
-                        _this.updateActivityReportImagePreview(dataUrl);
-                    };
-                    reader.readAsDataURL(file);
+                var preview = document.getElementById('activity-photos-preview');
+                if (preview) preview.innerHTML = '';
+                if (input.files && input.files.length > 0) {
+                    Array.from(input.files).forEach(function(file) {
+                        var reader = new FileReader();
+                        reader.onload = function(event) {
+                            var img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.style.maxWidth = '120px';
+                            img.style.maxHeight = '120px';
+                            img.style.margin = '5px';
+                            img.alt = 'プレビュー';
+                            if (preview) preview.appendChild(img);
+                        };
+                        reader.readAsDataURL(file);
+                    });
                 }
             });
         }
@@ -991,7 +1187,7 @@ var AdminManager = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 4, , 5]);
-                        replyText = document.getElementById("reply-".concat(id)).value;
+                        replyText = document.getElementById('reply-' + id).value;
                         if (!replyText || !replyText.trim()) {
                             Utils.showMessage('error-message-posts', '返信内容を入力してください', 3000);
                             return [2 /*return*/];
@@ -1029,7 +1225,7 @@ var AdminManager = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 4, , 5]);
-                        replyText = document.getElementById("reply-".concat(id)).value;
+                        replyText = document.getElementById('reply-' + id).value;
                         if (!replyText || !replyText.trim()) {
                             Utils.showMessage('error-message-posts', '返信内容を入力してください', 3000);
                             return [2 /*return*/];
@@ -1220,7 +1416,8 @@ var AdminManager = /** @class */ (function () {
                         console.error('[ProfileSave] Error:', err_10);
                         Utils.showMessage('error-message-profile', '保存に失敗しました: ' + err_10.message, 3000);
                         return [3 /*break*/, 10];
-                    case 10: return [2 /*return*/];
+                    case 10:
+                        return [2 /*return*/];
                 }
             });
         });
@@ -1449,94 +1646,11 @@ var AdminManager = /** @class */ (function () {
             urlInput.value = dataUrl; // プレビュー用に一時的に保存
         }
     };
-    /**
- * 活動報告追加ハンドラー
+
+/**
+ * 活動報告追加ハンドラー（新規作成用）
  */
 AdminManager.prototype.handleActivityReportAdd = function (e) {
-    return __awaiter(this, void 0, void 0, function () {
-        var title, date, content, imageFile, imageUrl, err_16, previewImg, placeholder, err_17;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    e.preventDefault();
-                    if (!this.adminPassword)
-                        return [2 /*return*/];
-                    _b.label = 1;
-                case 1:
-                    _b.trys.push([1, 8, , 9]);
-                    title = document.getElementById('activity-report-title');
-                    date = document.getElementById('activity-report-date');
-                    content = document.getElementById('activity-report-content');
-                    // nullチェックを追加
-                    var imageElement = document.getElementById('activity-report-image');
-                    if (!title || !date || !content || !imageElement) {
-                        Utils.showMessage('error-message-activity-reports', 'タイトル、日付、内容、または画像が正しく指定されていません', 3000);
-                        return [2 /*return*/];
-                    }
-
-                    // `files` プロパティにアクセスする前に `imageElement` が null でないことを確認
-                    imageFile = imageElement.files ? imageElement.files[0] : null;
-
-                    title = title.value;
-                    date = date.value;
-                    content = content.value;
-
-                    // 必須項目チェック
-                    if (!title || !date || !content) {
-                        Utils.showMessage('error-message-activity-reports', '必須項目（タイトル、日付、内容）を入力してください', 3000);
-                        return [2 /*return*/];
-                    }
-
-                    imageUrl = ''; // 初期化
-                    if (!imageFile) return [3 /*break*/, 5];
-
-                    _b.label = 2;
-                case 2:
-                    _b.trys.push([2, 4, , 5]);
-                    return [4 /*yield*/, this.uploadImageToCloudinary(imageFile, 'activity-reports')];
-                case 3:
-                    imageUrl = _b.sent();  // 画像URLを取得
-                    return [3 /*break*/, 5];
-                case 4:
-                    err_16 = _b.sent();
-                    Utils.showMessage('error-message-activity-reports', '画像のアップロードに失敗しました: ' + err_16.message, 3000);
-                    return [2 /*return*/];
-                case 5:
-                    return [4 /*yield*/, this.activityReports.add(title, content, date, imageUrl, this.adminPassword)];
-                case 6:
-                    _b.sent();
-                    // フォームをクリア
-                    document.getElementById('activity-report-form').reset();
-                    previewImg = document.getElementById('activity-report-preview-img');
-                    placeholder = document.getElementById('activity-report-preview-placeholder');
-
-                    if (previewImg) previewImg.style.display = 'none';
-                    if (placeholder) placeholder.style.display = 'block';
-
-                    // リストを更新
-                    return [4 /*yield*/, this.activityReports.fetch(this.adminPassword)];
-                case 7:
-                    // リストを更新
-                    _b.sent();
-                    this.activityReports.render(document.getElementById('activity-reports-list-container'));
-                    Utils.showMessage('success-message-activity-reports', '活動報告を追加しました', 3000);
-                    return [3 /*break*/, 9];
-                case 8:
-                    err_17 = _b.sent();
-                    console.error('Error:', err_17);
-                    Utils.showMessage('error-message-activity-reports', '追加に失敗しました: ' + err_17.message, 3000);
-                    return [3 /*break*/, 9];
-                case 9: return [2 /*return*/];
-            }
-        });
-    });
-};
-
-    /**
-     * 活動報告削除ハンドラー
-     */
-     AdminManager.prototype.handleActivityReportAdd = function (e) {
     return __awaiter(this, void 0, void 0, function () {
         var category, title, year, items, photosInput, imageFiles, imageUrls, err_16, err_17;
         return __generator(this, function (_b) {
@@ -1600,42 +1714,193 @@ AdminManager.prototype.handleActivityReportAdd = function (e) {
     });
 };
 
+/**
+ * 活動報告編集の送信ハンドラー（編集用）
+ */
+AdminManager.prototype.handleActivityReportEditSubmit = function (e) {
+    return __awaiter(this, void 0, void 0, function () {
+        var form, id, category, title, year, items, photosInput, imageFiles, imageUrls, err, submitBtn;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    e.preventDefault();
+                    if (!this.adminPassword) return [2 /*return*/];
+                    form = document.getElementById('activity-report-form');
+                    id = form && form.dataset.editId;
+                    if (!id) {
+                        Utils.showMessage('error-message-activity-report', '編集IDがありません', 3000);
+                        return [2 /*return*/];
+                    }
+                    category = document.getElementById('activity-category');
+                    title = document.getElementById('activity-title');
+                    year = document.getElementById('activity-year');
+                    items = document.getElementById('activity-items');
+                    photosInput = document.getElementById('activity-photos');
+                    if (!category || !title || !year || !items) {
+                        Utils.showMessage('error-message-activity-report', '必須項目（カテゴリー、タイトル、年、内容）を入力してください', 3000);
+                        return [2 /*return*/];
+                    }
+                    category = category.value;
+                    title = title.value;
+                    year = parseInt(year.value, 10);
+                    items = [items.value];
+                    imageFiles = photosInput && photosInput.files ? Array.from(photosInput.files) : [];
+                    imageUrls = [];
+                    if (!(imageFiles.length > 0)) return [3 /*break*/, 2];
+                    return [4 /*yield*/, Promise.all(imageFiles.map(function(file){ return this.uploadImageToCloudinary(file, 'activity-reports'); }.bind(this)) )];
+                case 1:
+                    imageUrls = _b.sent();
+                    _b.label = 2;
+                case 2:
+                    return [4 /*yield*/, this.activityReports.update(id, category, title, year, items, imageUrls, this.adminPassword)];
+                case 3:
+                    _b.sent();
+                    form.reset();
+                    form.dataset.mode = '';
+                    form.dataset.editId = '';
+                    submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) submitBtn.textContent = '活動報告を保存';
+                    Utils.showMessage('success-message-activity-report', '活動報告を更新しました', 3000);
+                    return [4 /*yield*/, this.activityReports.fetch(this.adminPassword)];
+                case 4:
+                    _b.sent();
+                    this.activityReports.render(document.getElementById('activity-reports-list'));
+                    return [2 /*return*/];
+            }
+        });
+    });
+};
+
+
     /**
      * 活動報告編集ハンドラー
      */
     AdminManager.prototype.editActivityReportHandler = function (id) {
         return __awaiter(this, void 0, void 0, function () {
-            var report, imgElement, placeholderElement;
+            var report, imgElement, placeholderElement, form;
             var _a;
             return __generator(this, function (_b) {
                 if (!this.adminPassword)
                     return [2 /*return*/];
                 report = this.activityReports.reports.find(function (r) { return r.id === id; });
                 if (!report) {
-                    Utils.showMessage('error-message-activity-reports', 'レポートが見つかりません', 3000);
+                    Utils.showMessage('error-message-activity-report', 'レポートが見つかりません', 3000);
                     return [2 /*return*/];
                 }
-                // フォームに値を埋める（admin.htmlのIDに合わせる）
+                // フォームに値を埋める
+                form = document.getElementById('activity-report-form');
+                if (form) {
+                    form.dataset.mode = 'edit';
+                    form.dataset.editId = id;
+                }
                 document.getElementById('activity-category').value = report.category || '';
                 document.getElementById('activity-title').value = report.title || '';
                 document.getElementById('activity-year').value = report.year || '';
                 document.getElementById('activity-items').value = Array.isArray(report.items) ? report.items.join('\n') : '';
-                // 画像はプレビューやinputの仕様に応じて別途対応
-                // プレビュー画像を表示
-                if (report.image_url) {
-                    imgElement = document.getElementById('activity-report-preview-img');
-                    placeholderElement = document.getElementById('activity-report-preview-placeholder');
-                    if (imgElement && placeholderElement) {
-                        imgElement.src = report.image_url;
-                        imgElement.style.display = 'block';
-                        placeholderElement.style.display = 'none';
+                // 画像プレビュー（複数画像対応）
+                var photosPreview = document.getElementById('activity-photos-preview');
+                if (photosPreview) {
+                    photosPreview.innerHTML = '';
+                    if (Array.isArray(report.photos) && report.photos.length > 0) {
+                        report.photos.forEach(function(url) {
+                            var img = document.createElement('img');
+                            img.src = url;
+                            img.style.maxWidth = '120px';
+                            img.style.maxHeight = '120px';
+                            img.style.margin = '5px';
+                            img.alt = 'プレビュー';
+                            photosPreview.appendChild(img);
+                        });
                     }
                 }
-                // ウィンドウをスクロール
+                // ボタン文言変更
+                var submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+                if (submitBtn) submitBtn.textContent = '活動報告を更新';
+                // スクロール
                 (_a = document.getElementById('activity-reports-tab')) === null || _a === void 0 ? void 0 : _a.scrollIntoView({ behavior: 'smooth' });
                 return [2 /*return*/];
             });
         });
+    };
+
+    /**
+     * 活動報告編集の送信ハンドラー
+     */
+    AdminManager.prototype.handleActivityReportEditSubmit = function (e) {
+        return __awaiter(this, void 0, void 0, function () {
+            var form, id, category, title, year, items, photosInput, imageFiles, imageUrls, err, submitBtn;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        e.preventDefault();
+                        if (!this.adminPassword) return [2 /*return*/];
+                        form = document.getElementById('activity-report-form');
+                        id = form && form.dataset.editId;
+                        if (!id) {
+                            Utils.showMessage('error-message-activity-report', '編集IDがありません', 3000);
+                            return [2 /*return*/];
+                        }
+                        category = document.getElementById('activity-category');
+                        title = document.getElementById('activity-title');
+                        year = document.getElementById('activity-year');
+                        items = document.getElementById('activity-items');
+                        photosInput = document.getElementById('activity-photos');
+                        if (!category || !title || !year || !items) {
+                            Utils.showMessage('error-message-activity-report', '必須項目（カテゴリー、タイトル、年、内容）を入力してください', 3000);
+                            return [2 /*return*/];
+                        }
+                        category = category.value;
+                        title = title.value;
+                        year = parseInt(year.value, 10);
+                        items = [items.value];
+                        imageFiles = photosInput && photosInput.files ? Array.from(photosInput.files) : [];
+                        imageUrls = [];
+                        if (!(imageFiles.length > 0)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, Promise.all(imageFiles.map(function(file){ return this.uploadImageToCloudinary(file, 'activity-reports'); }.bind(this)) )];
+                    case 1:
+                        imageUrls = _b.sent();
+                        _b.label = 2;
+                    case 2:
+                        return [4 /*yield*/, this.activityReports.update(id, category, title, year, items, imageUrls, this.adminPassword)];
+                    case 3:
+                        _b.sent();
+                        form.reset();
+                        form.dataset.mode = '';
+                        form.dataset.editId = '';
+                        // 画像プレビューもクリア
+                        var photosPreview = document.getElementById('activity-photos-preview');
+                        if (photosPreview) photosPreview.innerHTML = '';
+                        submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) submitBtn.textContent = '活動報告を保存';
+                        Utils.showMessage('success-message-activity-report', '活動報告を更新しました', 3000);
+                        return [4 /*yield*/, this.activityReports.fetch(this.adminPassword)];
+                    case 4:
+                        _b.sent();
+                        this.activityReports.render(document.getElementById('activity-reports-list'));
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /**
+     * 活動報告削除ハンドラー
+     */
+    AdminManager.prototype.deleteActivityReportHandler = function (id) {
+        var _this = this;
+        if (!confirm('この活動報告を削除しますか？')) return;
+        if (!this.adminPassword) return;
+        this.activityReports.delete(id, this.adminPassword)
+            .then(function () {
+                Utils.showMessage('success-message-activity-reports', '活動報告を削除しました', 3000);
+                return _this.activityReports.fetch(_this.adminPassword);
+            })
+            .then(function () {
+                _this.activityReports.render(document.getElementById('activity-reports-list'));
+            })
+            .catch(function (err) {
+                console.error('Error:', err);
+                Utils.showMessage('error-message-activity-reports', '削除に失敗しました', 3000);
+            });
     };
     return AdminManager;
 }());
@@ -1710,12 +1975,35 @@ var PDFManager = /** @class */ (function () {
      * PDFリストを描画
      */
     PDFManager.prototype.render = function (container) {
-        if (this.pdfs.length === 0) {
-            container.innerHTML = '<p>登録されたPDFファイルはありません</p>';
-            return;
-        }
-        var html = "\n      <table class=\"comments-table\" style=\"margin-top: 20px;\">\n        <thead>\n          <tr>\n            <th>\u30BF\u30A4\u30C8\u30EB</th>\n            <th>\u30D5\u30A1\u30A4\u30EB\u540D</th>\n            <th>\u30A2\u30C3\u30D7\u30ED\u30FC\u30C9\u65E5\u6642</th>\n            <th>\u64CD\u4F5C</th>\n          </tr>\n        </thead>\n        <tbody>\n          ".concat(this.pdfs.map(function (pdf) { return "\n            <tr>\n              <td>".concat(pdf.title, "</td>\n              <td>").concat(pdf.file_name, "</td>\n              <td>").concat(new Date(pdf.created_at).toLocaleDateString('ja-JP'), "</td>\n              <td>\n                <button class=\"delete-button\" onclick=\"window.adminManager.deletePDFHandler(").concat(pdf.id, ")\">\u524A\u9664</button>\n              </td>\n            </tr>\n          "); }).join(''), "\n        </tbody>\n      </table>\n    ");
-        container.innerHTML = html;
+                if (this.pdfs.length === 0) {
+                        container.innerHTML = '<p>登録されたPDFファイルはありません</p>';
+                        return;
+                }
+                const html = `
+            <table class="comments-table" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>タイトル</th>
+                        <th>ファイル名</th>
+                        <th>アップロード日時</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${this.pdfs.map(pdf => `
+                        <tr>
+                            <td>${pdf.title}</td>
+                            <td>${pdf.file_name}</td>
+                            <td>${new Date(pdf.created_at).toLocaleDateString('ja-JP')}</td>
+                            <td>
+                                <button class="delete-button" onclick="window.adminManager.deletePDFHandler(${pdf.id})">削除</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+                container.innerHTML = html;
     };
     return PDFManager;
 }());
@@ -1800,17 +2088,25 @@ var ActivityReportManager = /** @class */ (function () {
     /**
      * 活動報告を更新
      */
-    ActivityReportManager.prototype.update = function (id, title, content, date, image_url, password) {
+    ActivityReportManager.prototype.update = function (id, category, title, year, items, photos, password) {
         return __awaiter(this, void 0, void 0, function () {
             var response;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: 
+                    case 0:
                         console.log('Updating activity report with id: ', id);
                         return [4 /*yield*/, fetch('/api/activity-reports', {
                             method: 'PATCH',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: id, title: title, content: content, date: date, image_url: image_url, password: password })
+                            body: JSON.stringify({
+                                id: id,
+                                category: category,
+                                title: title,
+                                year: year,
+                                items: items,
+                                photos: photos,
+                                password: password
+                            })
                         })];
                     case 1:
                         response = _a.sent();
@@ -1882,11 +2178,14 @@ ActivityReportManager.prototype.render = function (container) {
                 <th>タイトル</th>
                 <th>内容</th>
                 <th>画像</th>
+                <th>最終編集</th>
                 <th>操作</th>
             </tr>
         </thead>
         <tbody>
             ${reportsArray.map(function (report) {
+                // updated_atの表示（YYYY/MM/DD HH:mm形式）
+                let updatedAt = report.updated_at ? new Date(report.updated_at).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
                 return `
                 <tr>
                     <td>${report.year}</td>
@@ -1894,6 +2193,7 @@ ActivityReportManager.prototype.render = function (container) {
                     <td>${Utils.escapeHtml(report.title)}</td>
                     <td class="comment-message">${Array.isArray(report.items) ? Utils.escapeHtml(report.items.join('<br>')).substring(0, 50) : ''}...</td>
                     <td>${Array.isArray(report.photos) && report.photos.length > 0 ? report.photos.map(function(url){return '<a href="'+url+'" target="_blank">表示</a>';}).join('<br>') : 'なし'}</td>
+                    <td>${updatedAt}</td>
                     <td>
                         <button class="edit-button" onclick="window.adminManager.editActivityReportHandler(${report.id})">
                             編集

@@ -556,7 +556,7 @@ function renderPDFCarousel(pdfs) {
                 <div class="pdf-item">
                   <div class="pdf-item-icon">📄</div>
                   <h3 onclick="openPDF('${pdf.file_path}', '${pdf.title.replace(/'/g, "\\'")}', '${pdf.id}')">${pdf.title}</h3>
-                  ${pdf.description ? `<p>${pdf.description}</p>` : ''}
+                  ${pdf.description ? `<textarea class="pdf-description-box" readonly style="width:100%; min-width:300px; max-width:1000px; height:60px; resize:horizontal; margin-bottom:10px;">${pdf.description}</textarea>` : ''}
                   <div class="pdf-item-meta">
                     ${pdf.created_at ? `アップロード日時: ${new Date(pdf.created_at).toLocaleDateString('ja-JP')}` : ''}
                   </div>
