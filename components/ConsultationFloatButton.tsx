@@ -1,27 +1,39 @@
 // directory: components/ConsultationFloatButton.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 /**
- * ConsultationFloatButton クラス（コンポーネント）
- * 画面右下に常駐し、クリック時に相談フォームをモーダルで表示します。
+ * ConsultationFloatButton クラス
+ * インラインスタイルのみを使用して TypeScript の型エラーを回避した完全版
  */
 export default function ConsultationFloatButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // マウント状態を管理（SSRとクライアントサイドのハイドレーション不一致を防止）
-  useEffect(() => {
-    setMounted(true);
+  const closeModal = useCallback(() => {
+    setIsOpen(false);
   }, []);
 
-  // サーバーサイドレンダリング時は何も表示しない
-  if (!mounted) {
-    return null;
-  }
+  const openModal = useCallback(() => {
+    setIsOpen(true);
+  }, []);
 
-  // スタイル定義（カプセル化を意識したインライン定義）
+  useEffect(() => {
+    setMounted(true);
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === 'CONSULTATION_SUBMITTED') {
+        setTimeout(() => {
+          closeModal();
+        }, 2000);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [closeModal]);
+
+  if (!mounted) return null;
+
   const styles: { [key: string]: React.CSSProperties } = {
     button: {
       position: 'fixed',
@@ -39,7 +51,8 @@ export default function ConsultationFloatButton() {
       zIndex: 10000,
       display: 'flex',
       justifyContent: 'center',
-      alignItems: 'center'
+      alignItems: 'center',
+      transition: 'transform 0.2s ease',
     },
     overlay: {
       position: 'fixed',
@@ -55,11 +68,13 @@ export default function ConsultationFloatButton() {
     },
     modal: {
       backgroundColor: 'white',
-      width: '90%',
+      width: '95%',
       maxWidth: '500px',
       borderRadius: '12px',
       overflow: 'hidden',
-      boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+      boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+      // アニメーションは標準的なCSSクラスを使わない場合、このように定義可能
+      animation: 'modalFadeIn 0.3s ease-out'
     },
     header: {
       padding: '10px 20px',
@@ -71,45 +86,47 @@ export default function ConsultationFloatButton() {
     },
     iframe: {
       width: '100%',
-      height: '550px',
+      height: '600px',
       border: 'none'
     }
   };
 
   return (
     <>
+      {/* Keyframes を TypeScript エラーなしで挿入するため、
+        dangerouslySetInnerHTML を使用して標準の style タグとして扱います。
+      */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes modalFadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}} />
+
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={openModal}
         style={styles.button}
-        aria-label="相談フォームを開く"
+        onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1.0)')}
       >
         📮
       </button>
 
       {isOpen && (
-        <div 
-          style={styles.overlay} 
-          onClick={() => setIsOpen(false)}
-        >
-          <div 
-            style={styles.modal} 
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div style={styles.overlay} onClick={closeModal}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.header}>
               <span style={{ fontWeight: 'bold', color: '#333' }}>ご相談フォーム</span>
               <button 
-                onClick={() => setIsOpen(false)} 
+                type="button"
+                onClick={closeModal} 
                 style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#666' }}
               >
                 ×
               </button>
             </div>
-            <iframe 
-              src="/consultation"
-              style={styles.iframe}
-              title="consultation-form"
-            />
+            <iframe src="/consultation" style={styles.iframe} title="consultation-form" />
           </div>
         </div>
       )}
