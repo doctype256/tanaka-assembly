@@ -10,7 +10,6 @@ html {
     scroll-behavior: smooth;
 }
 
-
 /* style.css */
 body {
   margin:0;     /*　ページの余白　*/
@@ -56,6 +55,23 @@ header a {
   margin-left:1rem;
   font-weight:600;
 }
+#header-nav a {
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px;
+  display: block;
+  transition: color 0.3s, background-color 0.3s;
+  border-radius: 4px; /* 背景色を角丸にする場合 */
+}
+
+#header-nav a.active {
+  color: #fff !important;          /* 文字色 */
+  background-color: #e07491 !important; /* 背景色 */
+  font-weight: bold;
+}
+
+
+
 
 /*　ヘッダー内SNSアイコン　*/
 .header-social img {
@@ -509,11 +525,9 @@ h2 {
   font-weight: 600;
 }
 .sns-row:hover { background: #f9f9f9; }
-
 /*==============================
    共通見出し・事務所情報
    =============================*/
-
 .section-title {
   text-align: center;
   color: #03709b;
@@ -2263,7 +2277,7 @@ body.font-large {
 /* ボタン（カード）自体のデザイン修正 */
 .link-card {
   flex: 1;            /* 均等な幅にする */
-  max-width: 300px;   /* ボタンが大きくなりすぎないよう制限 */
+  max-width: 500px;   /* ボタンが大きくなりすぎないよう制限 */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2628,4 +2642,22 @@ body.font-large {
   display: flex;
   align-items: center;
   gap: 10px; /* アイコンとテキストの間隔 */
+}
+
+/* ==============================
+   ニュースセクションとSNSセクションの余白調整
+   ============================== */
+.news-section {
+  margin-bottom: 20px; /* 元が大きい場合はここで調整 */
+  padding-bottom: 0;
+}
+
+/* 活動報告ブロックの下マージンを小さくする */
+.news-block:last-child {
+  margin-bottom: 0; /* 最後のブロックは下の余白をなくす */
+}
+
+/* SNSセクションの上マージンを小さくする */
+.sns-jump-section {
+  margin-top: 0px; /* 必要に応じて10pxや0に調整 */
 }
