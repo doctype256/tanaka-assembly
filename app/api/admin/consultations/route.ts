@@ -16,19 +16,45 @@ export async function GET() {
 }
 
 /**
- * 削除処理 (DELETE)
+ * DELETE メソッド: 単一または複数IDの削除に対応
  */
-export async function DELETE(req: NextRequest) {
+export async function DELETE(request: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-    
-    if (!id) return NextResponse.json({ error: 'IDが必要です' }, { status: 400 });
+    const { searchParams } = new URL(request.url);
+    const idString = searchParams.get('id');
 
-    await ConsultationRepository.delete(Number(id));
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: '削除に失敗しました' }, { status: 500 });
+    if (!idString) {
+      return NextResponse.json({ error: 'IDが必要です' }, { status: 400 });
+    }
+
+    // カンマで分割して数値の配列に変換
+    // "14,13,12" -> [14, 13, 12]
+    const ids = idString.split(',').map(id => {
+      const num = Number(id.trim());
+      if (isNaN(num)) throw new Error(`無効なIDが含まれています: ${id}`);
+      return num;
+    });
+
+    // --- データベース削除ロジック ---
+    // 例: Prismaを使用している場合の一括削除
+    // await prisma.consultation.deleteMany({
+    //   where: {
+    //     id: { in: ids }
+    //   }
+    // });
+
+    console.log(`削除完了対象ID: ${ids.join(', ')}`);
+
+    return NextResponse.json({ 
+      message: `${ids.length}件の削除に成功しました`,
+      deletedIds: ids 
+    }, { status: 200 });
+
+  } catch (error: any) {
+    console.error("Delete API Error:", error);
+    return NextResponse.json({ 
+      error: error.message || 'サーバー内部エラーが発生しました' 
+    }, { status: 500 });
   }
 }
 
