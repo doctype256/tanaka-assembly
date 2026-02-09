@@ -21,4 +21,4 @@ console.log("✅ Using Turso database");
 export default client;
 
 
-export default db;
+//export default db;
