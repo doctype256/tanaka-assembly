@@ -55,7 +55,7 @@
 
 <main>
   <section class="hero-image">
-    <img id="dynamic-hero-img"  alt="背景">
+    <img id="dynamic-hero-img" src="assets/ぼっとん.png" alt="背景">
   </section>
 
   <section class="consultation-section">
@@ -85,7 +85,7 @@
 
   <section class="news-section">
     <div class="news-block">
-      <h2 class="section-title">Shiho Press</h2>
+      <h2 class="shihopress-section-title">Shiho Press</h2>
       <div id="shiho-press-container"></div>
       <a href="pdf-text.html" class="more-btn">一覧へ ＞</a>
     </div>
@@ -291,23 +291,52 @@ async function generateThumbnails(pdfs, year) {
   }
 }
 
+/* カルーセル制御 (ループ対応版) */
 function updateCarouselIndex(key) {
   const section = document.querySelector(`[data-carousel-year="${key}"]`);
   if (!section) return;
   const inner = section.querySelector('.pdf-carousel-inner');
   const items = section.querySelectorAll('.pdf-item');
   const index = carouselIndices[key];
+  
+  // 表示数の計算
   const visibleItems = window.innerWidth < 768 ? 1 : (window.innerWidth < 1024 ? 2 : 3);
   const itemWidth = 100 / visibleItems;
   const offset = (visibleItems - 1) / 2;
+  
   inner.style.transform = `translateX(${-(index - offset) * itemWidth}%)`;
   items.forEach((item, i) => item.classList.toggle('center', i === index));
+  
   const dots = section.querySelectorAll('.dot');
   dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+
+  // ボタンを常に表示（ループ対応）
+  const prevBtn = section.querySelector('.carousel-prev');
+  const nextBtn = section.querySelector('.carousel-next');
+  if (prevBtn) prevBtn.style.display = 'block';
+  if (nextBtn) nextBtn.style.display = 'block';
 }
 
-function handlePrevClickIndex(key) { if (carouselIndices[key] > 0) { carouselIndices[key]--; updateCarouselIndex(key); } }
-function handleNextClickIndex(key) { if (carouselIndices[key] < carouselTotalSlides[key] - 1) { carouselIndices[key]++; updateCarouselIndex(key); } }
+function handlePrevClickIndex(key) { 
+  const total = carouselTotalSlides[key];
+  if (carouselIndices[key] > 0) {
+    carouselIndices[key]--;
+  } else {
+    carouselIndices[key] = total - 1; // 最初なら最後へ
+  }
+  updateCarouselIndex(key);
+}
+
+function handleNextClickIndex(key) { 
+  const total = carouselTotalSlides[key];
+  if (carouselIndices[key] < total - 1) {
+    carouselIndices[key]++;
+  } else {
+    carouselIndices[key] = 0; // 最後なら最初へ
+  }
+  updateCarouselIndex(key);
+}
+
 function goToSlideIndex(key, index) { carouselIndices[key] = index; updateCarouselIndex(key); }
 window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
 </script>
