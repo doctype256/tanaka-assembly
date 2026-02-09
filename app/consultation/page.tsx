@@ -14,13 +14,13 @@ const QUESTIONS = {
 const STORAGE_KEY = 'consultation_form_draft';
 
 /**
- * ステップ形式の相談フォーム（一時保存機能統合版）
+ * ステップ形式の相談フォーム（全ステップ共通注釈版）
  */
 export default function TestConsultationPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>('');
-  const [isInitialized, setIsInitialized] = useState(false); // ハイドレーション不一致防止
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const [formData, setFormData] = useState({
     target_type: '',
@@ -31,7 +31,7 @@ export default function TestConsultationPage() {
     message: ''
   });
 
-  // 1. マウント時に localStorage から復元
+  // マウント時に localStorage から復元
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -46,9 +46,9 @@ export default function TestConsultationPage() {
     setIsInitialized(true);
   }, []);
 
-  // 2. データまたはステップが変更されるたびに自動保存
+  // データまたはステップが変更されるたびに自動保存
   useEffect(() => {
-    if (isInitialized && step < 7) { // 完了画面(7)以外を保存対象とする
+    if (isInitialized && step < 7) {
       const draft = {
         savedStep: step,
         savedData: formData
@@ -66,7 +66,7 @@ export default function TestConsultationPage() {
   const prevStep = () => setStep(prev => prev - 1);
 
   const handleSubmit = async () => {
-setLoading(true);
+    setLoading(true);
     setStatus('送信中...');
     try {
       const response = await fetch('/api/consultations', {
@@ -74,13 +74,10 @@ setLoading(true);
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-      
       if (response.ok) {
         setStatus(`✅ 送信完了: ありがとうございました。`);
         localStorage.removeItem(STORAGE_KEY);
         setStep(7);
-
-        // 親ウィンドウ（ConsultationFloatButton）へ通知を送る
         window.parent.postMessage('CONSULTATION_SUBMITTED', '*');
       } else {
         const result = await response.json();
@@ -93,7 +90,6 @@ setLoading(true);
     }
   };
 
-  // 初期化完了まで表示を抑制
   if (!isInitialized) return null;
 
   return (
@@ -202,19 +198,19 @@ setLoading(true);
             >
               戻る
             </button>
-            <p style={{ fontSize: '11px', color: '#a0aec0', textAlign: 'center', marginTop: '15px' }}>
-              ※入力内容は自動保存されています。
-            </p>
           </div>
         )}
 
-{step === 7 && (
+        {/* 全ステップ共通（送信完了画面を除く）の保存通知 */}
+        {step <= 6 && (
+          <p style={{ fontSize: '11px', color: '#a0aec0', textAlign: 'center', marginTop: '30px' }}>
+            ※入力内容は自動保存されています。
+          </p>
+        )}
+
+        {step === 7 && (
           <div style={{ textAlign: 'center', padding: '20px' }}>
-            <div style={{ fontSize: '48px', marginBottom: '20px' }}>✉️</div>
             <h2>{status}</h2>
-            <p style={{ color: '#666', marginBottom: '30px' }}>
-              内容を確認次第、担当者よりご連絡いたします。
-            </p>
             <button 
               onClick={() => window.parent.postMessage('CONSULTATION_SUBMITTED', '*')} 
               style={{...nextButtonStyle, background: '#4a5568'}}
@@ -228,7 +224,6 @@ setLoading(true);
   );
 }
 
-// スタイル定義（不変のため関数外で定義）
 const buttonStyle: React.CSSProperties = { padding: '15px', fontSize: '16px', cursor: 'pointer', border: '1px solid #ddd', borderRadius: '8px', textAlign: 'left', width: '100%', backgroundColor: '#fff' };
 const nextButtonStyle: React.CSSProperties = { width: '100%', padding: '15px', marginTop: '10px', backgroundColor: '#2d3748', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '12px', fontSize: '16px', borderRadius: '8px', border: '1px solid #ccc', marginTop: '10px', boxSizing: 'border-box' };
