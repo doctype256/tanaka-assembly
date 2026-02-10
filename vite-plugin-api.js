@@ -78,7 +78,7 @@ export default function apiPlugin() {
                         try {
                             if (all && password) {
                                 // 管理者: すべてのコメント取得
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 console.log(`[API] Password check - received: "${password}", expected: "${expectedPassword}", match: ${password === expectedPassword}`);
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
@@ -155,7 +155,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { id, approved, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -192,7 +192,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { id, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -227,7 +227,7 @@ export default function apiPlugin() {
                         const url = new URL(req.url || '', `http://${req.headers.host}`);
                         const password = url.searchParams.get('password');
                         try {
-                            const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                            const expectedPassword = process.env.ADMIN_PASSWORD;
                             if (password !== expectedPassword) {
                                 res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                 res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -288,7 +288,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { id, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -326,7 +326,7 @@ export default function apiPlugin() {
                         try {
                             if (all && password) {
                                 // 管理者: すべてのポスト取得
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -397,7 +397,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { id, approved, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -434,7 +434,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { id, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -469,7 +469,7 @@ export default function apiPlugin() {
                         const url = new URL(req.url || '', `http://${req.headers.host}`);
                         const password = url.searchParams.get('password');
                         try {
-                            const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                            const expectedPassword = process.env.ADMIN_PASSWORD;
                             if (password !== expectedPassword) {
                                 res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                 res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -508,7 +508,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { Name, IMG_URL, birthday, From, Family, Job, hobby, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -546,7 +546,7 @@ export default function apiPlugin() {
                         const url = new URL(req.url || '', `http://${req.headers.host}`);
                         const password = url.searchParams.get('password');
                         try {
-                            const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                            const expectedPassword = process.env.ADMIN_PASSWORD;
                             if (password !== expectedPassword) {
                                 res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                 res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -575,7 +575,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { year, month, Content, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -612,7 +612,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { id, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -669,7 +669,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { title, description, file_path, file_name, file_data, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 console.log('[API] POST /api/pdfs - Received request:', { title, file_name, hasFileData: !!file_data });
                                 if (password !== expectedPassword) {
                                     console.warn('[API] ✗ Unauthorized POST to /pdfs');
@@ -750,7 +750,7 @@ export default function apiPlugin() {
                             try {
                                 const data = JSON.parse(body);
                                 const { id, password } = data;
-                                const expectedPassword = process.env.ADMIN_PASSWORD || 'admin123';
+                                const expectedPassword = process.env.ADMIN_PASSWORD;
                                 if (password !== expectedPassword) {
                                     res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
                                     res.end(JSON.stringify({ error: 'Unauthorized' }));
