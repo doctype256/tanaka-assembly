@@ -81,8 +81,8 @@ async function loadProfile() {
     // --- 各種 API からデータを取得 ---
     try {
       const [profileRes, careerRes, topRes] = await Promise.all([
-        fetch('/api/profile?password=admin777'),
-        fetch('/api/career?password=admin777'),
+        fetch('/api/profile?password=admin'),
+        fetch('/api/career?password=admin'),
         fetch('/api/top-page')
       ]);
 
