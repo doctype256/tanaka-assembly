@@ -6,6 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/style.css">
+  <style>
+    /* カルーセル用スタイル（CSSのスマホ85%を活かす設定） */
+    .pdf-carousel { overflow: hidden; position: relative; width: 100%; }
+    .pdf-carousel-inner { display: flex; flex-wrap: nowrap; transition: transform 0.4s ease-out; }
+    
+    @media (max-width: 767px) {
+      .pdf-item {
+        flex: 0 0 85% !important;
+        margin: 0 5px;
+      }
+    }
+    /* スクリプトが動く前のボタン消滅を防ぐための最低限の指定 */
+    #menu-toggle {
+      z-index: 101;
+    }
+  </style>
 </head>
 <body data-page="activity">
 
@@ -13,7 +29,7 @@
   <nav class="header-inner">
     <div id="header-name"></div>
     <div id="header-nav"></div>
-    <button id="menu-toggle">☰</button>
+    <button id="menu-toggle" aria-label="メニュー">☰</button>
   </nav>
 </header>
 
@@ -38,14 +54,135 @@
 </main>
 
 <script src="js/activity-reports.js"></script>
-<script src="js/header.js"></script>
+
 <script>
-  /*
-  window.addEventListener('DOMContentLoaded', () => {
-    renderActivityReportsList();  // 新しいロジックを呼び出す
+  // カルーセルとフィルタのロジックのみに限定
+  let activeCategory = 'all';
+  let activeYear = null;
+  let activityData = null;
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      // ページ固有のタイトルのみ設定
+      const res = await fetch('data/static-texts.json');
+      const data = await res.json();
+      const titleEl = document.getElementById('activity-title');
+      if (titleEl) titleEl.textContent = data.activities?.title || "活動報告";
+
+      // データベース読み込み待ち
+      const checkDB = setInterval(async () => {
+        if (typeof fetchActivityReports === 'function') {
+          clearInterval(checkDB);
+          const reports = await fetchActivityReports();
+          activityData = { 
+            categories: [
+              { id: 'committee', label: '委員会活動' },
+              { id: 'childcare', label: '子育て政策' },
+              { id: 'reform', label: '京都府議会・定例会' },
+              { id: 'topics', label: 'Topics' }
+            ], 
+            reports 
+          };
+          render();
+        }
+      }, 100);
+    } catch (e) { console.error(e); }
   });
-  // ...（この中のJSは未定義変数・関数が多いため一時的に無効化）
-  */
+
+  function render(scrollTop = false) {
+    if (!activityData) return;
+    const root = document.getElementById('carousel-root');
+    root.innerHTML = '';
+    
+    // フィルタボタンの生成
+    const catButtons = document.getElementById('category-buttons');
+    const yearButtons = document.getElementById('year-buttons');
+    if(catButtons && yearButtons) {
+      catButtons.innerHTML = `<button data-category="all" class="${activeCategory === 'all' && !activeYear ? 'is-active' : ''}">すべて</button>`;
+      activityData.categories.forEach(cat => {
+        catButtons.innerHTML += `<button data-category="${cat.id}" class="${activeCategory === cat.id && !activeYear ? 'is-active' : ''}">${cat.label}</button>`;
+      });
+      const years = [...new Set(activityData.reports.map(r => r.year))].sort((a,b)=>b-a);
+      yearButtons.innerHTML = '';
+      years.forEach(y => {
+        yearButtons.innerHTML += `<button data-year="${y}" class="${activeYear === Number(y) ? 'is-active' : ''}">${y}年</button>`;
+      });
+    }
+
+    // カルーセルの描画
+    const allReports = activityData.reports;
+    if (activeYear) {
+      const filtered = allReports.filter(r => Number(r.year) === activeYear);
+      if(filtered.length) renderCarousel(`${activeYear}年の活動`, filtered);
+    } else {
+      activityData.categories.forEach(cat => {
+        if (activeCategory !== 'all' && cat.id !== activeCategory) return;
+        const filtered = allReports.filter(r => r.category === cat.id);
+        if(filtered.length) renderCarousel(cat.label, filtered);
+      });
+    }
+    if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function renderCarousel(title, items) {
+    const section = document.createElement('div');
+    section.className = 'pdf-year-section';
+    section.innerHTML = `
+      <h2 class="pdf-year-title">${title}</h2>
+      <div class="pdf-list">
+        <div class="pdf-carousel">
+          <div class="pdf-carousel-inner">
+            ${items.map(r => `
+              <div class="pdf-item">
+                <div class="report-thumb">
+                  <img src="${(r.photos && r.photos[0]) ? r.photos[0] : ''}" onerror="this.src='https://placehold.jp/24/03709b/ffffff/300x200.png?text=No+Photo'">
+                </div>
+                <div class="pdf-item-meta">${r.year}年 / ${activityData.categories.find(c=>c.id===r.category)?.label || ''}</div>
+                <h3>${r.title}</h3>
+                <div class="pdf-actions"><a href="article.html?type=report&id=${r.id}" class="pdf-btn">詳しく見る</a></div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="carousel-nav carousel-prev">❮</button>
+          <button class="carousel-nav carousel-next">❯</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('carousel-root').appendChild(section);
+
+    const carousel = section.querySelector('.pdf-carousel');
+    const inner = section.querySelector('.pdf-carousel-inner');
+    const cards = section.querySelectorAll('.pdf-item');
+    let currentIndex = 0;
+
+    const update = () => {
+      if (cards.length === 0) return;
+      const moveX = cards[currentIndex].offsetLeft - (carousel.offsetWidth / 2) + (cards[currentIndex].offsetWidth / 2);
+      inner.style.transform = `translateX(${-moveX}px)`;
+      cards.forEach((card, i) => card.classList.toggle('center', i === currentIndex));
+    };
+
+    section.querySelector('.carousel-next').onclick = () => { currentIndex = (currentIndex + 1) % cards.length; update(); };
+    section.querySelector('.carousel-prev').onclick = () => { currentIndex = (currentIndex - 1 + cards.length) % cards.length; update(); };
+    window.addEventListener('resize', update);
+    setTimeout(update, 200);
+  }
+
+  // クリックイベント（サイドバー・フィルタ）
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    if (btn.dataset.category) { activeCategory = btn.dataset.category; activeYear = null; render(true); }
+    else if (btn.dataset.year) { activeYear = Number(btn.dataset.year); activeCategory = null; render(true); }
+    else if (btn.id === 'category-toggle') {
+      const sidebar = document.getElementById('activity-sidebar');
+      sidebar.classList.toggle('is-open');
+      btn.textContent = sidebar.classList.contains('is-open') ? '＜' : '＞';
+    }
+  });
 </script>
+
+<script src="src/header.js"></script>
+
 </body>
 </html>
