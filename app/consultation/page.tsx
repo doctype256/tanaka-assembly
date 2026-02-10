@@ -14,7 +14,8 @@ const QUESTIONS = {
 const STORAGE_KEY = 'consultation_form_draft';
 
 /**
- * ステップ形式の相談フォーム（全ステップ共通注釈版）
+ * ステップ形式の相談フォーム
+ * 全ステップ共通の注釈および「やり直し機能」を統合。
  */
 export default function TestConsultationPage() {
   const [step, setStep] = useState(1);
@@ -22,16 +23,19 @@ export default function TestConsultationPage() {
   const [status, setStatus] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const [formData, setFormData] = useState({
+  // 初期データ構造
+  const initialFormData = {
     target_type: '',
     place_type: '未選択（スキップ）',
     content_type: '未選択（スキップ）',
     needs_reply: false,
     email: '',
     message: ''
-  });
+  };
 
-  // マウント時に localStorage から復元
+  const [formData, setFormData] = useState(initialFormData);
+
+  // 1. マウント時に localStorage から復元
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -46,7 +50,7 @@ export default function TestConsultationPage() {
     setIsInitialized(true);
   }, []);
 
-  // データまたはステップが変更されるたびに自動保存
+  // 2. 自動保存
   useEffect(() => {
     if (isInitialized && step < 7) {
       const draft = {
@@ -56,6 +60,17 @@ export default function TestConsultationPage() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     }
   }, [formData, step, isInitialized]);
+
+  /**
+   * フォームをリセットして最初に戻る
+   */
+  const handleReset = () => {
+    if (confirm("入力内容をすべて消去して、最初からやり直しますか？")) {
+      localStorage.removeItem(STORAGE_KEY);
+      setFormData(initialFormData);
+      setStep(1);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -114,7 +129,11 @@ export default function TestConsultationPage() {
                   <button 
                     key={opt} 
                     onClick={() => {
-                      setFormData({ ...formData, target_type: opt });
+                      // 1問目を選び直した際、2,3問目の初期値をリセット
+                      setFormData({ 
+                        ...initialFormData, 
+                        target_type: opt 
+                      });
                       isSpecial ? setStep(6) : nextStep();
                     }} 
                     style={{
@@ -179,9 +198,22 @@ export default function TestConsultationPage() {
         {step === 6 && (
           <div>
             <h2>詳細をご記入ください</h2>
-            <div style={{ marginBottom: '10px', padding: '10px', background: '#edf2f7', borderRadius: '5px', fontSize: '14px' }}>
-              選択内容：<strong>{formData.target_type}</strong>
+            {/* 選択されたすべての項目を表示するエリア */}
+            <div style={{ marginBottom: '15px', padding: '15px', background: '#edf2f7', borderRadius: '8px', fontSize: '14px', lineHeight: '1.6' }}>
+              <div style={{ color: '#4a5568', fontWeight: 'bold', marginBottom: '5px', borderBottom: '1px solid #cbd5e0', paddingBottom: '5px' }}>
+                入力内容の確認
+              </div>
+              <div>相談対象：<strong>{formData.target_type}</strong></div>
+              {/* 「お問い合わせ」経由でない場合のみQ2, Q3を表示 */}
+              {formData.target_type !== "提案やお問い合わせの方はこちら" && (
+                <>
+                  <div>場所・対象：<strong>{formData.place_type}</strong></div>
+                  <div>ジャンル：<strong>{formData.content_type}</strong></div>
+                </>
+              )}
+              <div>返信希望：<strong>{formData.needs_reply ? `希望する (${formData.email})` : '不要'}</strong></div>
             </div>
+
             <textarea name="message" value={formData.message} onChange={handleChange} placeholder="具体的な内容をご記入ください" style={{...inputStyle, height: '150px'}} />
             <button onClick={handleSubmit} disabled={loading || !formData.message} style={nextButtonStyle}>
               {loading ? '送信中...' : 'この内容で送信する'}
@@ -201,11 +233,22 @@ export default function TestConsultationPage() {
           </div>
         )}
 
-        {/* 全ステップ共通（送信完了画面を除く）の保存通知 */}
+        {/* 共通フッターエリア（送信完了以外） */}
         {step <= 6 && (
-          <p style={{ fontSize: '11px', color: '#a0aec0', textAlign: 'center', marginTop: '30px' }}>
-            ※入力内容は自動保存されています。
-          </p>
+          <div style={{ marginTop: '40px', textAlign: 'center' }}>
+            {/* ステップ2以降にやり直しボタンを表示 */}
+            {step > 1 && (
+              <button 
+                onClick={handleReset} 
+                style={{ background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline', marginBottom: '10px' }}
+              >
+                最初からやり直す
+              </button>
+            )}
+            <p style={{ fontSize: '11px', color: '#a0aec0', margin: 0 }}>
+              ※入力内容は自動保存されています。
+            </p>
+          </div>
         )}
 
         {step === 7 && (

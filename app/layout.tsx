@@ -20,6 +20,7 @@ export default function RootLayout({
   const hideButtonPaths = [
     '/consultation', // 相談フォーム自身
     '/admin',        // 管理者ページ（前方一致で判定する場合は別途ロジックが必要）
+    '/post',         // 投稿ページ
   ];
 
   // 管理者ページ配下（/admin/xxx など）も一括で非表示にする判定
