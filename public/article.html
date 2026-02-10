@@ -6,12 +6,58 @@
   <title>活動詳細 | 田中しほ</title>
   <link rel="stylesheet" href="src/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ハンバーガーボタン用の補強（style.cssの仕様に合わせる） */
+    #menu-toggle {
+      z-index: 101;
+    }
+
+    /* コメント欄のスタイル */
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2em;
+      margin: 1.5em 0;
+    }
+    .comment-bubble {
+      background: #f5f7fa;
+      border-radius: 16px;
+      padding: 1em 1.2em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      max-width: 480px;
+      position: relative;
+    }
+    .comment-bubble:before {
+      content: '';
+      position: absolute;
+      left: 18px;
+      top: -12px;
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-bottom: 12px solid #f5f7fa;
+    }
+    .comment-name {
+      font-size: 0.95em;
+      color: #03709b;
+      font-weight: bold;
+      margin-bottom: 0.3em;
+    }
+    .comment-message {
+      font-size: 1.05em;
+      color: #222;
+      white-space: pre-line;
+    }
+  </style>
 </head>
 <body data-page="policy">
+
   <header>
     <nav class="header-inner">
       <div id="header-name"></div>
       <div id="header-nav"></div>
+      <button id="menu-toggle" aria-label="メニュー">☰</button>
     </nav>
   </header>
 
@@ -28,8 +74,7 @@
       <section class="comment-section">
         <h2 class="comment-title">読者の声</h2>
         <div id="comment-list" class="comment-list">
-          <!-- コメントがここに表示されます -->
-        </div>
+          </div>
 
         <div class="comment-post-box">
           <p class="comment-notice">この記事へのご意見・ご感想をお寄せください。活動の参考にさせていただきます。</p>
@@ -43,11 +88,12 @@
     </article>
   </main>
 
+  <script src="js/activity-reports.js"></script>
+  
   <script>
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');  // クエリパラメータからIDを取得
+    const id = params.get('id');
 
-    // ページがロードされたら記事の詳細を取得して表示
     window.addEventListener('DOMContentLoaded', () => {
       if (id) {
         renderActivityReportDetail(id);
@@ -56,27 +102,25 @@
       }
     });
 
-    // 記事詳細を取得して表示する関数
     async function renderActivityReportDetail(id) {
-        let articleTitleForComment = '';
       try {
-        // APIから記事の詳細を取得
         const response = await fetch(`/api/activity-reports?id=${id}`);
-        if (!response.ok) {
-          throw new Error('記事の取得に失敗しました。');
-        }
+        if (!response.ok) throw new Error('記事の取得に失敗しました。');
+        
         const data = await response.json();
         if (data.success && data.reports && data.reports.length > 0) {
           const article = data.reports[0];
-          articleTitleForComment = article.title;
-                  // コメント送信リンクに記事タイトルを付与
-                  const commentLink = document.getElementById('comment-link');
-                  if (commentLink && articleTitleForComment) {
-                    commentLink.href = `comment.html?article_title=${encodeURIComponent(articleTitleForComment)}`;
-                  }
+          
+          // コメント送信リンクの設定
+          const commentLink = document.getElementById('comment-link');
+          if (commentLink) {
+            commentLink.href = `comment.html?article_title=${encodeURIComponent(article.title)}`;
+          }
+
           document.getElementById('article-title').innerText = article.title;
           document.getElementById('article-meta').innerText = `${article.year}`;
           document.getElementById('article-content').innerHTML = article.items ? article.items.join('<br><br>') : '';
+          
           const photoContainer = document.getElementById('article-photos');
           photoContainer.innerHTML = '';
           if (article.photos && article.photos.length > 0) {
@@ -88,90 +132,43 @@
             });
           }
 
-          // コメント取得（記事タイトルで取得）
-          const commentList = document.getElementById('comment-list');
-          commentList.innerHTML = '';
-          try {
-            const commentRes = await fetch(`/api/comments?article_title=${encodeURIComponent(article.title)}`);
-            if (commentRes.ok) {
-              const comments = await commentRes.json();
-              if (Array.isArray(comments) && comments.length > 0) {
-                comments.forEach(comment => {
-                  const wrapper = document.createElement('div');
-                  wrapper.className = 'comment-bubble';
-                  const name = document.createElement('div');
-                  name.className = 'comment-name';
-                  name.innerText = comment.name ? comment.name : '匿名';
-                  const msg = document.createElement('div');
-                  msg.className = 'comment-message';
-                  msg.innerText = comment.message;
-                  wrapper.appendChild(name);
-                  wrapper.appendChild(msg);
-                  commentList.appendChild(wrapper);
-                });
-              } else {
-                const p = document.createElement('p');
-                p.innerText = 'まだコメントはありません。最初の感想をお寄せください。';
-                commentList.appendChild(p);
-              }
-            } else {
-              const p = document.createElement('p');
-              p.innerText = 'コメントの取得に失敗しました。';
-              commentList.appendChild(p);
-            }
-          } catch (e) {
-            const p = document.createElement('p');
-            p.innerText = 'コメントの取得に失敗しました。';
-            commentList.appendChild(p);
-          }
+          // コメント取得処理
+          await loadComments(article.title);
+
         } else {
           alert('指定された記事が見つかりませんでした。');
         }
       } catch (error) {
         console.error('記事の取得に失敗しました:', error);
-        alert('記事の取得に失敗しました。');
+      }
+    }
+
+    // コメント取得関数を独立（401エラー対策のログを追加）
+    async function loadComments(title) {
+      const commentList = document.getElementById('comment-list');
+      try {
+        // もし認証が必要なAPIであれば headers にトークンが必要になります
+        const commentRes = await fetch(`/api/comments?article_title=${encodeURIComponent(title)}`);
+
+        if (commentRes.ok) {
+          const comments = await commentRes.json();
+          if (Array.isArray(comments) && comments.length > 0) {
+            commentList.innerHTML = comments.map(comment => `
+              <div class="comment-bubble">
+                <div class="comment-name">${comment.name || '匿名'}</div>
+                <div class="comment-message">${comment.message}</div>
+              </div>
+            `).join('');
+          } else {
+            commentList.innerHTML = '<p>まだコメントはありません。最初の感想をお寄せください。</p>';
+          }
+        }
+      } catch (e) {
+        commentList.innerHTML = '<p>コメントの取得に失敗しました。</p>';
       }
     }
   </script>
-  <script src="js/activity-reports.js"></script>
-</script>
-<style>
-.comment-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.2em;
-  margin: 1.5em 0;
-}
-.comment-bubble {
-  background: #f5f7fa;
-  border-radius: 16px;
-  padding: 1em 1.2em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  max-width: 480px;
-  position: relative;
-}
-.comment-bubble:before {
-  content: '';
-  position: absolute;
-  left: 18px;
-  top: -12px;
-  width: 0;
-  height: 0;
-  border-left: 12px solid transparent;
-  border-right: 12px solid transparent;
-  border-bottom: 12px solid #f5f7fa;
-}
-.comment-name {
-  font-size: 0.95em;
-  color: #03709b;
-  font-weight: bold;
-  margin-bottom: 0.3em;
-}
-.comment-message {
-  font-size: 1.05em;
-  color: #222;
-  white-space: pre-line;
-}
-</style>
+
+  <script src="src/header.js"></script>
 </body>
 </html>

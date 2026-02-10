@@ -15,7 +15,7 @@ export async function GET(req: Request) {
     headers.set("Access-Control-Allow-Headers", "Content-Type");
 
     if (password) {
-      const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+      const adminPassword = process.env.ADMIN_PASSWORD;
       if (password !== adminPassword) {
         return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
           status: 401,
@@ -53,10 +53,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { year, month, Content, password } = body;
 
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
-    if (password !== adminPassword) {
-      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      return new NextResponse(JSON.stringify({ error: "ADMIN_PASSWORD is not set" }), {
+        status: 500,
       });
     }
 
@@ -98,7 +98,7 @@ export async function DELETE(req: Request) {
     const body = await req.json();
     const { id, password } = body;
 
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const adminPassword = process.env.ADMIN_PASSWORD;
     if (password !== adminPassword) {
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
