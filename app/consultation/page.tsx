@@ -129,7 +129,11 @@ export default function TestConsultationPage() {
                   <button 
                     key={opt} 
                     onClick={() => {
-                      setFormData({ ...formData, target_type: opt });
+                      // 1問目を選び直した際、2,3問目の初期値をリセット
+                      setFormData({ 
+                        ...initialFormData, 
+                        target_type: opt 
+                      });
                       isSpecial ? setStep(6) : nextStep();
                     }} 
                     style={{
@@ -194,9 +198,22 @@ export default function TestConsultationPage() {
         {step === 6 && (
           <div>
             <h2>詳細をご記入ください</h2>
-            <div style={{ marginBottom: '10px', padding: '10px', background: '#edf2f7', borderRadius: '5px', fontSize: '14px' }}>
-              選択内容：<strong>{formData.target_type}</strong>
+            {/* 選択されたすべての項目を表示するエリア */}
+            <div style={{ marginBottom: '15px', padding: '15px', background: '#edf2f7', borderRadius: '8px', fontSize: '14px', lineHeight: '1.6' }}>
+              <div style={{ color: '#4a5568', fontWeight: 'bold', marginBottom: '5px', borderBottom: '1px solid #cbd5e0', paddingBottom: '5px' }}>
+                入力内容の確認
+              </div>
+              <div>相談対象：<strong>{formData.target_type}</strong></div>
+              {/* 「お問い合わせ」経由でない場合のみQ2, Q3を表示 */}
+              {formData.target_type !== "提案やお問い合わせの方はこちら" && (
+                <>
+                  <div>場所・対象：<strong>{formData.place_type}</strong></div>
+                  <div>ジャンル：<strong>{formData.content_type}</strong></div>
+                </>
+              )}
+              <div>返信希望：<strong>{formData.needs_reply ? `希望する (${formData.email})` : '不要'}</strong></div>
             </div>
+
             <textarea name="message" value={formData.message} onChange={handleChange} placeholder="具体的な内容をご記入ください" style={{...inputStyle, height: '150px'}} />
             <button onClick={handleSubmit} disabled={loading || !formData.message} style={nextButtonStyle}>
               {loading ? '送信中...' : 'この内容で送信する'}
