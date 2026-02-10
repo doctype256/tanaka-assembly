@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const folder = formData.get("folder") || "uploads";
     const password = formData.get("password");
 
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const adminPassword = process.env.ADMIN_PASSWORD;
     if (password !== adminPassword) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

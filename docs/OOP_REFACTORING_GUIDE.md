@@ -34,16 +34,51 @@ class Utils {
 }
 
 // admin.js
-class AdminManager {
-  async handleLogin(e) { ... }
-  handleLogout() { ... }
-}
+## Manager クラス群（2026年2月最新）
 
-class PDFManager {
-  async fetch(password) { ... }
-  async delete(id, password) { ... }
-  render(container) { ... }
-}
+このプロジェクトでは、管理画面やデータ操作のために複数のManagerクラスを導入しています。各Managerは単一責任原則に基づき、特定のデータや機能を統括します。
+
+### AdminManager
+- 管理画面全体の統括。各種Managerを束ね、初期化・イベント管理・データ描画・ログイン/ログアウトなどを担当。
+- プロパティ: APIClient, ProfileManager, CareerManager, PDFManager, CommentManager, PostManager, ContactListManager, adminPassword
+- メソッド: initialize(), setupEventListeners(), handleLogin(), handleLogout(), renderAllData(), filterComments(), filterContacts(), toggleCommentApproval(), deleteCommentHandler(), togglePostApproval(), deletePostHandler(), deleteContactHandler(), deletePDFHandler()
+
+### ProfileManager
+- プロフィールデータの取得・編集・保存を管理。
+- プロパティ: api, profile
+- メソッド: fetch(), loadForm(), save(), handleUpdate()
+
+### CareerManager
+- キャリア履歴の取得・追加・削除・描画を管理。
+- プロパティ: api, careers
+- メソッド: fetch(), render(), add(), delete(), handleAdd()
+
+### PDFManager
+- PDFファイルのアップロード・一覧取得・削除・描画を管理。
+- プロパティ: api, pdfs
+- メソッド: fetch(), render(), delete(), handleAdd()
+
+### CommentManager
+- コメントデータの取得・承認・削除・フィルタリング・統計取得を管理。
+- プロパティ: api, allComments, filteredComments
+- メソッド: fetchAll(), renderComments(), toggleApproval(), delete(), filter(), getStats()
+
+### PostManager
+- ポスト（相談）データの取得・承認・削除・統計取得を管理。
+- プロパティ: api, allPosts
+- メソッド: fetchAll(), renderPosts(), toggleApproval(), delete(), getStats()
+
+### ContactListManager
+- お問い合わせデータの取得・削除・フィルタリング・統計取得を管理。
+- プロパティ: api, allContacts, filteredContacts
+- メソッド: fetchAll(), renderContacts(), delete(), filter(), getStats()
+
+### ContactManager
+- コンタクトフォームページの管理。フォーム初期化・送信処理・ページ初期化を担当。
+- メソッド: initializeForm(), handleFormSubmit(), initializePage()
+
+---
+各ManagerはAPIClientと連携し、データ取得・操作を行います。AdminManagerが全体を統括し、他のManagerをインスタンス化して管理画面の各機能を実現しています。
 ```
 
 ## 🏗️ クラス設計
