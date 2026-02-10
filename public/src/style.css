@@ -10,7 +10,6 @@ html {
     scroll-behavior: smooth;
 }
 
-
 /* style.css */
 body {
   margin:0;     /*　ページの余白　*/
@@ -56,6 +55,23 @@ header a {
   margin-left:1rem;
   font-weight:600;
 }
+#header-nav a {
+  color: white;
+  text-decoration: none;
+  padding: 5px 10px;
+  display: block;
+  transition: color 0.3s, background-color 0.3s;
+  border-radius: 4px; /* 背景色を角丸にする場合 */
+}
+
+#header-nav a.active {
+  color: #fff !important;          /* 文字色 */
+  background-color: #e07491 !important; /* 背景色 */
+  font-weight: bold;
+}
+
+
+
 
 /*　ヘッダー内SNSアイコン　*/
 .header-social img {
@@ -509,11 +525,9 @@ h2 {
   font-weight: 600;
 }
 .sns-row:hover { background: #f9f9f9; }
-
 /*==============================
    共通見出し・事務所情報
    =============================*/
-
 .section-title {
   text-align: center;
   color: #03709b;
@@ -2263,7 +2277,7 @@ body.font-large {
 /* ボタン（カード）自体のデザイン修正 */
 .link-card {
   flex: 1;            /* 均等な幅にする */
-  max-width: 300px;   /* ボタンが大きくなりすぎないよう制限 */
+  max-width: 500px;   /* ボタンが大きくなりすぎないよう制限 */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2628,4 +2642,184 @@ body.font-large {
   display: flex;
   align-items: center;
   gap: 10px; /* アイコンとテキストの間隔 */
+}
+
+/* ==============================
+   ニュースセクションとSNSセクションの余白調整
+   ============================== */
+.news-section {
+  margin-bottom: 20px; /* 元が大きい場合はここで調整 */
+  padding-bottom: 0;
+}
+
+/* 活動報告ブロックの下マージンを小さくする */
+.news-block:last-child {
+  margin-bottom: 0; /* 最後のブロックは下の余白をなくす */
+}
+
+/* SNSセクションの上マージンを小さくする */
+.sns-jump-section {
+  margin-top: 0px; /* 必要に応じて10pxや0に調整 */
+}
+
+/* カード全体の設定 */
+.consultation-card-integrated {
+  display: block;
+  max-width: 900px; /* カードの最大幅 */
+  margin: 40px auto;
+  aspect-ratio: 16 / 7; /* 横長の比率を維持 */
+  border-radius: 20px;
+  text-decoration: none;
+  overflow: hidden;
+  position: relative;
+  
+  /* 重要：パスの書き方 */
+  /* もし画像が表示されない場合は url('../assets/ポスト背景.png') にしてみてください */
+  background-image: url('../assets/ポスト背景.png'); 
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+.consultation-card-integrated:hover {
+  transform: translateY(-5px);
+}
+
+/* 文字を浮かせるオーバーレイ */
+.card-content-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 5% 8%; /* 内側の余白 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start; /* 文字を左側に寄せてイラストを避ける */
+  background: rgba(255, 255, 255, 0.1); /* 画像を少しだけ明るく見せる */
+}
+
+.card-main-title {
+  font-family: "Noto Serif JP", serif;
+  font-size: clamp(1.5rem, 4vw, 2.5rem); /* 画面幅に合わせて伸縮 */
+  color: #d35400; /* オレンジ系 */
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.card-sub-title {
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: #555;
+  margin: 10px 0 20px;
+}
+
+.card-btn {
+  background-color: #ff6b9d; /* 既存のピンク */
+  color: white;
+  padding: 10px 30px;
+  border-radius: 50px;
+  font-weight: bold;
+  font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4);
+}
+
+@media (max-width: 768px) {
+  .consultation-card-integrated {
+    /* 横幅いっぱい */
+    width: 100vw; 
+    max-width: 100%; 
+    margin: 20px 0;
+    border-radius: 0; 
+    
+    /* 比率は維持 */
+    aspect-ratio: 16 / 14; 
+    
+    background-image: url('../assets/ポスト背景.png');
+    background-size: cover;
+
+    /* ★ここがポイント：
+       中央(center)ではなく、上部を少し切り取る(top 20%など) 
+       数値(%)を大きくするほど、画像が上にスライドして「上端がカット」されます
+    */
+    background-position: center top 25%; 
+
+    position: relative;
+    display: block;
+    border: none;
+  }
+
+  /* 親要素の余白（隙間）を消す */
+  .consultation-section {
+    padding-top: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-top: 0 !important;
+  }
+
+  .card-content-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 20px 5%; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  /* --- 以下、文字やボタンのサイズはそのまま維持 --- */
+  .card-main-title {
+    font-size: 1.4rem;
+    line-height: 1.3;
+    margin: 0;
+    color: #d35400;
+    max-width: 65%;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(255,255,255,0.9);
+  }
+
+  .card-sub-title {
+    font-size: 0.9rem;
+    margin: 8px 0 15px 0;
+    color: #444;
+    max-width: 60%;
+  }
+
+  .comment-submit-button {
+    background-color: #ff6b9d;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 0.95rem;
+  }
+}
+
+/* アニメーションの定義 */
+@keyframes slideInFromTop {
+  0% {
+    opacity: 0;                /* 最初は透明 */
+    transform: translateY(-50px); /* 50px上からスタート */
+  }
+  100% {
+    opacity: 1;                /* 最後は完全に表示 */
+    transform: translateY(0);    /* 元の位置へ */
+  }
+}
+
+/* カード全体にアニメーションを適用 */
+.consultation-card-integrated {
+  /* ...既存の設定（背景画像など）... */
+  
+  /* アニメーション設定 */
+  animation: slideInFromTop 1.2s ease-out forwards;
+  
+  /* 初期状態を透明にしておくと、より綺麗に「現れる」感が出ます */
+  opacity: 0; 
 }
