@@ -174,6 +174,7 @@ export default function AdminConsultationPage() {
                 type="checkbox" 
                 onChange={toggleAll} 
                 checked={selectedIds.length === filteredData.length && filteredData.length > 0} 
+                style={checkboxStyle}
               />
             </th>
             <th style={thStyle}>日時 / 分類</th>
@@ -197,6 +198,7 @@ export default function AdminConsultationPage() {
                   type="checkbox" 
                   checked={selectedIds.includes(item.id)} 
                   onChange={() => toggleSelect(item.id)} 
+                  style={checkboxStyle}
                 />
               </td>
               <td style={tdStyle}>
@@ -271,6 +273,11 @@ export default function AdminConsultationPage() {
 }
 
 // スタイル定義（前回分＋α）
+const checkboxStyle: React.CSSProperties = {
+  width: '25px',       // チェックボックスの幅
+  height: '25px',      // チェックボックスの高さ
+  cursor: 'pointer',   // マウスを乗せた時に指マークにする
+};
 const thStyle: React.CSSProperties = { padding: '12px' };
 const tdStyle: React.CSSProperties = { padding: '12px', verticalAlign: 'top', fontSize: '13px' };
 const inputStyle: React.CSSProperties = { padding: '10px', width: '300px', borderRadius: '4px', border: '1px solid #ccc' };
