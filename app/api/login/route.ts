@@ -1,26 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@libsql/client';
+import { NextRequest, NextResponse } from "next/server";
+import { getIronSession } from "iron-session";
+import { sessionOptions } from "@/lib/session";
+import { createClient } from "@libsql/client";
+import { IronSession } from "iron-session";
+import bcrypt from "bcryptjs";
 
-const db = createClient({ 
-    url: process.env.TURSO_DATABASE_URL!, 
-    authToken: process.env.TURSO_AUTH_TOKEN!, 
+const db = createClient({
+  url: process.env.TURSO_DATABASE_URL!,
+  authToken: process.env.TURSO_AUTH_TOKEN!,
 });
 
 const MAX_ATTEMPTS = 3;
 const LOCK_TIME = 3 * 60 * 1000; // 3分
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD!;
 
 export async function POST(req: NextRequest) {
   const { password } = await req.json();
 
-  // IPアドレスを取得（x-forwarded-for ヘッダーから）
   const ip =
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const now = Date.now();
 
+  const res = NextResponse.json({ message: "ログイン成功！" });
+  const session = await getIronSession(req, res, sessionOptions);
+
   try {
-    // 必要なテーブルがなければ作成
+    // テーブル作成
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS admins (
+        id TEXT PRIMARY KEY,
+        password_hash TEXT NOT NULL
+      );
+    `);
+
     await db.execute(`
       CREATE TABLE IF NOT EXISTS login_attempts (
         ip TEXT PRIMARY KEY,
@@ -29,24 +40,43 @@ export async function POST(req: NextRequest) {
       );
     `);
 
-    // 現在の試行状況を取得
-    const result = await db.execute({
-      sql: 'SELECT failed_count, lock_until FROM login_attempts WHERE ip = ?',
+    // ロック状態確認
+    const attemptResult = await db.execute({
+      sql: "SELECT failed_count, lock_until FROM login_attempts WHERE ip = ?",
       args: [ip],
     });
 
-    const row = result.rows[0];
-    const failedCount = row ? Number(row.failed_count) : 0;
-    const lockUntil = row ? Number(row.lock_until) : 0;
+    const attemptRow = attemptResult.rows[0];
+    const failedCount = attemptRow ? Number(attemptRow.failed_count) : 0;
+    const lockUntil = attemptRow ? Number(attemptRow.lock_until) : 0;
 
     if (lockUntil && now < lockUntil) {
       return NextResponse.json(
-        { message: 'ロック中です。しばらくしてから再試行してください。' },
+        { message: "ロック中です。しばらくしてから再試行してください。" },
         { status: 429 }
       );
     }
 
-    if (password !== ADMIN_PASSWORD) {
+    // 管理者パスワード取得
+    const adminResult = await db.execute({
+      sql: "SELECT password_hash FROM admins WHERE id = ?",
+      args: ["admin"],
+    });
+
+    const adminRow = adminResult.rows[0];
+    if (!adminRow) {
+      return NextResponse.json(
+        { message: "管理者が登録されていません" },
+        { status: 500 }
+      );
+    }
+
+    const isValid = await bcrypt.compare(
+      password,
+      adminRow.password_hash as string
+    );
+
+    if (!isValid) {
       const newFailedCount = failedCount + 1;
       const newLockUntil =
         newFailedCount >= MAX_ATTEMPTS ? now + LOCK_TIME : 0;
@@ -64,23 +94,26 @@ export async function POST(req: NextRequest) {
 
       const msg =
         newFailedCount >= MAX_ATTEMPTS
-          ? '3回間違えたので3分間ロックされました'
-          : 'パスワードが間違っています';
+          ? "3回間違えたので3分間ロックされました"
+          : "パスワードが間違っています";
 
       return NextResponse.json({ message: msg }, { status: 401 });
     }
 
-    // 成功時は記録を削除
+    // 成功：ログ削除 & セッション保存
     await db.execute({
-      sql: 'DELETE FROM login_attempts WHERE ip = ?',
+      sql: "DELETE FROM login_attempts WHERE ip = ?",
       args: [ip],
     });
 
-    return NextResponse.json({ message: 'ログイン成功！' });
+    (session as IronSession<{ isAdmin?: boolean }>).isAdmin = true;
+    await session.save();
+
+    return res;
   } catch (err) {
-    console.error('ログインAPIエラー:', err);
+    console.error("ログインAPIエラー:", err);
     return NextResponse.json(
-      { message: 'サーバーエラーが発生しました' },
+      { message: "サーバーエラーが発生しました" },
       { status: 500 }
     );
   }

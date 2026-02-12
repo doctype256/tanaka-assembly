@@ -365,6 +365,114 @@
     .tab-content.active {
       display: block;
     }
+    /* 初期状態は非表示 */
+    #change-password-tab {
+      display: none !important;
+      visibility: hidden;
+      height: 0;
+      overflow: hidden;
+    }
+
+
+  #change-password-tab.active {
+    display: flex !important;
+    visibility: visible;
+    height: auto;
+    overflow: visible;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 80vh;
+  }
+
+
+/* 見出し */
+#change-password-tab h3 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* フォーム全体 */
+#change-password-form {
+  width: 100%;
+  max-width: 400px;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  box-sizing: border-box;
+}
+
+/* ラベルと入力欄 */
+#change-password-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+#change-password-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #555;
+}
+
+#change-password-form input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#change-password-form input:focus {
+  outline: none;
+  border-color: #ff6b9d;
+  box-shadow: 0 0 4px rgba(255, 107, 157, 0.3);
+}
+
+/* ボタン */
+#change-password-form .login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #ff6b9d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#change-password-form .login-button:hover {
+  background-color: #ff5587;
+}
+
+/* 成功・エラー表示 */
+#password-success,
+#password-error {
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 4px;
+  display: none;
+}
+
+#password-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+#password-error {
+  background-color: #ffebee;
+  color: #d32f2f;
+}
+
   </style>
 </head>
 
@@ -411,6 +519,7 @@
         <button class="tab-button" data-tab="activity-reports-tab">活動報告</button>
         <button class="tab-button" data-tab="consultation-new-tab" style="background-color: #fff1f2; color: #e11d48; font-weight: bold;">相談管理(最新)</button>
         <button class="tab-button" data-tab="top-page-edit" style="background-color: #e0f2fe; color: #0369a1;">トップページ編集</button>
+        <button class="tab-button" data-tab="change-password-tab" data-target="change-password-tab" style="background-color: #fef9c3; color: #92400e;">パスワード変更</button>
       </div>
 
       <div id="top-page-edit" class="tab-content">
@@ -675,6 +784,39 @@
 </div>
     </div>
   </div>
+</div>
+    <!-- パスワード変更タブ -->
+<div id="change-password-tab" class="tab-content">
+  <h3>🔒 パスワード変更</h3>
+  <form id="change-password-form" class="profile-edit-form">
+    <div class="form-group">
+      <label for="new-password">新しいパスワード</label>
+      <input
+        type="password"
+        id="new-password"
+        name="new-password"
+        placeholder="6文字以上"
+        minlength="6"
+        required
+        aria-required="true"
+      />
+    </div>
+    <button type="submit" class="login-button">💾 変更する</button>
+  </form>
+
+  <div
+    id="password-success"
+    class="success-message"
+    style="display: none; color: green; margin-top: 10px;"
+    role="alert"
+  ></div>
+
+  <div
+    id="password-error"
+    class="error-message"
+    style="display: none; color: red; margin-top: 10px;"
+    role="alert"
+  ></div>
 </div>
 </main>
 
