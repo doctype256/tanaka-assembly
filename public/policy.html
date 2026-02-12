@@ -100,8 +100,6 @@
   const catButtons = document.getElementById('category-buttons');
   const yearButtons = document.getElementById('year-buttons');
 
-  let activeCategory = 'all';
-  let activeYear = null; 
 
   function clearAllActive() {
     document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('is-active'));
@@ -127,8 +125,6 @@
     const root = document.getElementById('carousel-root');
     root.innerHTML = '';
     renderFilters();
-
-    const allReports = activity.reports;
 
     const allReports = activityData.reports;
 
