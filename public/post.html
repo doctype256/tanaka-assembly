@@ -9,29 +9,28 @@
   <link rel="stylesheet" href="src/style.css">
 
   <style>
-    /* フォーム埋め込み用のスタイル */
+    /* フォームコンテナの論理的修正：枠感を排除 */
     .form-container {
       width: 100%;
-      max-width: 600px;
-      margin: 40px auto;
-      background-color: #fff;
-      border-radius: 12px;
-      overflow: hidden;
-      /* 背景を白にするためシャドウを少し調整して視認性を確保 */
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      border: 1px solid #eee;
+      max-width: 100%; /* 600px制限を解除 */
+      margin: 0 auto;
+      background-color: transparent;
+      border: none;
+      box-shadow: none;
+      overflow: hidden; /* 親側の不要なバーを防止 */
     }
 
+    /* iframeの制御：スクロールバーの徹底排除 */
     iframe {
       width: 100%;
-      height: 700px; /* フォームの高さに合わせて調整 */
+      height: 950px; /* ステップが進んでも入り切る高さを確保 */
       border: none;
       display: block;
+      overflow: hidden; /* スクロールバー非表示 */
     }
 
     .contact-section {
-      padding: 40px 20px;
-      /* 背景色をベージュ (#f9f3f0) から白 (#ffffff) に変更 */
+      padding: 40px 0;
       background-color: #ffffff;
       min-height: calc(100vh - 80px);
     }
@@ -40,14 +39,17 @@
       text-align: center;
       margin-bottom: 10px;
       font-family: 'Noto Serif JP', serif;
+      font-size: 2rem;
+      color: #2d3748;
     }
 
     .contact-text {
       text-align: center;
-      max-width: 600px;
+      max-width: 800px;
       margin: 0 auto 30px;
-      color: #666;
-      font-size: 15px;
+      color: #718096;
+      font-size: 16px;
+      padding: 0 20px;
     }
   </style>
 </head>
@@ -70,13 +72,12 @@
     </p>
 
     <div class="form-container">
-      <iframe src="/consultation" title="相談フォーム"></iframe>
+      <iframe src="/consultation" title="相談フォーム" scrolling="no"></iframe>
     </div>
   </section>
 </main>
 
 <script>
-  // ヘッダータイトルの取得
   fetch('/data/static-texts.json')
     .then(res => res.json())
     .then(data => {
@@ -85,12 +86,9 @@
       }
     });
 
-  // フォーム送信完了時のイベント受信
   window.addEventListener('message', (event) => {
-    // page.tsx からの通知を捕捉
     if (event.data === 'CONSULTATION_SUBMITTED') {
-      console.log('相談が正常に送信されました。');
-      // 送信完了後の挙動をここに追加可能
+      console.log('Submission received in parent.');
     }
   });
 </script>

@@ -3,13 +3,13 @@
 import { client } from '../db/client';
 
 /**
- * 相談ポスト用のテーブルとインデックスを作成するスクリプト
+ * データベースの初期化：相談テーブルと設定用テーブルの構築
  */
 async function setup() {
   try {
-    console.log("⏳ Creating consultations table...");
+    console.log("⏳ Database schema updating...");
 
-    // 1. テーブル作成
+    // 1. 相談内容保存テーブル
     await client.execute(`
       CREATE TABLE IF NOT EXISTS consultations (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,11 +27,31 @@ async function setup() {
       );
     `);
 
-    // 2. インデックス作成（連投防止・削除高速化用）
-    await client.execute(`CREATE INDEX IF NOT EXISTS idx_consultation_limit ON consultations (ip_hash, created_at);`);
-    await client.execute(`CREATE INDEX IF NOT EXISTS idx_consultation_expiry ON consultations (created_at);`);
+    // 2. システム設定用テーブル
+    await client.execute(`
+      CREATE TABLE IF NOT EXISTS site_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updated_at DATETIME DEFAULT (datetime('now', 'localtime'))
+      );
+    `);
 
-    console.log("✅ Consultations table and indexes created successfully.");
+    // 3. 設定値の初期レコード登録（メール通知用、送信用Gmail、送信用パスワード）
+    // すでにキーが存在する場合は無視(IGNORE)し、ない場合のみ空文字で作成します
+    const initialSettings = [
+      ['admin_notification_email', ''], // 通知を受け取る議員本人のメアド
+      ['smtp_user', ''],               // 送信元として使うGmailアドレス
+      ['smtp_pass', '']                // Googleで発行した16桁のアプリパスワード
+    ];
+
+    for (const [key, value] of initialSettings) {
+      await client.execute({
+        sql: "INSERT OR IGNORE INTO site_settings (key, value) VALUES (?, ?)",
+        args: [key, value]
+      });
+    }
+
+    console.log("✅ Database tables and initial settings are ready.");
   } catch (error) {
     console.error("❌ Setup failed:", error);
   }
