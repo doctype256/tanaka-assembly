@@ -184,4 +184,50 @@ async function renderActivityReportsList() {
   renderList();
 }
 
+// Shiho Press カルーセル表示
+async function loadLatestShihoPress() {
+  const container = document.getElementById('shiho-press-container');
+  if (!container) return;
+
+  try {
+    const res = await fetch('/api/pdfs');
+    const pdfs = await res.json();
+    
+    if (!pdfs || pdfs.length === 0) {
+      container.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">PDFはまだ登録されていません</div>';
+      return;
+    }
+
+    // 最新4件を取得
+    const latestPdfs = pdfs.slice(0, 4);
+
+    // カルーセルHTML生成
+    const carouselHTML = `
+      <div class="pdf-carousel-wrapper">
+        <div class="pdf-carousel">
+          <div class="pdf-carousel-inner">
+            ${latestPdfs.map((pdf, idx) => `
+              <div class="pdf-item" style="flex: 0 0 calc(100% / 3); padding: 10px;">
+                <div class="pdf-card" onclick="window.location.href='pdf-text.html'" style="cursor: pointer;">
+                  <div class="pdf-thumbnail" style="width: 100%; aspect-ratio: 16/9; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; color: #999;">
+                    📄 ${pdf.title}
+                  </div>
+                  <h3 style="font-size: 14px; font-weight: 600; margin: 0 0 5px 0; color: #333;">${pdf.title}</h3>
+                  <p style="font-size: 12px; color: #666; margin: 0; line-height: 1.4;">${pdf.description || ''}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = carouselHTML;
+  } catch (error) {
+    console.error('Failed to load ShihoPress:', error);
+    container.innerHTML = '<div style="padding: 40px; text-align: center; color: #999;">読み込みエラー</div>';
+  }
+}
+
 window.renderActivityReportsList = renderActivityReportsList;
+window.loadLatestShihoPress = loadLatestShihoPress;
