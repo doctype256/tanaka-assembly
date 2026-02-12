@@ -21,6 +21,12 @@
     #menu-toggle {
       z-index: 101;
     }
+    /* 段落ごとのタイトル（続き用）のスタイル調整 */
+    .pdf-year-title.is-continuation {
+      font-size: 1.1rem;
+      opacity: 0.7;
+      margin-top: -20px;
+    }
   </style>
 </head>
 <body data-page="activity">
@@ -56,20 +62,17 @@
 <script src="js/activity-reports.js"></script>
 
 <script>
-  // カルーセルとフィルタのロジックのみに限定
   let activeCategory = 'all';
   let activeYear = null;
   let activityData = null;
 
   window.addEventListener('DOMContentLoaded', async () => {
     try {
-      // ページ固有のタイトルのみ設定
       const res = await fetch('data/static-texts.json');
       const data = await res.json();
       const titleEl = document.getElementById('activity-title');
       if (titleEl) titleEl.textContent = data.activities?.title || "活動報告";
 
-      // データベース読み込み待ち
       const checkDB = setInterval(async () => {
         if (typeof fetchActivityReports === 'function') {
           clearInterval(checkDB);
@@ -81,7 +84,7 @@
               { id: 'reform', label: '京都府議会・定例会' },
               { id: 'topics', label: 'Topics' }
             ], 
-            reports 
+            reports: reports.sort((a, b) => b.year - a.year)
           };
           render();
         }
@@ -109,26 +112,45 @@
       });
     }
 
-    // カルーセルの描画
     const allReports = activityData.reports;
+
+    // --- 描画の分岐ロジック ---
     if (activeYear) {
+      // 年代選択時：全件を3件ずつのカルーセルで表示
       const filtered = allReports.filter(r => Number(r.year) === activeYear);
-      if(filtered.length) renderCarousel(`${activeYear}年の活動`, filtered);
-    } else {
+      renderInChunks(`${activeYear}年の活動`, filtered);
+    } else if (activeCategory === 'all') {
+      // すべて：各カテゴリーの最新3件のみ
       activityData.categories.forEach(cat => {
-        if (activeCategory !== 'all' && cat.id !== activeCategory) return;
-        const filtered = allReports.filter(r => r.category === cat.id);
+        let filtered = allReports.filter(r => r.category === cat.id).slice(0, 3);
         if(filtered.length) renderCarousel(cat.label, filtered);
       });
+    } else {
+      // 特定カテゴリー選択時：全件を3件ずつのカルーセルで表示
+      const catLabel = activityData.categories.find(c => c.id === activeCategory)?.label;
+      const filtered = allReports.filter(r => r.category === activeCategory);
+      renderInChunks(catLabel, filtered);
     }
+
     if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function renderCarousel(title, items) {
+  // データを3件ずつに分割してレンダリングする関数
+  function renderInChunks(title, items) {
+    const chunkSize = 5;
+    for (let i = 0; i < items.length; i += chunkSize) {
+      const chunk = items.slice(i, i + chunkSize);
+      const isContinuation = i > 0;
+      const displayTitle = isContinuation ? `${title} (続き)` : title;
+      renderCarousel(displayTitle, chunk, isContinuation);
+    }
+  }
+
+  function renderCarousel(title, items, isContinuation = false) {
     const section = document.createElement('div');
     section.className = 'pdf-year-section';
     section.innerHTML = `
-      <h2 class="pdf-year-title">${title}</h2>
+      <h2 class="pdf-year-title ${isContinuation ? 'is-continuation' : ''}">${title}</h2>
       <div class="pdf-list">
         <div class="pdf-carousel">
           <div class="pdf-carousel-inner">
@@ -168,12 +190,19 @@
     setTimeout(update, 200);
   }
 
-  // クリックイベント（サイドバー・フィルタ）
   document.addEventListener('click', e => {
     const btn = e.target.closest('button');
     if (!btn) return;
-    if (btn.dataset.category) { activeCategory = btn.dataset.category; activeYear = null; render(true); }
-    else if (btn.dataset.year) { activeYear = Number(btn.dataset.year); activeCategory = null; render(true); }
+    if (btn.dataset.category) { 
+      activeCategory = btn.dataset.category; 
+      activeYear = null; 
+      render(true); 
+    }
+    else if (btn.dataset.year) { 
+      activeYear = Number(btn.dataset.year); 
+      activeCategory = null; 
+      render(true); 
+    }
     else if (btn.id === 'category-toggle') {
       const sidebar = document.getElementById('activity-sidebar');
       sidebar.classList.toggle('is-open');
