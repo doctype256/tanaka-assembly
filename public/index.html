@@ -57,6 +57,7 @@
 
     <!-- 背景画像 -->
    <img id="dynamic-hero-img" src="images/hero-bg.jpg" alt="">
+   
 
 
     <!-- 文字（← 必ずこの中） -->
@@ -230,29 +231,29 @@ let carouselIndices = {};
 let carouselTotalSlides = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
+  const heroText     = document.getElementById('dynamic-hero-text');
+  const heroLawmaker = document.getElementById('dynamic-hero-lawmaker');
+  const heroName     = document.getElementById('dynamic-hero-name');
+  const heroImg      = document.getElementById('dynamic-hero-img');
 
-  // --- 静的テキスト・ページヘッダー ---
-  if (typeof loadStaticTexts === 'function') await loadStaticTexts();
-  if (typeof loadCaseFiles === 'function') await loadCaseFiles();
-  if (typeof setupSmoothScroll === 'function') setupSmoothScroll();
-
-  // ヒーロー画像・文字
-  const heroText = document.querySelector('.hero-text-layer');
-  const heroImg  = document.getElementById('dynamic-hero-img');
+  // JSON読み込み
   fetch('data/static-texts.json')
-  .then(res => res.json())
-  .then(data => {
-    if (data.top) {
-      document.getElementById('dynamic-hero-text').textContent = data.top.text || "";
-      document.getElementById('dynamic-hero-lawmaker').textContent = data.top.lawmaker || "";
-      document.getElementById('dynamic-hero-name').textContent = data.top.name || "";
-    }
-    document.querySelector('.hero-text-layer')?.classList.add('is-visible');
-    setTimeout(() => document.getElementById('dynamic-hero-img')?.classList.add('float-in'), 500);
-  });
+    .then(res => res.json())
+    .then(data => {
+      if (data.top) {
+        heroText.textContent     = data.top.text || "";
+        heroLawmaker.textContent = data.top.lawmaker || "";
+        heroName.textContent     = data.top.name || "";
+      }
 
+      // 順番フロートイン
+      setTimeout(() => heroText.classList.add('is-visible'), 500);       // text
+      setTimeout(() => heroLawmaker.classList.add('is-visible'), 500);   // lawmaker
+      setTimeout(() => heroName.classList.add('is-visible'), 500);       // name
+      setTimeout(() => heroImg.classList.add('float-in'), 1500);         // 画像
+    });
 
-  // --- 活動報告 ---
+  // --- 他の処理 ---
   const checkDB = setInterval(async () => {
     if (typeof fetchActivityReports === 'function') {
       clearInterval(checkDB);
@@ -263,19 +264,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }, 100);
 
-  // --- TOPページ管理データ ---
   fetch('/api/top-page')
     .then(res => res.json())
     .then(data => ContentManager.applyData(data))
     .catch(err => console.error(err));
 
-  // --- ShihoPress ---
   if (typeof loadLatestShihoPress === 'function') loadLatestShihoPress();
+});
+
 
   // --- 表示アニメーション ---
   document.querySelector('.hero-image > img')?.classList.add('is-visible');
   document.querySelector('.hero-text-layer')?.classList.add('is-visible');
-});
 
 // ===== PDFカルーセル =====
 function renderPolicyCarousel(reports) {

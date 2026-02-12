@@ -187,29 +187,32 @@ h2 {
 
 .hero {
   font-size: 2rem;   /* タイトルを大きく */
-    
   text-align:center;
-  padding:6rem 1rem;
   background:#ffffff;
+}
+
+section.hero {
+  max-width: 1000px;   /* 他と同じ幅に戻す */
+  margin: auto;
+  padding: 0;          /* 余白だけ消す */
 }
 
 /* --- ヒーローイメージ --- */
 .hero-image {
   position: relative;
-  width: 100%;
-  height: 60vh;         /* PC向け高さ */
-  overflow: hidden;
-  background: #ffffff;  /* 画像読み込み前の背景色 */
+  display: flex;
+  height: 60vh;
 }
 
 .hero-image img {
-  width: 100%;
+  width:50%;
+  margin-left: auto;
   height: 100%;
   object-fit: cover;
-  display: block;
+
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 1.2s ease, transform 1.2s ease;
+  transition: opacity 1s ease 1.5s, transform 1s ease 1.5s; /* 画像は最後に出る */
 }
 
 .hero-image img.float-in {
@@ -217,66 +220,79 @@ h2 {
   transform: translateY(0);
 }
 
+.hero-person-layer {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: auto;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
 /* --- ヒーローテキスト --- */
 .hero-text-layer {
   position: absolute;
-  top: 80%;             /* 上から50% */
-  left: 0%;            /* 左に寄せる */
-  transform: translateY(-50%); /* 縦中央に調整 */
+  top: 50%;
+  left: 0%;
+  transform: translateY(-50%);
   color: #ec4899;
-  text-align: left;     /* 左揃え */
+  text-align: left;
   z-index: 10;
   padding: 1rem 2rem;
   border-radius: 12px;
-  max-width: 40%;       /* 横幅制限 */
+  max-width: 80%;
 }
 
-.hero-text-layer p,
-.hero-text-layer h1 {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 1s ease, transform 1s ease;
-  line-height: 1.6;
-  margin: 0;   /* デフォルトの余白をリセット */
-}
 
-/* text と lawmaker の間はほぼ0 */
-/* text は通常の段落感を少し持たせる */
+
+
+/* text は最初に出る */
 #dynamic-hero-text {
-  margin-bottom: 0.8rem; /* text と lawmaker の間 */
-}
+  margin-bottom: 0.8rem;
+  font-size: 2.3rem;
 
-/* lawmaker は上余白ほぼゼロ、下も0 */
-#dynamic-hero-lawmaker {
-  margin-top: 0;      /* 上はくっつける */
-  margin-bottom: 0;   /* 下もくっつける */
-}
-
-/* name は上ほぼ0、下だけ余白 */
-#dynamic-hero-name {
-  margin-top: 0.1rem; /* 上はほぼくっつける */
-  margin-bottom: 2rem; /* 下に段落感 */
-}
-
-/* 共通アニメーション */
-.hero-text-layer p,
-.hero-text-layer h1 {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 1s ease, transform 1s ease;
-  line-height: 1.6;
+  transition: opacity 1s ease 0.5s, transform 1s ease 0.5s; /* text は2番目 */
 }
+
+/* lawmaker は text の次 */
+#dynamic-hero-lawmaker {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 3rem;
+
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease 1s, transform 1s ease 1s; /* text の後 */
+}
+
+/* name は lawmaker の次 */
+#dynamic-hero-name {
+  margin-top: 0rem;
+  margin-bottom: 2rem;
+  margin-left: 3rem;
+  font-size: 3rem;
+
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease 1.2s, transform 1s ease 1.2s; /* lawmaker の後 */
+}
+
+/* is-visible クラスで順次表示 */
 .hero-text-layer.is-visible p,
-.hero-text-layer.is-visible h1 {
+.hero-text-layer.is-visible h1,
+#dynamic-hero-text.is-visible,
+#dynamic-hero-lawmaker.is-visible,
+#dynamic-hero-name.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
 
-
-
 /* --- レスポンシブ: タブレット/スマホ向け --- */
-
-/* 画面幅 768px 以下 (タブレット) */
 @media (max-width: 768px) {
   .hero-image {
     height: 50vh;
@@ -284,39 +300,33 @@ h2 {
 
   .hero-text-layer {
     padding: 0.8rem 1.5rem;
-    max-width: 60%;
-    left: 5%;           /* さらに左寄せ */
+    left: 0%;
+    max-width: 80%;
   }
 
-  .hero-text-layer h1 {
-    font-size: 2rem;
-  }
-
-  .hero-text-layer p {
-    font-size: 1rem;
-  }
+  #dynamic-hero-text { font-size: 2rem; }
+  #dynamic-hero-lawmaker { font-size: 3.2rem; }
+  #dynamic-hero-name { font-size: 3rem; }
 }
 
-/* 画面幅 480px 以下 (スマホ) */
 @media (max-width: 480px) {
-  .hero-image {
-    height: 40vh;
-  }
+  .hero-image { height: 40vh; }
 
   .hero-text-layer {
     padding: 0.6rem 1rem;
-    max-width: 80%;     /* 横幅を広げて文字を見切れないように */
-    left: 5%;
+    left: 0%;
+    max-width: 80%;
   }
 
-  .hero-text-layer h1 {
+  #dynamic-hero-text { font-size: 1rem; }
+  #dynamic-hero-lawmaker { font-size: 1.5rem; }
+  #dynamic-hero-name {
     font-size: 1.5rem;
-  }
-
-  .hero-text-layer p {
-    font-size: 0.9rem;
+    margin-left: 1.5rem;
   }
 }
+
+
 
 
 
