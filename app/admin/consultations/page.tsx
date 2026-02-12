@@ -17,7 +17,7 @@ type Consultation = {
 };
 
 /**
- * AdminConsultationPage: 一括削除機能を搭載した管理者画面
+ * AdminConsultationPage: メール送受信設定を統合した管理者画面
  */
 export default function AdminConsultationPage() {
   const [data, setData] = useState<Consultation[]>([]);
@@ -26,9 +26,18 @@ export default function AdminConsultationPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
+  // --- 通知・メール設定用のステート ---
+  const [adminEmail, setAdminEmail] = useState(''); // 通知先
+  const [smtpUser, setSmtpUser] = useState('');     // 送信元Gmail
+  const [smtpPass, setSmtpPass] = useState('');     // アプリパスワード
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+
   // --- 一括選択用のステート ---
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  /**
+   * 相談一覧の取得
+   */
   const fetchConsultations = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/consultations');
@@ -43,11 +52,61 @@ export default function AdminConsultationPage() {
     }
   }, []);
 
-  useEffect(() => { fetchConsultations(); }, [fetchConsultations]);
+  /**
+   * DBからすべての設定を取得
+   */
+  const fetchAdminSettings = useCallback(async () => {
+    const keys = ['admin_notification_email', 'smtp_user', 'smtp_pass'];
+    try {
+      for (const key of keys) {
+        const res = await fetch(`/api/admin/settings?key=${key}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (key === 'admin_notification_email') setAdminEmail(json.value || '');
+          if (key === 'smtp_user') setSmtpUser(json.value || '');
+          if (key === 'smtp_pass') setSmtpPass(json.value || '');
+        }
+      }
+    } catch (error) {
+      console.error("Fetch settings error:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchConsultations();
+    fetchAdminSettings();
+  }, [fetchConsultations, fetchAdminSettings]);
+
+  /**
+   * 全設定の一括保存
+   */
+  const handleSaveSettings = async () => {
+    setIsSavingSettings(true);
+    const settings = [
+      { key: 'admin_notification_email', value: adminEmail },
+      { key: 'smtp_user', value: smtpUser },
+      { key: 'smtp_pass', value: smtpPass },
+    ];
+
+    try {
+      for (const s of settings) {
+        const res = await fetch('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(s),
+        });
+        if (!res.ok) throw new Error(`${s.key} の保存に失敗しました`);
+      }
+      alert("メール送信設定をすべて保存しました。");
+    } catch (error) {
+      alert("設定の保存中にエラーが発生しました。");
+    } finally {
+      setIsSavingSettings(false);
+    }
+  };
 
   /**
    * 削除処理（単一および一括共通）
-   * @param ids 削除対象のID配列
    */
   const deleteConsultations = async (ids: number[]) => {
     const message = ids.length === 1 
@@ -57,7 +116,6 @@ export default function AdminConsultationPage() {
     if (!confirm(message)) return;
 
     try {
-      // 複数IDをカンマ区切りでクエリパラメータに載せる
       const idParams = ids.join(',');
       const res = await fetch(`/api/admin/consultations?id=${idParams}`, {
         method: 'DELETE',
@@ -65,30 +123,21 @@ export default function AdminConsultationPage() {
 
       if (res.ok) {
         setData(prev => prev.filter(item => !ids.includes(item.id)));
-        setSelectedIds([]); // 選択状態をリセット
+        setSelectedIds([]);
         if (selectedItem && ids.includes(selectedItem.id)) setSelectedItem(null);
         alert("削除が完了しました。");
-      } else {
-        const errorData = await res.json();
-        alert(`削除に失敗しました: ${errorData.error}`);
       }
     } catch (error) {
       alert("通信エラーが発生しました。");
     }
   };
 
-  /**
-   * チェックボックスの選択切り替え
-   */
   const toggleSelect = (id: number) => {
     setSelectedIds(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
-  /**
-   * 全選択・解除
-   */
   const toggleAll = () => {
     if (selectedIds.length === filteredData.length) {
       setSelectedIds([]);
@@ -139,7 +188,6 @@ export default function AdminConsultationPage() {
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'sans-serif' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #2d3748', paddingBottom: '10px' }}>
         <h1>管理者ダッシュボード</h1>
-        {/* 一括削除ボタン */}
         {selectedIds.length > 0 && (
           <button 
             onClick={() => deleteConsultations(selectedIds)}
@@ -150,7 +198,60 @@ export default function AdminConsultationPage() {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: '15px', marginTop: '20px', marginBottom: '20px' }}>
+      {/* --- 送信設定セクション --- */}
+      <div style={settingsPanelStyle}>
+        <h2 style={{ fontSize: '18px', marginBottom: '15px', color: '#2d3748', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+          📧 メール通知・送信設定
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div>
+            <label style={labelStyle}>通知先メールアドレス（議員本人の受信先）</label>
+            <input 
+              type="email" 
+              placeholder="例: giin-name@example.com" 
+              value={adminEmail} 
+              onChange={(e) => setAdminEmail(e.target.value)} 
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>送信用Gmailアドレス（システムが使用する箱）</label>
+            <input 
+              type="email" 
+              placeholder="例: system-sender@gmail.com" 
+              value={smtpUser} 
+              onChange={(e) => setSmtpUser(e.target.value)} 
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+          <div style={{ gridColumn: 'span 2' }}>
+            <label style={labelStyle}>Gmailアプリパスワード（16桁）</label>
+            <input 
+              type="password" 
+              placeholder="Googleアカウントで発行した16桁のコードを入力" 
+              value={smtpPass} 
+              onChange={(e) => setSmtpPass(e.target.value)} 
+              style={{ ...inputStyle, width: '100%' }}
+            />
+          </div>
+        </div>
+        <button 
+          onClick={handleSaveSettings} 
+          disabled={isSavingSettings}
+          style={{ 
+            ...nextButtonStyle, 
+            backgroundColor: isSavingSettings ? '#718096' : '#2d3748',
+            marginTop: '20px'
+          }}
+        >
+          {isSavingSettings ? '保存中...' : 'すべての設定を保存'}
+        </button>
+        <p style={{ fontSize: '12px', color: '#718096', marginTop: '10px' }}>
+          ※設定を変更した後は必ず「保存」を押してください。
+        </p>
+      </div>
+
+      <div style={{ display: 'flex', gap: '15px', marginTop: '30px', marginBottom: '20px' }}>
         <input 
           type="text" 
           placeholder="内容・メモ・メールを検索..." 
@@ -248,7 +349,6 @@ export default function AdminConsultationPage() {
         </tbody>
       </table>
 
-      {/* 詳細モーダル（省略：前回の実装を維持） */}
       {selectedItem && (
         <div style={modalOverlayStyle} onClick={() => setSelectedItem(null)}>
           <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
@@ -272,15 +372,13 @@ export default function AdminConsultationPage() {
   );
 }
 
-// スタイル定義（前回分＋α）
-const checkboxStyle: React.CSSProperties = {
-  width: '25px',       // チェックボックスの幅
-  height: '25px',      // チェックボックスの高さ
-  cursor: 'pointer',   // マウスを乗せた時に指マークにする
-};
+// スタイル定義
+const labelStyle: React.CSSProperties = { display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '8px', color: '#4a5568' };
+const settingsPanelStyle: React.CSSProperties = { backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', marginTop: '20px', border: '1px solid #e2e8f0' };
+const checkboxStyle: React.CSSProperties = { width: '25px', height: '25px', cursor: 'pointer' };
 const thStyle: React.CSSProperties = { padding: '12px' };
 const tdStyle: React.CSSProperties = { padding: '12px', verticalAlign: 'top', fontSize: '13px' };
-const inputStyle: React.CSSProperties = { padding: '10px', width: '300px', borderRadius: '4px', border: '1px solid #ccc' };
+const inputStyle: React.CSSProperties = { padding: '10px', width: '300px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' };
 const selectStyle: React.CSSProperties = { padding: '10px', borderRadius: '4px', border: '1px solid #ccc', cursor: 'pointer' };
 const memoAreaStyle: React.CSSProperties = { width: '100%', height: '60px', fontSize: '12px', padding: '8px', borderRadius: '4px', border: '1px solid #eee', boxSizing: 'border-box' };
 const urgentBadgeStyle: React.CSSProperties = { backgroundColor: '#e53e3e', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', marginTop: '5px', display: 'inline-block' };
@@ -289,3 +387,4 @@ const modalContentStyle: React.CSSProperties = { backgroundColor: 'white', paddi
 const modalSectionStyle: React.CSSProperties = { marginBottom: '15px', borderBottom: '1px solid #f7fafc', paddingBottom: '10px' };
 const messageBoxStyle: React.CSSProperties = { background: '#f7fafc', padding: '15px', borderRadius: '8px', whiteSpace: 'pre-wrap', marginTop: '10px', border: '1px solid #edf2f7', lineHeight: '1.6' };
 const deleteButtonStyle: React.CSSProperties = { backgroundColor: '#e53e3e', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' };
+const nextButtonStyle: React.CSSProperties = { width: '100%', padding: '18px', marginTop: '15px', backgroundColor: '#2d3748', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' };
