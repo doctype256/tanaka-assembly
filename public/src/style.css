@@ -2431,7 +2431,7 @@ body.font-large {
 .carousel-nav {
   position: absolute; top: 50%; transform: translateY(-50%); 
   background-color: rgba(0, 0, 0, 0.5); /* 黒の半透明 */
-  color: white; border: none; width: 44px; height: 44px; border-radius: 4px; /* 四角めのデザイン */
+  color: white; border: none; width: 44px; height: 100px; border-radius: 4px; /* 四角めのデザイン */
   cursor: pointer; font-size: 20px; z-index: 10;
   transition: background 0.3s; display: flex; align-items: center; justify-content: center;
 }
