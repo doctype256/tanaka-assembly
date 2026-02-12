@@ -1,4 +1,3 @@
-// directory: components/ConsultationFloatButton.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -10,6 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 export default function ConsultationFloatButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
@@ -21,6 +21,14 @@ export default function ConsultationFloatButton() {
 
   useEffect(() => {
     setMounted(true);
+
+    // ヒント表示を3秒後に開始し、5秒後に非表示
+    const showTimer = setTimeout(() => {
+      setShowHint(true);
+      const hideTimer = setTimeout(() => setShowHint(false), 5000);
+      return () => clearTimeout(hideTimer);
+    }, 3000);
+
     const handleMessage = (event: MessageEvent) => {
       if (event.data === 'CONSULTATION_SUBMITTED') {
         setTimeout(() => {
@@ -28,8 +36,13 @@ export default function ConsultationFloatButton() {
         }, 2000);
       }
     };
+
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+
+    return () => {
+      clearTimeout(showTimer);
+      window.removeEventListener('message', handleMessage);
+    };
   }, [closeModal]);
 
   if (!mounted) return null;
@@ -54,6 +67,21 @@ export default function ConsultationFloatButton() {
       alignItems: 'center',
       transition: 'transform 0.2s ease',
     },
+    hint: {
+    　position: 'fixed',
+  　　bottom: '40px',
+  　　right: '110px',
+  　　backgroundColor: '#fff8fb',
+  　　color: '#d6336c',
+  　　padding: '14px 20px',
+  　　borderRadius: '16px',
+  　　boxShadow: '0 6px 16px rgba(0,0,0,0.25)',
+  　　fontSize: '18px',
+  　　fontWeight: 'bold',
+  　　zIndex: 9999,
+  　　animation: 'fadeInOut 5s ease-in-out',
+  　　whiteSpace: 'nowrap',
+　　 },
     overlay: {
       position: 'fixed',
       top: 0,
@@ -64,7 +92,7 @@ export default function ConsultationFloatButton() {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 10001
+      zIndex: 10001,
     },
     modal: {
       backgroundColor: 'white',
@@ -73,8 +101,7 @@ export default function ConsultationFloatButton() {
       borderRadius: '12px',
       overflow: 'hidden',
       boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-      // アニメーションは標準的なCSSクラスを使わない場合、このように定義可能
-      animation: 'modalFadeIn 0.3s ease-out'
+      animation: 'modalFadeIn 0.3s ease-out',
     },
     header: {
       padding: '10px 20px',
@@ -82,26 +109,36 @@ export default function ConsultationFloatButton() {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      background: '#fdf2f5'
+      background: '#fdf2f5',
     },
     iframe: {
       width: '100%',
       height: '600px',
-      border: 'none'
-    }
+      border: 'none',
+    },
   };
 
   return (
     <>
-      {/* Keyframes を TypeScript エラーなしで挿入するため、
-        dangerouslySetInnerHTML を使用して標準の style タグとして扱います。
-      */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         @keyframes modalFadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
-      `}} />
+
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(10px); }
+          10% { opacity: 1; transform: translateY(0); }
+          90% { opacity: 1; }
+          100% { opacity: 0; transform: translateY(10px); }
+        }
+      `,
+        }}
+      />
+
+      {showHint && <div style={styles.hint}>相談をしませんか？</div>}
 
       <button
         type="button"
@@ -118,15 +155,25 @@ export default function ConsultationFloatButton() {
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.header}>
               <span style={{ fontWeight: 'bold', color: '#333' }}>ご相談フォーム</span>
-              <button 
+              <button
                 type="button"
-                onClick={closeModal} 
-                style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#666' }}
+                onClick={closeModal}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: '#666',
+                }}
               >
                 ×
               </button>
             </div>
-            <iframe src="/consultation" style={styles.iframe} title="consultation-form" />
+            <iframe
+              src="/consultation"
+              style={styles.iframe}
+              title="consultation-form"
+            />
           </div>
         </div>
       )}
