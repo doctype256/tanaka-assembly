@@ -145,8 +145,8 @@
   }
 
   function renderInChunks(title, items) {
-    for (let i = 0; i < items.length; i += 3) {
-      renderCarousel(`chunk-${i}`, i > 0 ? `${title} (続き)` : title, items.slice(i, i + 3), i > 0);
+    for (let i = 0; i < items.length; i += 5) {
+      renderCarousel(`chunk-${i}`, i > 0 ? `${title} (続き)` : title, items.slice(i, i + 5), i > 0);
     }
   }
 
