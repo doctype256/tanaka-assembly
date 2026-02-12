@@ -145,30 +145,33 @@
 
     // コメント取得関数を独立（401エラー対策のログを追加）
     async function loadComments(title) {
-      const commentList = document.getElementById('comment-list');
-      try {
-        // もし認証が必要なAPIであれば headers にトークンが必要になります
-        const commentRes = await fetch(`/api/comments?article_title=${encodeURIComponent(title)}`);
+  const commentList = document.getElementById('comment-list');
+  try {
+    const adminPassword = sessionStorage.getItem('adminPassword'); // ← ログイン時に保存しておいたパスワードを取得！
 
-        if (commentRes.ok) {
-          const comments = await commentRes.json();
-          if (Array.isArray(comments) && comments.length > 0) {
-            commentList.innerHTML = comments.map(comment => `
-              <div class="comment-bubble">
-                <div class="comment-name">${comment.name || '匿名'}</div>
-                <div class="comment-message">${comment.message}</div>
-              </div>
-            `).join('');
-          } else {
-            commentList.innerHTML = '<p>まだコメントはありません。最初の感想をお寄せください。</p>';
-          }
-        }
-      } catch (e) {
-        commentList.innerHTML = '<p>コメントの取得に失敗しました。</p>';
+    const commentRes = await fetch(`/api/comments?article_title=${encodeURIComponent(title)}&password=${encodeURIComponent(adminPassword)}`);
+
+    if (commentRes.ok) {
+      const comments = await commentRes.json();
+      if (Array.isArray(comments) && comments.length > 0) {
+        commentList.innerHTML = comments.map(comment => `
+          <div class="comment-bubble">
+            <div class="comment-name">${comment.name || '匿名'}</div>
+            <div class="comment-message">${comment.message}</div>
+          </div>
+        `).join('');
+      } else {
+        commentList.innerHTML = '<p>まだコメントはありません。最初の感想をお寄せください。</p>';
       }
+    } else {
+      commentList.innerHTML = '<p>コメントの取得に失敗しました（認証エラー）。</p>';
     }
+  } catch (e) {
+    commentList.innerHTML = '<p>コメントの取得に失敗しました。</p>';
+    console.error('コメント取得エラー:', e);
+  }
+}
   </script>
-
   <script src="src/header.js"></script>
 </body>
 </html>
