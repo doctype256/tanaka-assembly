@@ -1,12 +1,19 @@
-// app/api/comments/route.ts
 import { NextResponse } from 'next/server';
+import { getIronSession } from 'iron-session';
+import { sessionOptions } from '@/lib/session';
 import { db } from '@/lib/turso';
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const password = searchParams.get('password');
+// ✅ セッションデータの型定義
+interface SessionData {
+  isAdmin?: boolean;
+}
 
-  if (password !== process.env.ADMIN_PASSWORD) {
+// GET: コメント一覧（管理者のみ）
+export async function GET(req: Request) {
+  const res = new NextResponse();
+  const session = await getIronSession<SessionData>(req, res, sessionOptions);
+
+  if (!session.isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -17,6 +24,7 @@ export async function GET(req: Request) {
   return NextResponse.json(result.rows);
 }
 
+// POST: コメント投稿（誰でもOK）
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -40,15 +48,18 @@ export async function POST(req: Request) {
   }
 }
 
-// app/api/comments/route.ts
+// PATCH: コメントの承認切り替え（管理者のみ）
 export async function PATCH(req: Request) {
   try {
-    const body = await req.json();
-    const { id, approved, password } = body;
+    const res = new NextResponse();
+    const session = await getIronSession<SessionData>(req, res, sessionOptions);
 
-    if (password !== process.env.ADMIN_PASSWORD) {
+    if (!session.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const body = await req.json();
+    const { id, approved } = body;
 
     if (typeof id !== 'number' || typeof approved !== 'boolean') {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
@@ -65,4 +76,3 @@ export async function PATCH(req: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
-

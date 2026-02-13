@@ -4,29 +4,63 @@
   <meta charset="UTF-8">
   <title>活動報告 | 田中しほ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/style.css">
   <style>
-    /* カルーセル用スタイル（CSSのスマホ85%を活かす設定） */
-    .pdf-carousel { overflow: hidden; position: relative; width: 100%; }
-    .pdf-carousel-inner { display: flex; flex-wrap: nowrap; transition: transform 0.4s ease-out; }
-    
+    /* 全体の突き出し防止 */
+    .activity-grid {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    /* カルーセル構造の最適化 */
+    .pdf-carousel-wrapper {
+      position: relative;
+      width: 100%;
+      overflow: hidden; /* 突き出しをここで完全にカット */
+      padding: 20px 0;
+    }
+
+    .pdf-carousel {
+      width: 100%;
+      position: relative;
+      overflow: visible; /* 移動アニメーションを見せる */
+    }
+
+    .pdf-carousel-inner {
+      display: flex;
+      transition: transform 0.5s ease;
+      will-change: transform;
+    }
+
+    /* スマホ表示のカード設定 */
     @media (max-width: 767px) {
       .pdf-item {
-        flex: 0 0 85% !important;
-        margin: 0 5px;
+        flex: 0 0 85% !important; /* 1枚の幅を85%に固定 */
+        width: 85% !important;
+        margin: 0 !important;
+        opacity: 0.4;
+        transform: scale(0.9);
+        transition: all 0.4s ease;
+        box-sizing: border-box;
+      }
+      .pdf-item.center {
+        opacity: 1 !important;
+        transform: scale(1.0) !important;
+      }
+      
+      /* ナビボタンが消えないように調整 */
+      .carousel-nav {
+        z-index: 10;
+        background: rgba(0,0,0,0.5) !important;
       }
     }
-    /* スクリプトが動く前のボタン消滅を防ぐための最低限の指定 */
-    #menu-toggle {
-      z-index: 101;
-    }
-    /* 段落ごとのタイトル（続き用）のスタイル調整 */
+
     .pdf-year-title.is-continuation {
       font-size: 1.1rem;
       opacity: 0.7;
-      margin-top: -20px;
+      margin-top: -10px;
     }
+    #menu-toggle { z-index: 101; }
   </style>
 </head>
 <body data-page="activity">
@@ -54,7 +88,7 @@
   </aside>
 
   <div class="activity-grid">
-    <h1 class="activity-title" id="activity-title" style="margin-bottom:30px;"></h1>
+    <h1 class="activity-title" id="activity-title" style="margin-bottom:30px;">活動報告</h1>
     <div id="carousel-root"></div>
   </div>
 </main>
@@ -62,227 +96,162 @@
 <script src="js/activity-reports.js"></script>
 
 <script>
+  // カルーセルとフィルタのロジックのみに限定
   let activeCategory = 'all';
   let activeYear = null;
   let activityData = null;
+  let carouselIndices = {};
+  let carouselTotalSlides = {};
 
   window.addEventListener('DOMContentLoaded', async () => {
-    try {
-      const res = await fetch('data/static-texts.json');
-      const data = await res.json();
-      const titleEl = document.getElementById('activity-title');
-      if (titleEl) titleEl.textContent = data.activities?.title || "活動報告";
-
-      const checkDB = setInterval(async () => {
-        if (typeof fetchActivityReports === 'function') {
-          clearInterval(checkDB);
-          const reports = await fetchActivityReports();
-          activityData = { 
-            categories: [
-              { id: 'committee', label: '委員会活動' },
-              { id: 'childcare', label: '子育て政策' },
-              { id: 'reform', label: '京都府議会・定例会' },
-              { id: 'topics', label: 'Topics' }
-            ], 
-            reports: reports.sort((a, b) => b.year - a.year)
-          };
-          render();
-        }
-      }, 100);
-    } catch (e) { console.error(e); }
+    const checkDB = setInterval(async () => {
+      if (typeof fetchActivityReports === 'function') {
+        clearInterval(checkDB);
+        const reports = await fetchActivityReports();
+        activityData = { 
+          categories: [
+            { id: 'committee', label: '委員会活動' },
+            { id: 'childcare', label: '子育て政策' },
+            { id: 'reform', label: '京都府議会・定例会' },
+            { id: 'topics', label: 'Topics' }
+          ], 
+          reports: reports.sort((a, b) => b.year - a.year)
+        };
+        render();
+      }
+    }, 100);
   });
 
-  const activity = data.activities;
-  document.getElementById('activity-title').textContent = activity.title;
-
-  const sidebar = document.getElementById('activity-sidebar');
-  const toggle = document.getElementById('category-toggle');
-  const catButtons = document.getElementById('category-buttons');
-  const yearButtons = document.getElementById('year-buttons');
-
-
-  function clearAllActive() {
-    document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('is-active'));
-  }
-
-  const renderFilters = () => {
-    const isCatAllActive = (activeYear === null && activeCategory === 'all');
-    catButtons.innerHTML = `<button data-category="all" class="${isCatAllActive ? 'is-active' : ''}">すべて</button>`;
-    activity.categories.forEach(cat => {
-      const isActive = (activeYear === null && activeCategory === cat.id);
-      catButtons.innerHTML += `<button data-category="${cat.id}" class="${isActive ? 'is-active' : ''}">${cat.label}</button>`;
-    });
-
-    const years = [...new Set(activity.reports.map(r => r.year))].sort((a,b)=>b-a);
-    yearButtons.innerHTML = '';
-    years.forEach(y => {
-      const isActive = (activeYear === y);
-      yearButtons.innerHTML += `<button data-year="${y}" class="${isActive ? 'is-active' : ''}">${y}年</button>`;
-    });
-  };
-
   function render(scrollTop = false) {
+    if (!activityData) return;
     const root = document.getElementById('carousel-root');
     root.innerHTML = '';
-    renderFilters();
+    carouselIndices = {};
+
+    renderSidebarButtons();
 
     const allReports = activityData.reports;
-
-    // --- 描画の分岐ロジック ---
     if (activeYear) {
-      // 年代選択時：全件を3件ずつのカルーセルで表示
-      const filtered = allReports.filter(r => Number(r.year) === activeYear);
-      renderInChunks(`${activeYear}年の活動`, filtered);
+      renderInChunks(`${activeYear}年の活動`, allReports.filter(r => Number(r.year) === activeYear));
     } else if (activeCategory === 'all') {
-      // すべて：各カテゴリーの最新3件のみ
       activityData.categories.forEach(cat => {
         let filtered = allReports.filter(r => r.category === cat.id).slice(0, 3);
-        if(filtered.length) renderCarousel(cat.label, filtered);
+        if(filtered.length) renderCarousel(cat.id, cat.label, filtered);
       });
     } else {
-      // 特定カテゴリー選択時：全件を3件ずつのカルーセルで表示
       const catLabel = activityData.categories.find(c => c.id === activeCategory)?.label;
-      const filtered = allReports.filter(r => r.category === activeCategory);
-      renderInChunks(catLabel, filtered);
+      renderInChunks(catLabel, allReports.filter(r => r.category === activeCategory));
     }
-
     if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // データを3件ずつに分割してレンダリングする関数
   function renderInChunks(title, items) {
-    const chunkSize = 5;
-    for (let i = 0; i < items.length; i += chunkSize) {
-      const chunk = items.slice(i, i + chunkSize);
-      const isContinuation = i > 0;
-      const displayTitle = isContinuation ? `${title} (続き)` : title;
-      renderCarousel(displayTitle, chunk, isContinuation);
+    for (let i = 0; i < items.length; i += 5) {
+      renderCarousel(`chunk-${i}`, i > 0 ? `${title} (続き)` : title, items.slice(i, i + 5), i > 0);
     }
   }
 
-  function renderCarousel(title, items, isContinuation = false) {
+  function renderCarousel(key, title, items, isContinuation = false) {
+    carouselTotalSlides[key] = items.length;
+    carouselIndices[key] = 0;
+
     const section = document.createElement('div');
     section.className = 'pdf-year-section';
+    section.setAttribute('data-carousel-year', key);
     section.innerHTML = `
       <h2 class="pdf-year-title ${isContinuation ? 'is-continuation' : ''}">${title}</h2>
-      <div class="pdf-list">
+      <div class="pdf-carousel-wrapper">
         <div class="pdf-carousel">
+          <button class="carousel-nav carousel-prev" onclick="handlePrevClickIndex('${key}')">❮</button>
           <div class="pdf-carousel-inner">
             ${items.map(r => `
-              <div class="pdf-item">
+              <div class="pdf-item" onclick="location.href='article.html?type=report&id=${r.id}'">
                 <div class="report-thumb">
                   <img src="${(r.photos && r.photos[0]) ? r.photos[0] : ''}" onerror="this.src='https://placehold.jp/24/03709b/ffffff/300x200.png?text=No+Photo'">
                 </div>
-                <div class="pdf-item-meta">${r.year}年 / ${activity.categories.find(c=>c.id===r.category)?.label}</div>
+                <div class="pdf-item-meta">${r.year}年 / ${activityData.categories.find(c=>c.id===r.category)?.label || ''}</div>
                 <h3>${r.title}</h3>
-                <div class="pdf-actions">
-                  <a href="article.html?type=report&index=${r.originalIndex}" class="pdf-btn">詳しく見る</a>
-                </div>
+                <div class="pdf-actions"><span class="pdf-btn">詳細を見る</span></div>
               </div>
             `).join('')}
           </div>
-          <button class="carousel-nav carousel-prev">❮</button>
-          <button class="carousel-nav carousel-next">❯</button>
+          <button class="carousel-nav carousel-next" onclick="handleNextClickIndex('${key}')">❯</button>
         </div>
-        <!-- ★ 下ナビ追加 -->
-    <div class="custom-carousel-dots">
-      ${items.map((_, i) => `
-        <button class="custom-dot ${i === 0 ? 'active' : ''}" data-index="${i}"></button>
-      `).join('')}
-    </div>
-
-  </div>
+        <div class="carousel-dots">
+          ${items.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlideIndex('${key}', ${i})"></div>`).join('')}
+        </div>
       </div>
     `;
     document.getElementById('carousel-root').appendChild(section);
+    setTimeout(() => updateCarouselIndex(key), 50);
+  }
 
-    const carousel = section.querySelector('.pdf-carousel');
+  // --- 【重要】左寄りを直すための 100% 基準計算 ---
+  function updateCarouselIndex(key) {
+    const section = document.querySelector(`[data-carousel-year="${key}"]`);
+    if (!section) return;
     const inner = section.querySelector('.pdf-carousel-inner');
     const pdfItems = section.querySelectorAll('.pdf-item');
-    const dots = section.querySelectorAll('.custom-dot');
-    let currentIndex = 0;
+    const index = carouselIndices[key];
 
-    const update = () => {
-      if (pdfItems.length === 0) return;
-      const containerWidth = carousel.offsetWidth;
-      const itemWidth = pdfItems[0].offsetWidth;
-      const centerOffset = (containerWidth / 2) - (itemWidth / 2);
-      const moveX = (currentIndex * itemWidth) - centerOffset;
-      inner.style.transform = `translateX(${-moveX}px)`;
-      pdfItems.forEach((item, i) => {
-        item.classList.toggle('center', i === currentIndex);
-      });
+    // TOPページとロジックは同じですが、基準をvw(画面)ではなく100%(親)に固定
+    const isMobile = window.innerWidth < 768;
+    const itemWidth = isMobile ? 85 : 33.333; // 85% または 33.3%
+    const offset = (100 - itemWidth) / 2;     // 親要素内での中央位置(7.5%など)
     
+    // 移動量計算
+    const moveX = (index * itemWidth) - offset;
 
-    // ★ ドットのアクティブ切替
-  dots.forEach((dot, i) => {
-    dot.classList.toggle('active', i === currentIndex);
-  });
-};
+    // translateX(-X%) で移動
+    inner.style.transform = `translateX(${-moveX}%)`;
+    
+    pdfItems.forEach((item, i) => {
+      item.classList.toggle('center', i === index);
+    });
 
-dots.forEach(dot => {
-  dot.onclick = () => {
-    currentIndex = Number(dot.dataset.index);
-    update();
-  };
-});
-
-
-    section.querySelector('.carousel-next').onclick = () => {
-      currentIndex = (currentIndex + 1) % pdfItems.length;
-      update();
-    };
-
-    section.querySelector('.carousel-prev').onclick = () => {
-      currentIndex = (currentIndex - 1 + pdfItems.length) % pdfItems.length;
-      update();
-    };
-
-    window.addEventListener('resize', update);
-    setTimeout(update, 100);
+    const dots = section.querySelectorAll('.dot');
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
   }
+
+  window.handlePrevClickIndex = (key) => {
+    carouselIndices[key] = (carouselIndices[key] > 0) ? carouselIndices[key] - 1 : carouselTotalSlides[key] - 1;
+    updateCarouselIndex(key);
+  };
+  window.handleNextClickIndex = (key) => {
+    carouselIndices[key] = (carouselIndices[key] < carouselTotalSlides[key] - 1) ? carouselIndices[key] + 1 : 0;
+    updateCarouselIndex(key);
+  };
+  window.goToSlideIndex = (key, idx) => {
+    carouselIndices[key] = idx;
+    updateCarouselIndex(key);
+  };
+
+  function renderSidebarButtons() {
+    const catButtons = document.getElementById('category-buttons');
+    const yearButtons = document.getElementById('year-buttons');
+    if(!catButtons || !yearButtons) return;
+    catButtons.innerHTML = `<button data-category="all" class="${activeCategory === 'all' && !activeYear ? 'is-active' : ''}">すべて</button>` +
+      activityData.categories.map(cat => `<button data-category="${cat.id}" class="${activeCategory === cat.id && !activeYear ? 'is-active' : ''}">${cat.label}</button>`).join('');
+    const years = [...new Set(activityData.reports.map(r => r.year))].sort((a,b)=>b-a);
+    yearButtons.innerHTML = years.map(y => `<button data-year="${y}" class="${activeYear === Number(y) ? 'is-active' : ''}">${y}年</button>`).join('');
+  }
+
+  window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
 
   document.addEventListener('click', e => {
     const btn = e.target.closest('button');
     if (!btn) return;
-    if (btn.dataset.category) { 
-      activeCategory = btn.dataset.category; 
-      activeYear = null; 
-      render(true); 
+    if (btn.dataset.category || btn.dataset.year) {
+      if (btn.dataset.category) { activeCategory = btn.dataset.category; activeYear = null; }
+      else { activeYear = Number(btn.dataset.year); activeCategory = null; }
+      render(true);
+    } else if (btn.id === 'category-toggle') {
+      document.getElementById('activity-sidebar').classList.toggle('is-open');
     }
-    else if (btn.dataset.year) { 
-      activeYear = Number(btn.dataset.year); 
-      activeCategory = null; 
-      render(true); 
-    }
-    else if (btn.id === 'category-toggle') {
-      const sidebar = document.getElementById('activity-sidebar');
-      sidebar.classList.toggle('is-open');
-      btn.textContent = sidebar.classList.contains('is-open') ? '＜' : '＞';
-    }
-  };
-
-  yearButtons.onclick = e => {
-    const btn = e.target.closest('button');
-    if (!btn || !btn.dataset.year) return;
-    activeYear = Number(btn.dataset.year);
-    activeCategory = null; 
-    clearAllActive();
-    btn.classList.add('is-active');
-    render(true);
-    if (window.innerWidth < 1024) {
-      sidebar.classList.remove('is-open');
-      toggle.textContent = '＞';
-    }
-  };
-
-  toggle.onclick = () => {
-    sidebar.classList.toggle('is-open');
-    toggle.textContent = sidebar.classList.contains('is-open') ? '＜' : '＞';
-  };
-
-  render();
+  });
 </script>
+
 <script src="src/header.js"></script>
+
 </body>
 </html>

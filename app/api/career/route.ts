@@ -1,28 +1,20 @@
-// app/api/career/route.ts
-import { NextResponse } from "next/server";  // NextResponse をインポート
+import { NextResponse } from "next/server";
+import { getIronSession } from "iron-session";
+import { sessionOptions } from "@/lib/session";
 import db from "@/db/client";
 
-// GETメソッドの処理
+// ✅ セッションデータの型定義
+interface SessionData {
+  isAdmin?: boolean;
+}
+
+// GETメソッドの処理（認証なしでもOK）
 export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(req.url);
-    const password = searchParams.get("password");
-
-    // CORS設定
     const headers = new Headers();
     headers.set("Access-Control-Allow-Origin", "*");
     headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
     headers.set("Access-Control-Allow-Headers", "Content-Type");
-
-    if (password) {
-      const adminPassword = process.env.ADMIN_PASSWORD;
-      if (password !== adminPassword) {
-        return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-          status: 401,
-          headers,
-        });
-      }
-    }
 
     let careers;
     if (typeof (db as any).execute === "function") {
@@ -47,18 +39,19 @@ export async function GET(req: Request) {
   }
 }
 
-// POSTメソッドの処理
+// POSTメソッドの処理（管理者のみ）
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { year, month, Content, password } = body;
-
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (!adminPassword) {
-      return new NextResponse(JSON.stringify({ error: "ADMIN_PASSWORD is not set" }), {
-        status: 500,
+    const res = new NextResponse();
+    const session = await getIronSession<SessionData>(req, res, sessionOptions);
+    if (!session.isAdmin) {
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
       });
     }
+
+    const body = await req.json();
+    const { year, month, Content } = body;
 
     if (!year || !month || !Content) {
       return new NextResponse(
@@ -92,18 +85,19 @@ export async function POST(req: Request) {
   }
 }
 
-// DELETEメソッドの処理
+// DELETEメソッドの処理（管理者のみ）
 export async function DELETE(req: Request) {
   try {
-    const body = await req.json();
-    const { id, password } = body;
-
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (password !== adminPassword) {
+    const res = new NextResponse();
+    const session = await getIronSession<SessionData>(req, res, sessionOptions);
+    if (!session.isAdmin) {
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
       });
     }
+
+    const body = await req.json();
+    const { id } = body;
 
     if (!id) {
       return new NextResponse(JSON.stringify({ error: "id is required" }), {
