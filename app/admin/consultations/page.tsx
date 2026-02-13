@@ -3,7 +3,10 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 
-// 型定義
+/**
+ * 型定義 (Consultationオブジェクト)
+ * 各問い合わせデータの構造を定義し、オブジェクト指向の観点からデータの型を保証します。
+ */
 type Consultation = {
   id: number;
   target_type: string;
@@ -19,9 +22,11 @@ type Consultation = {
 };
 
 /**
- * AdminConsultationPage: ステータス別色分け & フィルタリング機能付き
+ * AdminConsultationPage
+ * 管理者向けの問い合わせ管理コンポーネント。
  */
 export default function AdminConsultationPage() {
+  // --- 状態管理 (State) ---
   const [data, setData] = useState<Consultation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<Consultation | null>(null);
@@ -32,10 +37,13 @@ export default function AdminConsultationPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [smtpUser, setSmtpUser] = useState('');
   const [smtpPass, setSmtpPass] = useState('');
-  const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isMobile, setIsMobile] = useState(false);
 
+  /**
+   * ブラウザ幅の監視
+   * レスポンシブ対応のため、画面幅が768px未満かどうかを判定します。
+   */
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -43,6 +51,10 @@ export default function AdminConsultationPage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  /**
+   * 問い合わせデータの取得
+   * APIからデータを取得し、状態を更新します。
+   */
   const fetchConsultations = useCallback(async () => {
     try {
       const res = await fetch('/api/admin/consultations');
@@ -50,10 +62,17 @@ export default function AdminConsultationPage() {
         const json = await res.json();
         setData(json);
       }
-    } catch (error) { console.error("Fetch error:", error); }
-    finally { setLoading(false); }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  /**
+   * 管理者設定の取得
+   * 通知用メールアドレスやSMTP情報を取得します。
+   */
   const fetchAdminSettings = useCallback(async () => {
     const keys = ['admin_notification_email', 'smtp_user', 'smtp_pass'];
     try {
@@ -66,7 +85,9 @@ export default function AdminConsultationPage() {
           if (key === 'smtp_pass') setSmtpPass(json.value || '');
         }
       }
-    } catch (error) { console.error("Fetch settings error:", error); }
+    } catch (error) {
+      console.error("Fetch settings error:", error);
+    }
   }, []);
 
   useEffect(() => {
@@ -74,6 +95,9 @@ export default function AdminConsultationPage() {
     fetchAdminSettings();
   }, [fetchConsultations, fetchAdminSettings]);
 
+  /**
+   * ステータス更新処理
+   */
   const handleStatusChange = async (id: number, newStatus: string) => {
     const res = await fetch('/api/admin/consultations', {
       method: 'PATCH',
@@ -86,6 +110,9 @@ export default function AdminConsultationPage() {
     }
   };
 
+  /**
+   * 管理者メモの保存処理
+   */
   const handleSaveMemo = async (id: number, memo: string) => {
     await fetch('/api/admin/consultations', {
       method: 'PATCH',
@@ -96,6 +123,9 @@ export default function AdminConsultationPage() {
     if (selectedItem?.id === id) setSelectedItem(prev => prev ? { ...prev, admin_memo: memo } : null);
   };
 
+  /**
+   * 削除処理
+   */
   const deleteConsultations = async (ids: number[]) => {
     if (!confirm(`${ids.length}件削除しますか？`)) return;
     try {
@@ -105,9 +135,14 @@ export default function AdminConsultationPage() {
         setSelectedIds([]);
         if (selectedItem && ids.includes(selectedItem.id)) setSelectedItem(null);
       }
-    } catch (error) { alert("削除に失敗しました。"); }
+    } catch (error) {
+      alert("削除に失敗しました。");
+    }
   };
 
+  /**
+   * フィルタリングロジック
+   */
   const filteredData = data.filter(item => {
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
     const matchesSearch = item.message.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -115,11 +150,12 @@ export default function AdminConsultationPage() {
     return matchesStatus && matchesSearch;
   });
 
+  // --- 色設定ヘルパー ---
   const getStatusBgColor = (status: string) => {
     switch (status) {
-      case 'unread': return '#fff5f5'; // 薄い赤
-      case 'processing': return '#fffbea'; // 薄い黄
-      case 'completed': return '#f0fff4'; // 薄い緑
+      case 'unread': return '#fff5f5';
+      case 'processing': return '#fffbea';
+      case 'completed': return '#f0fff4';
       default: return '#ffffff';
     }
   };
@@ -137,6 +173,7 @@ export default function AdminConsultationPage() {
 
   return (
     <div style={{ padding: isMobile ? '10px' : '20px', maxWidth: '1600px', margin: '0 auto', fontFamily: 'sans-serif', color: '#2d3748' }}>
+      {/* ヘッダーセクション */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #2d3748', paddingBottom: '10px', marginBottom: '20px' }}>
         <h1 style={{ margin: 0, fontSize: isMobile ? '18px' : '20px' }}>管理者ダッシュボード</h1>
         {selectedIds.length > 0 && (
@@ -144,7 +181,7 @@ export default function AdminConsultationPage() {
         )}
       </div>
 
-      {/* メール設定パネル（省略せずに維持） */}
+      {/* メール設定パネル */}
       <div style={settingsPanelStyle}>
         <div onClick={() => setIsSettingsOpen(!isSettingsOpen)} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
           <h2 style={{ fontSize: '14px', margin: 0 }}>📧 メール通知・送信設定</h2>
@@ -161,49 +198,29 @@ export default function AdminConsultationPage() {
         )}
       </div>
 
-      {/* フィルタ・検索エリア */}
+      {/* フィルタ・検索 */}
       <div style={{ marginBottom: '20px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '10px' }}>
         <div style={{ display: 'flex', gap: '5px' }}>
           {['all', 'unread', 'processing', 'completed'].map(s => (
-            <button 
-              key={s} 
-              onClick={() => setFilterStatus(s)}
-              style={{
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: '1px solid #e2e8f0',
-                fontSize: '12px',
-                cursor: 'pointer',
-                backgroundColor: filterStatus === s ? '#2d3748' : 'white',
-                color: filterStatus === s ? 'white' : '#2d3748'
-              }}
-            >
+            <button key={s} onClick={() => setFilterStatus(s)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '12px', cursor: 'pointer', backgroundColor: filterStatus === s ? '#2d3748' : 'white', color: filterStatus === s ? 'white' : '#2d3748' }}>
               {s === 'all' ? 'すべて' : s === 'unread' ? '未読' : s === 'processing' ? '対応中' : '完了'}
             </button>
           ))}
         </div>
-        <input 
-          type="text" 
-          placeholder="メッセージ内容またはメモで検索..." 
-          value={searchQuery} 
-          onChange={(e) => setSearchQuery(e.target.value)} 
-          style={{ ...inputStyle, flex: 1 }} 
-        />
+        <input type="text" placeholder="検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ ...inputStyle, flex: 1 }} />
       </div>
 
-      {/* メインリスト */}
+      {/* データ表示 */}
       {isMobile ? (
-        /* スマホ用カード */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
           {filteredData.map(item => (
             <div key={item.id} style={{ ...mobileCardStyle, backgroundColor: getStatusBgColor(item.status) }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <span style={{ fontSize: '11px' }}>{new Date(item.created_at).toLocaleString()}</span>
                 <select value={item.status} onChange={(e) => handleStatusChange(item.id, e.target.value)} style={{ ...selectStyle, backgroundColor: getStatusTagColor(item.status) }}>
                   <option value="unread">未読</option><option value="processing">対応中</option><option value="completed">完了</option>
                 </select>
               </div>
-              <div onClick={() => setSelectedItem(item)}>
+              <div onClick={() => setSelectedItem(item)} style={{ cursor: 'pointer' }}>
                 <div style={themeTextStyle}>{item.suggestion_topic}</div>
                 <div style={messagePreviewStyle}>{item.message}</div>
               </div>
@@ -211,21 +228,36 @@ export default function AdminConsultationPage() {
           ))}
         </div>
       ) : (
-        /* PC用テーブル */
         <table style={tableStyle}>
           <thead>
             <tr style={{ backgroundColor: '#2d3748', color: 'white' }}>
-              <th style={{ ...thStyle, width: '40px' }}><input type="checkbox" onChange={() => setSelectedIds(selectedIds.length === filteredData.length ? [] : filteredData.map(i => i.id))} checked={selectedIds.length === filteredData.length && filteredData.length > 0} /></th>
-              <th style={{ ...thStyle, width: '110px' }}>管理情報</th>
-              <th style={{ ...thStyle, width: '220px' }}>相談内容の確認</th>
-              <th style={thStyle}>内容の詳細</th>
-              <th style={{ ...thStyle, width: '300px' }}>管理者メモ</th>
+              {/* セル内での水平・垂直方向の中央揃えを設定 */}
+              <th style={{ ...thStyle, width: '60px', textAlign: 'center', verticalAlign: 'middle' }}>
+                <input 
+                  type="checkbox" 
+                  style={checkboxStyle}
+                  onChange={() => setSelectedIds(selectedIds.length === filteredData.length ? [] : filteredData.map(i => i.id))} 
+                  checked={selectedIds.length === filteredData.length && filteredData.length > 0} 
+                />
+              </th>
+              <th style={{ ...thStyle, width: '90px' }}>ステータス</th>
+              <th style={{ ...thStyle, width: '400px' }}>相談カテゴリ</th>
+              <th style={thStyle}>内容の詳細 (クリックで開く)</th>
+              <th style={{ ...thStyle, width: '250px' }}>管理者メモ</th>
             </tr>
           </thead>
           <tbody>
             {filteredData.map((item) => (
               <tr key={item.id} style={{ borderBottom: '1px solid #edf2f7', backgroundColor: getStatusBgColor(item.status) }}>
-                <td style={tdStyle}><input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => setSelectedIds(prev => prev.includes(item.id) ? prev.filter(i => i !== item.id) : [...prev, item.id])} /></td>
+                {/* セル内での水平・垂直方向の中央揃えを設定 */}
+                <td style={{ ...tdStyle, textAlign: 'center', verticalAlign: 'middle' }}>
+                  <input 
+                    type="checkbox" 
+                    style={checkboxStyle}
+                    checked={selectedIds.includes(item.id)} 
+                    onChange={() => setSelectedIds(prev => prev.includes(item.id) ? prev.filter(i => i !== item.id) : [...prev, item.id])} 
+                  />
+                </td>
                 <td style={tdStyle}>
                   <div style={tripleStackStyle}>
                     <div style={{ fontSize: '11px', textAlign: 'center' }}><strong>{new Date(item.created_at).toLocaleDateString()}</strong></div>
@@ -263,20 +295,12 @@ export default function AdminConsultationPage() {
             <div style={modalHeaderStyle}>
               <h2 style={{ margin: 0, fontSize: '20px' }}>相談内容の詳細</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                {/* ステータス変更機能の復活 */}
-                <select 
-                  value={selectedItem.status} 
-                  onChange={(e) => handleStatusChange(selectedItem.id, e.target.value)}
-                  style={{ ...selectStyle, backgroundColor: getStatusTagColor(selectedItem.status), padding: '8px 15px', fontSize: '14px' }}
-                >
-                  <option value="unread">未読</option>
-                  <option value="processing">対応中</option>
-                  <option value="completed">完了</option>
+                <select value={selectedItem.status} onChange={(e) => handleStatusChange(selectedItem.id, e.target.value)} style={{ ...selectStyle, backgroundColor: getStatusTagColor(selectedItem.status), padding: '8px 15px', fontSize: '14px' }}>
+                  <option value="unread">未読</option><option value="processing">対応中</option><option value="completed">完了</option>
                 </select>
                 <button onClick={() => setSelectedItem(null)} style={closeButtonStyle}>&times;</button>
               </div>
             </div>
-
             <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '30px', marginTop: '25px' }}>
               <div style={{ flex: 1, backgroundColor: '#f7fafc', padding: '25px', borderRadius: '15px' }}>
                 <h3 style={modalSubTitle}>属性データ</h3>
@@ -293,11 +317,7 @@ export default function AdminConsultationPage() {
                 </div>
                 <div>
                   <h3 style={modalSubTitle}>管理者メモ</h3>
-                  <textarea 
-                    value={selectedItem.admin_memo || ''} 
-                    onChange={(e) => handleSaveMemo(selectedItem.id, e.target.value)}
-                    style={{ ...memoAreaStyle, height: '140px' }}
-                  />
+                  <textarea value={selectedItem.admin_memo || ''} onChange={(e) => handleSaveMemo(selectedItem.id, e.target.value)} style={{ ...memoAreaStyle, height: '140px' }} />
                 </div>
               </div>
             </div>
@@ -308,7 +328,19 @@ export default function AdminConsultationPage() {
   );
 }
 
-// --- スタイル定義 (統合) ---
+// --- スタイル定義コンポーネント ---
+
+/**
+ * チェックボックスの配置調整
+ * transformで拡大し、display: blockとmargin: autoでセル内の中心に配置します。
+ */
+const checkboxStyle: React.CSSProperties = {
+  transform: 'scale(1.5)',
+  cursor: 'pointer',
+  display: 'block',  // ブロック要素化してmargin autoを効かせる
+  margin: 'auto'     // 左右中央配置
+};
+
 const mobileCardStyle: React.CSSProperties = { padding: '15px', borderRadius: '12px', border: '1px solid #edf2f7', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' };
 const tableStyle: React.CSSProperties = { width: '100%', borderCollapse: 'separate', borderSpacing: '0', backgroundColor: 'white', borderRadius: '12px', overflow: 'hidden' };
 const thStyle: React.CSSProperties = { padding: '12px', textAlign: 'left', fontSize: '13px', fontWeight: 'bold' };
@@ -321,15 +353,25 @@ const dataValueStyle: React.CSSProperties = { fontSize: '13px' };
 const themeTextStyle: React.CSSProperties = { color: '#2b6cb0', fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' };
 const messagePreviewStyle: React.CSSProperties = { color: '#4a5568', fontSize: '13px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' };
 
-const memoAreaStyle: React.CSSProperties = { width: '100%', height: '100px', fontSize: '13px', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', backgroundColor: '#fffaf0', resize: 'none' };
+const memoAreaStyle: React.CSSProperties = { 
+  width: '100%', 
+  height: '100px', 
+  fontSize: '13px', 
+  padding: '10px', 
+  borderRadius: '6px', 
+  border: '1px solid #e2e8f0', 
+  backgroundColor: '#fffaf0', 
+  resize: 'none',
+  boxSizing: 'border-box'
+};
 
 const settingsPanelStyle: React.CSSProperties = { backgroundColor: '#f7fafc', padding: '15px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' };
 const labelStyle: React.CSSProperties = { display: 'block', fontSize: '11px', fontWeight: 'bold' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #e2e8f0', boxSizing: 'border-box', fontSize: '13px' };
 
-const selectStyle: React.CSSProperties = { padding: '5px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', border: '1px solid #cbd5e0', fontWeight: 'bold' };
-const deleteButtonStyle: React.CSSProperties = { color: '#e53e3e', border: '1px solid #feb2b2', background: 'white', padding: '4px', borderRadius: '4px', fontSize: '11px' };
-const bulkDeleteButtonStyle: React.CSSProperties = { backgroundColor: '#e53e3e', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '6px' };
+const selectStyle: React.CSSProperties = { padding: '5px 12px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer', border: '1px solid #cbd5e0', fontWeight: 'bold' };
+const deleteButtonStyle: React.CSSProperties = { color: '#e53e3e', border: '1px solid #feb2b2', background: 'white', padding: '4px', borderRadius: '4px', fontSize: '11px', cursor: 'pointer' };
+const bulkDeleteButtonStyle: React.CSSProperties = { backgroundColor: '#e53e3e', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' };
 
 const modalOverlayStyle: React.CSSProperties = { position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 };
 const modalContentStyle: React.CSSProperties = { backgroundColor: 'white', padding: '30px', borderRadius: '25px', maxHeight: '90vh', overflowY: 'auto' };
