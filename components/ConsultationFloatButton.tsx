@@ -1,4 +1,3 @@
-// directory: components/ConsultationFloatButton.tsx
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -10,6 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 export default function ConsultationFloatButton() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   const closeModal = useCallback(() => {
     setIsOpen(false);
@@ -21,6 +21,14 @@ export default function ConsultationFloatButton() {
 
   useEffect(() => {
     setMounted(true);
+
+    // ヒント表示を3秒後に開始し、5秒後に非表示
+    const showTimer = setTimeout(() => {
+      setShowHint(true);
+      const hideTimer = setTimeout(() => setShowHint(false), 5000);
+      return () => clearTimeout(hideTimer);
+    }, 3000);
+
     const handleMessage = (event: MessageEvent) => {
       if (event.data === 'CONSULTATION_SUBMITTED') {
         setTimeout(() => {
@@ -28,8 +36,13 @@ export default function ConsultationFloatButton() {
         }, 2000);
       }
     };
+
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+
+    return () => {
+      clearTimeout(showTimer);
+      window.removeEventListener('message', handleMessage);
+    };
   }, [closeModal]);
 
   if (!mounted) return null;
@@ -54,6 +67,21 @@ export default function ConsultationFloatButton() {
       alignItems: 'center',
       transition: 'transform 0.2s ease',
     },
+    hint: {
+    　position: 'fixed',
+  　　bottom: '40px',
+  　　right: '110px',
+  　　backgroundColor: '#fff8fb',
+  　　color: '#d6336c',
+  　　padding: '14px 20px',
+  　　borderRadius: '16px',
+  　　boxShadow: '0 6px 16px rgba(0,0,0,0.25)',
+  　　fontSize: '18px',
+  　　fontWeight: 'bold',
+  　　zIndex: 9999,
+  　　animation: 'fadeInOut 5s ease-in-out',
+  　　whiteSpace: 'nowrap',
+　　 },
     overlay: {
       position: 'fixed',
       top: 0,
@@ -112,7 +140,18 @@ export default function ConsultationFloatButton() {
             height: 85vh !important;
           }
         }
-      `}} />
+
+        @keyframes fadeInOut {
+          0% { opacity: 0; transform: translateY(10px); }
+          10% { opacity: 1; transform: translateY(0); }
+          90% { opacity: 1; }
+          100% { opacity: 0; transform: translateY(10px); }
+        }
+      `,
+        }}
+      />
+
+      {showHint && <div style={styles.hint}>相談をしませんか？</div>}
 
       <button
         type="button"
@@ -133,7 +172,7 @@ export default function ConsultationFloatButton() {
           >
             <div style={styles.header}>
               <span style={{ fontWeight: 'bold', color: '#333' }}>ご相談フォーム</span>
-              <button 
+              <button
                 type="button"
                 onClick={closeModal} 
                 style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', color: '#666', lineHeight: 1 }}
@@ -141,7 +180,11 @@ export default function ConsultationFloatButton() {
                 ×
               </button>
             </div>
-            <iframe src="/consultation" style={styles.iframe} title="consultation-form" />
+            <iframe
+              src="/consultation"
+              style={styles.iframe}
+              title="consultation-form"
+            />
           </div>
         </div>
       )}

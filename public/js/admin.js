@@ -908,69 +908,64 @@ var AdminManager = /** @class */ (function () {
         document.querySelector('.tab-button').classList.add('active');
         document.getElementById('comments-tab').classList.add('active');
     };
-    /**
-     * ログイン処理
-     */
-    AdminManager.prototype.handleLogin = function (e) {
-        return __awaiter(this, void 0, void 0, function () {
-            var password, _a, comments, contacts, profile, career, pdf, activityReports, postsErr_1, err_2;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        e.preventDefault();
-                        console.log('[Admin] ログイン処理が開始されました');
-                        password = document.getElementById('password').value;
-                        console.log('[Admin] パスワード入力値:', password ? "\u3042\u308A\uFF08".concat(password.length, "\u6587\u5B57\uFF09") : 'なし');
-                        _b.label = 1;
-                    case 1:
-                        _b.trys.push([1, 7, , 8]);
-                        console.log('[Admin] API リクエストを送信中...');
-                        return [4 /*yield*/, Promise.all([
-                                this.comments.fetchAll(password),
-                                this.contacts.fetchAll(password),
-                                this.profile.fetch(password),
-                                this.career.fetch(password),
-                                this.pdf.fetchAll(password),
-                                this.activityReports.fetch(password),
-                            ])];
-                    case 2:
-                        _a = _b.sent(), comments = _a[0], contacts = _a[1], profile = _a[2], career = _a[3], pdf = _a[4], activityReports = _a[5];
-                        _b.label = 3;
-                    case 3:
-                        _b.trys.push([3, 5, , 6]);
-                        return [4 /*yield*/, this.posts.fetchAll(password)];
-                    case 4:
-                        _b.sent();
-                        console.log('[Admin] posts データ取得成功');
-                        return [3 /*break*/, 6];
-                    case 5:
-                        postsErr_1 = _b.sent();
-                        console.warn('[Admin] posts データ取得失敗（テーブルが存在しない可能性）:', postsErr_1);
-                        this.posts.allPosts = [];
-                        return [3 /*break*/, 6];
-                    case 6:
-                        console.log('[Admin] ログイン成功！');
-                        this.adminPassword = password;
-                        console.log('[Admin] Login successful!');
-                        Utils.showElement('login-form', false);
-                        Utils.showElement('admin-content', true);
-                        this.renderAllData();
-                        this.profile.loadForm();
-                        this.career.render(document.getElementById('career-list-container'));
-                        this.pdf.render(document.getElementById('pdf-list-container'));
-                        this.activityReports.render(document.getElementById('activity-reports-list'));
-                        return [3 /*break*/, 8];
-                    case 7:
-                        err_2 = _b.sent();
-                        console.error('[Admin] ログイン失敗:', err_2.message);
-                        console.error('[Admin] エラー詳細:', err_2);
-                        Utils.showMessage('login-error', 'パスワードが間違っています', 0);
-                        return [3 /*break*/, 8];
-                    case 8: return [2 /*return*/];
-                }
-            });
+    //ログイン処理
+    AdminManager.prototype.handleLogin = async function (e) {
+    e.preventDefault();
+    const password = document.getElementById('password').value;
+    console.log('[Admin] ログイン処理が開始されました');
+    console.log('[Admin] パスワード入力値:', password ? `あり（${password.length}文字）` : 'なし');
+
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
         });
-    };
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            Utils.showMessage('login-error', data.message, 0);
+            console.warn('[Admin] ログイン失敗:', data.message);
+            return;
+        }
+
+        console.log('[Admin] サーバー認証成功、データ取得を開始します');
+
+        // 認証成功後にデータ取得
+        const [comments, contacts, profile, career, pdf, activityReports] = await Promise.all([
+            this.comments.fetchAll(password),
+            this.contacts.fetchAll(password),
+            this.profile.fetch(password),
+            this.career.fetch(password),
+            this.pdf.fetchAll(password),
+            this.activityReports.fetch(password),
+        ]);
+
+        try {
+            await this.posts.fetchAll(password);
+            console.log('[Admin] posts データ取得成功');
+        } catch (postsErr) {
+            console.warn('[Admin] posts データ取得失敗（テーブルが存在しない可能性）:', postsErr);
+            this.posts.allPosts = [];
+        }
+
+        console.log('[Admin] ログイン成功！');
+        this.adminPassword = password;
+
+        Utils.showElement('login-form', false);
+        Utils.showElement('admin-content', true);
+        this.renderAllData();
+        this.profile.loadForm();
+        this.career.render(document.getElementById('career-list-container'));
+        this.pdf.render(document.getElementById('pdf-list-container'));
+        this.activityReports.render(document.getElementById('activity-reports-list'));
+    } catch (err) {
+        console.error('[Admin] ログイン通信エラー:', err);
+        Utils.showMessage('login-error', '通信エラーが発生しました', 0);
+    }
+};
+
     /**
      * ログアウト処理
      */

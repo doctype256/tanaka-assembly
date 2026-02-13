@@ -55,19 +55,33 @@ header a {
   margin-left:1rem;
   font-weight:600;
 }
+
 #header-nav a {
-  color: white;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  padding: 5px 10px;
+  padding: 8px 12px;
   display: block;
-  transition: color 0.3s, background-color 0.3s;
-  border-radius: 4px; /* 背景色を角丸にする場合 */
+  border-radius: 6px;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
+/* hover（薄め） */
+#header-nav a:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+/* active（最優先） */
 #header-nav a.active {
-  color: #fff !important;          /* 文字色 */
-  background-color: #e07491 !important; /* 背景色 */
-  font-weight: bold;
+  background-color: #f7f8fb;
+  color: #1f4fd8;
+  font-weight: 600;
+}
+
+/* active中にhoverしても変えない */
+#header-nav a.active:hover {
+  background-color: #f7f8fb;
+  color: #1f4fd8;
 }
 
 
@@ -169,27 +183,142 @@ h2 {
     ファーストビュー（Hero）
     =============================*/
 
+
+
 .hero {
   font-size: 2rem;   /* タイトルを大きく */
     
   text-align:center;
   padding:6rem 1rem;
-  background:#e6eef6;
+  background:#ffffff;
 }
 
-/* 背景画像＋人物レイヤー用コンテナ */
+/* --- ヒーローイメージ --- */
 .hero-image {
-  max-width: none;     /* ← 1000px制限を解除 */
-  padding: 0;          /* 余白を消す */
-  position: relative; /* 重ねるための基準点 */
+  position: relative;
+  width: 100%;
+  height: 60vh;         /* PC向け高さ */
+  overflow: hidden;
+  background: #ffffff;  /* 画像読み込み前の背景色 */
 }
 
 .hero-image img {
-  width: 100vw;        /* 画面横幅いっぱい */
-  height: auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   display: block;
-  margin-top: 3rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1.2s ease, transform 1.2s ease;
 }
+
+.hero-image img.float-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- ヒーローテキスト --- */
+.hero-text-layer {
+  position: absolute;
+  top: 80%;             /* 上から50% */
+  left: 0%;            /* 左に寄せる */
+  transform: translateY(-50%); /* 縦中央に調整 */
+  color: #ec4899;
+  text-align: left;     /* 左揃え */
+  z-index: 10;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  max-width: 40%;       /* 横幅制限 */
+}
+
+.hero-text-layer p,
+.hero-text-layer h1 {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s ease;
+  line-height: 1.6;
+  margin: 0;   /* デフォルトの余白をリセット */
+}
+
+/* text と lawmaker の間はほぼ0 */
+/* text は通常の段落感を少し持たせる */
+#dynamic-hero-text {
+  margin-bottom: 0.8rem; /* text と lawmaker の間 */
+}
+
+/* lawmaker は上余白ほぼゼロ、下も0 */
+#dynamic-hero-lawmaker {
+  margin-top: 0;      /* 上はくっつける */
+  margin-bottom: 0;   /* 下もくっつける */
+}
+
+/* name は上ほぼ0、下だけ余白 */
+#dynamic-hero-name {
+  margin-top: 0.1rem; /* 上はほぼくっつける */
+  margin-bottom: 2rem; /* 下に段落感 */
+}
+
+/* 共通アニメーション */
+.hero-text-layer p,
+.hero-text-layer h1 {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease, transform 1s ease;
+  line-height: 1.6;
+}
+.hero-text-layer.is-visible p,
+.hero-text-layer.is-visible h1 {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+
+/* --- レスポンシブ: タブレット/スマホ向け --- */
+
+/* 画面幅 768px 以下 (タブレット) */
+@media (max-width: 768px) {
+  .hero-image {
+    height: 50vh;
+  }
+
+  .hero-text-layer {
+    padding: 0.8rem 1.5rem;
+    max-width: 60%;
+    left: 5%;           /* さらに左寄せ */
+  }
+
+  .hero-text-layer h1 {
+    font-size: 2rem;
+  }
+
+  .hero-text-layer p {
+    font-size: 1rem;
+  }
+}
+
+/* 画面幅 480px 以下 (スマホ) */
+@media (max-width: 480px) {
+  .hero-image {
+    height: 40vh;
+  }
+
+  .hero-text-layer {
+    padding: 0.6rem 1rem;
+    max-width: 80%;     /* 横幅を広げて文字を見切れないように */
+    left: 5%;
+  }
+
+  .hero-text-layer h1 {
+    font-size: 1.5rem;
+  }
+
+  .hero-text-layer p {
+    font-size: 0.9rem;
+  }
+}
+
+
 
 /*==============================
     人物レイヤー（左配置）
@@ -2431,7 +2560,7 @@ body.font-large {
 .carousel-nav {
   position: absolute; top: 50%; transform: translateY(-50%); 
   background-color: rgba(0, 0, 0, 0.5); /* 黒の半透明 */
-  color: white; border: none; width: 44px; height: 44px; border-radius: 4px; /* 四角めのデザイン */
+  color: white; border: none; width: 44px; height: 100px; border-radius: 4px; /* 四角めのデザイン */
   cursor: pointer; font-size: 20px; z-index: 10;
   transition: background 0.3s; display: flex; align-items: center; justify-content: center;
 }
