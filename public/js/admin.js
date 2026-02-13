@@ -717,24 +717,17 @@ var AdminManager = /** @class */ (function () {
   this.initializeTabs();
 };
 
-    /**
- * イベントリスナーを設定
- */
-AdminManager.prototype.setupEventListeners = function () {
-  // --- タブ切り替え処理 ---
-  const tabButtons = document.querySelectorAll('.tab-button');
-
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const targetId = button.getAttribute('data-target'); // 例: "change-password-tab"
-      activateTab(targetId);
-
-      // タブボタンの見た目も切り替え
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
-    });
-  });
-
+/** * イベントリスナーを設定 */ 
+AdminManager.prototype.setupEventListeners = function () { 
+    const tabButtons = document.querySelectorAll('.tab-button'); 
+    tabButtons.forEach(button => { button.addEventListener('click', () => 
+        { const targetId = button.getAttribute('data-target'); 
+            activateTab(targetId); tabButtons.forEach(btn => btn.classList.remove('active')); 
+            button.classList.add('active'); }); }); 
+            const passwordForm = document.getElementById('change-password-form'); 
+            if (passwordForm) 
+                { passwordForm.addEventListener( 'submit', this.handleChangePassword.bind(this) );
+                } 
   // --- カテゴリのローカルストレージ管理 ---
   const CATEGORY_KEY = 'activity_custom_categories';
   const select = document.getElementById('activity-category');
@@ -1042,41 +1035,51 @@ AdminManager.prototype.setupEventListeners = function () {
 
     const currentPassword = this.adminPassword;
     const newPassword = document.getElementById('new-password').value.trim();
+    const confirmPassword = document.getElementById('confirm-password').value.trim();
 
     console.log('[Admin] パスワード変更開始');
     console.log('[Admin] 現在のパスワード:', currentPassword);
     console.log('[Admin] 新しいパスワード:', newPassword);
     console.log('[Admin] パスワードの長さ:', newPassword.length);
 
-    if (!newPassword || newPassword.length < 4) {
-        Utils.showMessage('password-error', '新しいパスワードは4文字以上にしてください', 0);
+    // ▼ 追加：パスワード一致チェック
+    if (newPassword !== confirmPassword) {
+        Utils.showMessage('password-error', 'パスワードが一致しません', 3000);
+        return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+        Utils.showMessage('password-error', '新しいパスワードは6文字以上にしてください', 3000);
         return;
     }
 
     try {
-    　const res = await fetch('/api/password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
+        const res = await fetch('/api/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (!res.ok) {
-      Utils.showMessage('password-error', data.message, 0);
-      console.warn('[Admin] パスワード変更失敗:', data.message);
-      return;
+        if (!res.ok) {
+            Utils.showMessage('password-error', data.message, 3000);
+            console.warn('[Admin] ⚠ パスワード変更失敗:', data.message);
+            return;
     }
 
-    Utils.showMessage('password-success', 'パスワードを変更しました！', 3000);
+    Utils.showMessage('password-success', '✔ パスワードを変更しました！', 3000);
     console.log('[Admin] パスワード変更成功');
+
+    // 入力欄クリア
     document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+
   } catch (err) {
     console.error('[Admin] パスワード変更通信エラー:', err);
-    Utils.showMessage('password-error', '通信エラーが発生しました', 0);
+    Utils.showMessage('password-error', '通信エラーが発生しました', 5000);
   }
 };
-
 
     /**
      * すべてのデータを描画
