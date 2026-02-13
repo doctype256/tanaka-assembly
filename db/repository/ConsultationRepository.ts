@@ -1,14 +1,19 @@
 // directory: db/repository/ConsultationRepository.ts
 import db from '../client'; // default export を db としてインポート
 
+/**
+ * ConsultationRepository: 相談データの永続化を担うリポジトリクラス
+ */
 export class ConsultationRepository {
   /**
    * 相談データをDBに保存する
+   * suggestion_topic カラムを含む最新のテーブル構造に対応
    */
   static async create(data: {
     target_type: string;
     place_type: string;
     content_type: string;
+    suggestion_topic: string; // 判定ロジックにより提案・選択されたテーマ
     needs_reply: boolean;
     email: string;
     message: string;
@@ -16,12 +21,22 @@ export class ConsultationRepository {
     user_agent: string;
     referer_url: string;
   }) {
+    // SQLクエリ: suggestion_topic を追加し、プレースホルダ(?)を10個に更新
     const query = `
       INSERT INTO consultations (
-        target_type, place_type, content_type, needs_reply, 
-        email, message, ip_hash, user_agent, referer_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        target_type, 
+        place_type, 
+        content_type, 
+        suggestion_topic, -- 追加
+        needs_reply, 
+        email, 
+        message, 
+        ip_hash, 
+        user_agent, 
+        referer_url
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
+
     // インポート名に合わせて db.execute を使用
     return await db.execute({
       sql: query,
@@ -29,6 +44,7 @@ export class ConsultationRepository {
         data.target_type, 
         data.place_type, 
         data.content_type, 
+        data.suggestion_topic, // 追加
         data.needs_reply ? 1 : 0,
         data.email, 
         data.message, 
@@ -40,7 +56,7 @@ export class ConsultationRepository {
   }
 
   /**
-   * 24時間以内の同一IPハッシュによる投稿があるか確認する
+   * 24時間以内の同一IPハッシュによる投稿があるか確認する（スパム対策）
    */
   static async checkLimit(ipHash: string): Promise<boolean> {
     const query = `
@@ -56,21 +72,21 @@ export class ConsultationRepository {
   }
 
   /**
-   * 1年以上経過した古いデータを削除する
+   * 1年以上経過した古いデータを削除する（データクリーンアップ）
    */
   static async deleteExpired() {
     return await db.execute("DELETE FROM consultations WHERE created_at < datetime('now', '-365 days')");
   }
 
   /**
-   * 管理者用：全件取得
+   * 管理者用：全件取得（suggestion_topic を含む全カラム）
    */
   static async findAll() {
     return await db.execute("SELECT * FROM consultations ORDER BY created_at DESC");
   }
 
   /**
-   * ステータスを更新する
+   * ステータスを更新する（未読、対応中、完了）
    */
   static async updateStatus(id: number, status: 'unread' | 'processing' | 'completed') {
     const query = `UPDATE consultations SET status = ? WHERE id = ?`;
