@@ -2,22 +2,20 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-
-// 選択肢の定義
-const QUESTIONS = {
-  target: ["子供関連", "その他", "提案やお問い合わせの方はこちら"],
-  place: ["学校関連", "役所関連", "家"],
-  content: ["お金", "相続", "気持ち", "その他"]
-};
+import { 
+  CONSULTATION_QUESTIONS, 
+  getSuggestions, 
+  SUGGESTION_MASTER 
+} from './consultation-logic';
 
 // 保存用キーの定数化
-const STORAGE_KEY = 'consultation_form_draft';
+const STORAGE_KEY = 'consultation_form_draft_v4';
 
 /**
- * TestConsultationPage: ステップ形式の相談フォーム
- * PC環境での余白を最適化するため、コンテナ幅をレスポンシブに修正。
+ * ConsultationPage: ステップ形式の相談フォーム
+ * 詳細記入ステップ（Step 6）にて、これまでの選択内容とテーマ提案を表示します。
  */
-export default function TestConsultationPage() {
+export default function ConsultationPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>('');
@@ -25,9 +23,10 @@ export default function TestConsultationPage() {
 
   // 初期データ構造
   const initialFormData = {
-    target_type: '',
-    place_type: '未選択（スキップ）',
-    content_type: '未選択（スキップ）',
+    q1_id: 0,
+    q2_id: 0,
+    q3_id: 0,
+    selected_suggestion_id: 0, 
     needs_reply: false,
     email: '',
     message: ''
@@ -53,15 +52,11 @@ export default function TestConsultationPage() {
   // 2. 自動保存
   useEffect(() => {
     if (isInitialized && step < 7) {
-      const draft = {
-        savedStep: step,
-        savedData: formData
-      };
+      const draft = { savedStep: step, savedData: formData };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
     }
   }, [formData, step, isInitialized]);
 
-  // 進捗率の計算ロジック: 送信完了(Step 7)を 100% とする
   const progressPercent = Math.round((step / 7) * 100);
 
   const handleReset = () => {
@@ -81,13 +76,31 @@ export default function TestConsultationPage() {
   const prevStep = () => setStep(prev => prev - 1);
 
   const handleSubmit = async () => {
+    if (formData.selected_suggestion_id === 0) {
+      alert("相談内容に近いテーマを選択してください。");
+      return;
+    }
+
     setLoading(true);
     setStatus('送信中...');
+
+    const payload = {
+      target_type: CONSULTATION_QUESTIONS.q1.options.find(o => o.id === formData.q1_id)?.text,
+      place_type: CONSULTATION_QUESTIONS.q2.options.find(o => o.id === formData.q2_id)?.text,
+      content_type: CONSULTATION_QUESTIONS.q3.options.find(o => o.id === formData.q3_id)?.text,
+      suggestion_topic: formData.selected_suggestion_id === -1 
+        ? "該当なし（自由記述）" 
+        : SUGGESTION_MASTER[formData.selected_suggestion_id],
+      needs_reply: formData.needs_reply,
+      email: formData.email,
+      message: formData.message
+    };
+
     try {
       const response = await fetch('/api/consultations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       if (response.ok) {
         setStatus(`✅ 送信完了: ありがとうございました。`);
@@ -108,7 +121,6 @@ export default function TestConsultationPage() {
   if (!isInitialized) return null;
 
   return (
-    /* 修正: maxWidth を 100% にし、左右の padding でレスポンシブに対応 */
     <div style={{ padding: '20px', width: '100%', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
       
       {step <= 7 && (
@@ -123,43 +135,21 @@ export default function TestConsultationPage() {
       <div style={{ minHeight: '400px' }}>
         {step === 1 && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Q1. 何についての相談ですか？</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' }}>
-              {QUESTIONS.target.map((opt) => {
-                const isSpecial = opt === "提案やお問い合わせの方はこちら";
-                return (
-                  <button 
-                    key={opt} 
-                    onClick={() => {
-                      setFormData({ 
-                        ...initialFormData, 
-                        target_type: opt 
-                      });
-                      isSpecial ? setStep(6) : nextStep();
-                    }} 
-                    style={{
-                      ...buttonStyle,
-                      gridColumn: isSpecial ? '1 / -1' : 'auto',
-                      marginTop: isSpecial ? '20px' : '0px',
-                      backgroundColor: isSpecial ? '#f8f9fa' : '#fff',
-                      borderColor: isSpecial ? '#cbd5e0' : '#ddd',
-                      textAlign: 'center'
-                    }}
-                  >
-                    {opt}
-                  </button>
-                );
-              })}
+            <h2 style={titleStyle}>{CONSULTATION_QUESTIONS.q1.title}</h2>
+            <div style={gridStyle}>
+              {CONSULTATION_QUESTIONS.q1.options.map((opt) => (
+                <button key={opt.id} onClick={() => { setFormData({ ...formData, q1_id: opt.id }); nextStep(); }} style={buttonStyle}>{opt.text}</button>
+              ))}
             </div>
           </div>
         )}
 
         {step === 2 && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Q2. 場所や対象はどこですか？</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-              {QUESTIONS.place.map(opt => (
-                <button key={opt} onClick={() => { setFormData({...formData, place_type: opt}); nextStep(); }} style={{...buttonStyle, textAlign: 'center'}}>{opt}</button>
+            <h2 style={titleStyle}>{CONSULTATION_QUESTIONS.q2.title}</h2>
+            <div style={gridStyle}>
+              {CONSULTATION_QUESTIONS.q2.options.map(opt => (
+                <button key={opt.id} onClick={() => { setFormData({...formData, q2_id: opt.id}); nextStep(); }} style={buttonStyle}>{opt.text}</button>
               ))}
             </div>
             <button onClick={prevStep} style={backLinkStyle}>戻る</button>
@@ -168,10 +158,10 @@ export default function TestConsultationPage() {
 
         {step === 3 && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Q3. 悩みのジャンルを教えてください</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-              {QUESTIONS.content.map(opt => (
-                <button key={opt} onClick={() => { setFormData({...formData, content_type: opt}); nextStep(); }} style={{...buttonStyle, textAlign: 'center'}}>{opt}</button>
+            <h2 style={titleStyle}>{CONSULTATION_QUESTIONS.q3.title}</h2>
+            <div style={gridStyle}>
+              {CONSULTATION_QUESTIONS.q3.options.map(opt => (
+                <button key={opt.id} onClick={() => { setFormData({...formData, q3_id: opt.id}); nextStep(); }} style={buttonStyle}>{opt.text}</button>
               ))}
             </div>
             <button onClick={prevStep} style={backLinkStyle}>戻る</button>
@@ -180,10 +170,10 @@ export default function TestConsultationPage() {
 
         {step === 4 && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Q4. 返信を希望されますか？</h2>
+            <h2 style={titleStyle}>返信を希望されますか？</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <button onClick={() => { setFormData({...formData, needs_reply: true}); nextStep(); }} style={{...buttonStyle, textAlign: 'center'}}>希望する</button>
-              <button onClick={() => { setFormData({...formData, needs_reply: false}); setStep(6); }} style={{...buttonStyle, textAlign: 'center'}}>不要</button>
+              <button onClick={() => { setFormData({...formData, needs_reply: true}); nextStep(); }} style={buttonStyle}>希望する</button>
+              <button onClick={() => { setFormData({...formData, needs_reply: false}); setStep(6); }} style={buttonStyle}>不要</button>
             </div>
             <button onClick={prevStep} style={backLinkStyle}>戻る</button>
           </div>
@@ -191,60 +181,102 @@ export default function TestConsultationPage() {
 
         {step === 5 && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Q5. 返信先のメールアドレス</h2>
+            <h2 style={titleStyle}>返信先のメールアドレス</h2>
             <input name="email" type="email" value={formData.email} onChange={handleChange} placeholder="example@mail.com" style={inputStyle} />
             <button onClick={nextStep} disabled={!formData.email} style={nextButtonStyle}>次へ</button>
             <button onClick={prevStep} style={backLinkStyle}>戻る</button>
           </div>
         )}
 
+        {/* Step 6: 詳細記入 */}
         {step === 6 && (
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>詳細をご記入ください</h2>
-            <div style={{ marginBottom: '20px', padding: '20px', background: '#edf2f7', borderRadius: '12px', fontSize: '15px', lineHeight: '1.8' }}>
-              <div style={{ color: '#4a5568', fontWeight: 'bold', marginBottom: '10px', borderBottom: '2px solid #cbd5e0', paddingBottom: '8px' }}>
-                入力内容の確認
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '5px' }}>
-                <span>相談対象：</span><strong>{formData.target_type}</strong>
-                {formData.target_type !== "提案やお問い合わせの方はこちら" && (
-                  <>
-                    <span>場所・対象：</span><strong>{formData.place_type}</strong>
-                    <span>ジャンル：</span><strong>{formData.content_type}</strong>
-                  </>
-                )}
-                <span>返信希望：</span><strong>{formData.needs_reply ? `希望する (${formData.email})` : '不要'}</strong>
+            <h2 style={titleStyle}>詳細をご記入ください</h2>
+            
+            {/* これまで選択した内容のサマリーを表示 */}
+            <div style={{ marginBottom: '25px', padding: '20px', background: '#f7fafc', borderRadius: '12px', fontSize: '14px', border: '1px solid #e2e8f0', lineHeight: '1.6' }}>
+              <div style={{ color: '#4a5568', fontWeight: 'bold', marginBottom: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '5px' }}>選択内容の確認</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '4px' }}>
+                <span style={{ color: '#718096' }}>相談時期:</span>
+                <strong>{CONSULTATION_QUESTIONS.q1.options.find(o => o.id === formData.q1_id)?.text}</strong>
+                <span style={{ color: '#718096' }}>目的:</span>
+                <strong>{CONSULTATION_QUESTIONS.q2.options.find(o => o.id === formData.q2_id)?.text}</strong>
+                <span style={{ color: '#718096' }}>関係箇所:</span>
+                <strong>{CONSULTATION_QUESTIONS.q3.options.find(o => o.id === formData.q3_id)?.text}</strong>
+                <span style={{ color: '#718096' }}>返信希望:</span>
+                <strong>{formData.needs_reply ? `希望する (${formData.email})` : '不要'}</strong>
               </div>
             </div>
 
-            <textarea name="message" value={formData.message} onChange={handleChange} placeholder="具体的な内容をご記入ください" style={{...inputStyle, height: '200px'}} />
-            <button onClick={handleSubmit} disabled={loading || !formData.message} style={nextButtonStyle}>
+            {/* テーマ提案セクション */}
+            <div style={{ marginBottom: '25px' }}>
+              <p style={{ fontSize: '14px', marginBottom: '10px', fontWeight: 'bold', color: '#4a5568' }}>
+                Q. ご相談の内容に近いテーマを選択してください（必須）
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
+                {getSuggestions(formData.q1_id, formData.q2_id, formData.q3_id).map((text) => {
+                  const masterId = Number(Object.keys(SUGGESTION_MASTER).find(key => SUGGESTION_MASTER[Number(key)] === text));
+                  const isSelected = formData.selected_suggestion_id === masterId;
+                  return (
+                    <button 
+                      key={text} 
+                      onClick={() => setFormData({...formData, selected_suggestion_id: masterId})} 
+                      style={{
+                        ...buttonStyle,
+                        fontSize: '14px',
+                        textAlign: 'left',
+                        padding: '15px',
+                        borderColor: isSelected ? '#2d3748' : '#ddd',
+                        backgroundColor: isSelected ? '#edf2f7' : '#fff',
+                        boxShadow: isSelected ? '0 0 0 1px #2d3748' : 'none'
+                      }}
+                    >
+                      {isSelected ? '✅ ' : ''}{text}
+                    </button>
+                  );
+                })}
+                <button 
+                  onClick={() => setFormData({...formData, selected_suggestion_id: -1})}
+                  style={{
+                    ...buttonStyle,
+                    fontSize: '14px',
+                    textAlign: 'left',
+                    padding: '15px',
+                    backgroundColor: formData.selected_suggestion_id === -1 ? '#edf2f7' : '#f8f9fa',
+                    borderColor: formData.selected_suggestion_id === -1 ? '#2d3748' : '#ddd'
+                  }}
+                >
+                  {formData.selected_suggestion_id === -1 ? '✅ ' : ''}どれも当てはまらない（自由記述のみ）
+                </button>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '14px', marginBottom: '10px', fontWeight: 'bold', color: '#4a5568' }}>
+              Q. 具体的な内容をご記入ください
+            </p>
+            <textarea 
+              name="message" 
+              value={formData.message} 
+              onChange={handleChange} 
+              placeholder="状況や背景など自由にご記入ください" 
+              style={{...inputStyle, height: '180px'}} 
+            />
+            
+            <button 
+              onClick={handleSubmit} 
+              disabled={loading || !formData.message || formData.selected_suggestion_id === 0} 
+              style={nextButtonStyle}
+            >
               {loading ? '送信中...' : 'この内容で送信する'}
             </button>
-            <button 
-              onClick={() => {
-                if (formData.target_type === "提案やお問い合わせの方はこちら") {
-                  setStep(1);
-                } else {
-                  formData.needs_reply ? setStep(5) : setStep(4);
-                }
-              }} 
-              style={backLinkStyle}
-            >
-              戻る
-            </button>
+            <button onClick={() => formData.needs_reply ? setStep(5) : setStep(4)} style={backLinkStyle}>戻る</button>
           </div>
         )}
 
         {step === 7 && (
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
             <h2 style={{ marginBottom: '30px' }}>{status}</h2>
-            <button 
-              onClick={() => window.parent.postMessage('CONSULTATION_SUBMITTED', '*')} 
-              style={{...nextButtonStyle, background: '#4a5568', maxWidth: '300px', margin: '0 auto'}}
-            >
-              ウィンドウを閉じる
-            </button>
+            <button onClick={() => window.parent.postMessage('CONSULTATION_SUBMITTED', '*')} style={{...nextButtonStyle, background: '#4a5568', maxWidth: '300px', margin: '0 auto'}}>ウィンドウを閉じる</button>
           </div>
         )}
       </div>
@@ -252,23 +284,20 @@ export default function TestConsultationPage() {
       {step <= 6 && (
         <div style={{ marginTop: '50px', textAlign: 'center', borderTop: '1px solid #eee', paddingTop: '20px' }}>
           {step > 1 && (
-            <button 
-              onClick={handleReset} 
-              style={{ background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline', marginBottom: '10px' }}
-            >
-              最初からやり直す
-            </button>
+            <button onClick={handleReset} style={resetButtonStyle}>最初からやり直す</button>
           )}
-          <p style={{ fontSize: '12px', color: '#a0aec0', margin: 0 }}>
-            ※入力内容は自動保存されています。
-          </p>
+          <p style={{ fontSize: '12px', color: '#a0aec0', margin: 0 }}>※入力内容は自動保存されています。</p>
         </div>
       )}
     </div>
   );
 }
 
-const buttonStyle: React.CSSProperties = { padding: '20px', fontSize: '16px', cursor: 'pointer', border: '1px solid #ddd', borderRadius: '12px', width: '100%', backgroundColor: '#fff', transition: 'all 0.2s' };
+// スタイル定義
+const titleStyle: React.CSSProperties = { fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 'bold' };
+const gridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' };
+const buttonStyle: React.CSSProperties = { padding: '20px', fontSize: '16px', cursor: 'pointer', border: '1px solid #ddd', borderRadius: '12px', width: '100%', backgroundColor: '#fff', transition: 'all 0.2s', textAlign: 'center' };
 const nextButtonStyle: React.CSSProperties = { width: '100%', padding: '18px', marginTop: '15px', backgroundColor: '#2d3748', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '15px', fontSize: '16px', borderRadius: '12px', border: '2px solid #e2e8f0', marginTop: '10px', boxSizing: 'border-box', outline: 'none' };
 const backLinkStyle: React.CSSProperties = { marginTop: '25px', display: 'block', background: 'none', border: 'none', color: '#888', cursor: 'pointer', textDecoration: 'underline', textAlign: 'center', width: '100%' };
+const resetButtonStyle: React.CSSProperties = { background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline', marginBottom: '10px' };
