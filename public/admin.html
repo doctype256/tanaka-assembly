@@ -510,6 +510,9 @@
         </div>
         <button type="submit" class="login-button">ログイン</button>
       </form>
+      <div class="forgot-password"> 
+      <a href="/forgot-password.html">パスワードを忘れた場合はこちら</a> 
+    </div>
     </div>
 
     <!-- 管理画面 -->
@@ -526,7 +529,7 @@
         <button class="tab-button" data-tab="activity-reports-tab">活動報告</button>
         <button class="tab-button" data-tab="consultation-new-tab" style="background-color: #fff1f2; color: #e11d48; font-weight: bold;">相談管理(最新)</button>
         <button class="tab-button" data-tab="top-page-edit" style="background-color: #e0f2fe; color: #0369a1;">トップページ編集</button>
-        <button class="tab-button" data-tab="change-password-tab" data-target="change-password-tab" style="background-color: #fef9c3; color: #92400e;">パスワード変更</button>
+        <!-- <button class="tab-button" data-tab="change-password-tab" data-target="change-password-tab" style="background-color: #fef9c3; color: #92400e;">パスワード変更</button> -->
       </div>
 
       <div id="top-page-edit" class="tab-content">
@@ -789,24 +792,23 @@
     <iframe src="/admin/consultations" style="width: 100%; height: 900px; border: 1px solid #ddd; border-radius: 8px; background: white;"></iframe>
   </div>
 </div>
-    </div>
+    <!-- </div>
   </div>
 </div>
-    <!-- パスワード変更タブ --> 
+    パスワード変更タブ 
      <div id="change-password-tab" class="tab-content"> 
       <h3>🔒 パスワード変更</h3> 
       <form id="change-password-form" class="profile-edit-form"> 
         <div class="form-group"> <label for="new-password">新しいパスワード</label> 
           <input type="password" id="new-password" name="new-password" placeholder="6文字以上" minlength="6" required aria-required="true" /> 
-        </div> <!-- ▼ 追加：確認用パスワード欄 --> <div class="form-group"> 
+        </div>  <div class="form-group"> 
           <label for="confirm-password">新しいパスワード（確認）</label> 
           <input type="password" id="confirm-password" name="confirm-password" placeholder="もう一度入力" minlength="6" required aria-required="true" /> 
-        </div> <!-- ▲ 追加ここまで --> 
+        </div> 
         <button type="submit" class="login-button">💾 変更する</button> 
-      </form>
-  <!-- ここに移動 --> 
+      </form> 
    <div id="password-success" class="success-message"></div> 
-   <div id="password-error" class="error-message"></div>
+   <div id="password-error" class="error-message"></div> -->
 </div>
 </main>
 
