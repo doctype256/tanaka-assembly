@@ -1,22 +1,20 @@
-// app/api/profile/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { getIronSession } from "iron-session";
+import { sessionOptions } from "@/lib/session";
 import db from "@/db/client";
 
-// 管理パスワードの設定
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin777";
+// ✅ セッションデータの型定義
+interface SessionData {
+  isAdmin?: boolean;
+}
 
 // =========================================================
-// GET : 最新プロフィール取得
+// GET : 最新プロフィール取得（認証なし or 管理者判定付き）
 // =========================================================
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const password = searchParams.get("password");
-
-    // 管理パスワードが来た場合のみチェック
-    if (password && password !== ADMIN_PASSWORD) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const res = new NextResponse();
+    const session = await getIronSession<SessionData>(request, res, sessionOptions);
 
     let profile: any;
 
@@ -45,10 +43,17 @@ export async function GET(request: NextRequest) {
 }
 
 // =========================================================
-// POST : プロフィール保存
+// POST : プロフィール保存（管理者のみ）
 // =========================================================
 export async function POST(request: NextRequest) {
   try {
+    const res = new NextResponse();
+    const session = await getIronSession<SessionData>(request, res, sessionOptions);
+
+    if (!session.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
 
     const {
@@ -59,15 +64,8 @@ export async function POST(request: NextRequest) {
       Family = null,
       Job = null,
       hobby = null,
-      password,
     } = body;
 
-    // 管理者認証
-    if (password !== ADMIN_PASSWORD) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // 必須チェック
     if (!Name || !IMG_URL) {
       return NextResponse.json(
         { error: "Name and IMG_URL are required" },
