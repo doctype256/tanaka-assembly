@@ -592,6 +592,12 @@
           </div>
 
           <div class="form-group">
+            <label for="pdf-date">アップロード日時</label>
+            <input type="datetime-local" id="pdf-date" required>
+            <small style="color: #666;">※指定した日時でサイトに掲載されます</small>
+          </div>
+
+          <div class="form-group">
             <label for="pdf-file">PDFファイル</label>
             <input type="file" id="pdf-file" accept=".pdf" required>
           </div>
@@ -602,7 +608,6 @@
         <div class="error-message" id="error-message-pdf"></div>
         <div class="success-message" id="success-message-pdf"></div>
 
-        <!-- PDFファイル一覧 -->
         <div id="pdf-list-container" style="margin-top: 40px;"></div>
       </div>
 
@@ -678,6 +683,82 @@
 </div>
 </main>
 
+<script>
+  /**
+   * PDFアップロード日時の初期値を現在時刻に設定
+   */
+  function setInitialPdfDate() {
+    const dateInput = document.getElementById('pdf-date');
+    if (!dateInput) return;
+
+    const now = new Date();
+    // 日本時間の書式 (YYYY-MM-DDTHH:mm) に変換
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    dateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  // ページ読み込み時に実行
+  document.addEventListener('DOMContentLoaded', () => {
+    setInitialPdfDate();
+
+    // PDFタブがクリックされたときにも最新時刻に更新したい場合
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        if (button.getAttribute('data-tab') === 'pdf-tab') {
+          setInitialPdfDate();
+        }
+      });
+    });
+  });
+
+  /**
+   * フォーム送信時の処理（admin.jsと競合しないようにラップ）
+   */
+  const pdfForm = document.getElementById('pdf-form');
+  if (pdfForm) {
+    pdfForm.addEventListener('submit', async (e) => {
+      // 既存の admin.js 側の処理でエラーが出るのを防ぐため、一旦ここで止める
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const successMsg = document.getElementById('success-message-pdf');
+      const errorMsg = document.getElementById('error-message-pdf');
+      successMsg.style.display = 'none';
+      errorMsg.style.display = 'none';
+
+      const formData = new FormData();
+      formData.append('title', document.getElementById('pdf-title').value);
+      formData.append('description', document.getElementById('pdf-description').value);
+      formData.append('created_at', document.getElementById('pdf-date').value);
+      formData.append('file', document.getElementById('pdf-file').files[0]);
+
+      try {
+        const response = await fetch('/api/pdfs', {
+          method: 'POST',
+          body: formData // FormDataをそのまま送る
+        });
+
+        if (!response.ok) throw new Error('アップロードに失敗しました');
+
+        successMsg.textContent = 'PDFを保存しました！';
+        successMsg.style.display = 'block';
+        pdfForm.reset();
+        setInitialPdfDate();
+        
+        // admin.js 内に一覧更新関数があれば実行
+        if (typeof loadPdfList === 'function') loadPdfList();
+      } catch (err) {
+        errorMsg.textContent = err.message;
+        errorMsg.style.display = 'block';
+      }
+    });
+  }
+</script>
 
   <script type="module" src="/js/admin.js"></script>
 </body>
