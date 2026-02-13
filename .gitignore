@@ -12,3 +12,5 @@ local.db
 node_modules/
 # キャッシュなどを無視
 .turbo/
+# ログ管理
+logs/
