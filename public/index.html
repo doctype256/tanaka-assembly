@@ -52,9 +52,20 @@
 </header>
 
 <main>
-  <section class="hero-image">
-    <img id="dynamic-hero-img" alt="背景">
-  </section>
+ <section class="hero">
+  <div class="hero-image">
+   <img id="dynamic-hero-img" src="images/hero-bg.jpg" alt="">
+   
+
+
+    <!-- 文字（← 必ずこの中） -->
+    <div class="hero-text-layer">
+      <p id="dynamic-hero-text"></p>
+      <h1 id="dynamic-hero-lawmaker"></h1>
+      <h1 id="dynamic-hero-name"></h1>
+    </div>
+  </div>
+</section>
 
 <section class="consultation-section">
   <a href="post.html" class="consultation-card-integrated">
@@ -140,7 +151,12 @@ const ContentManager = {
 
   applyData(data) {
     if (!data) return;
-    if (data.heroImg) document.getElementById('dynamic-hero-img').src = data.heroImg;
+    if (data.heroImg) {
+      const img = document.getElementById('dynamic-hero-img');
+      img.classList.remove('is-visible');
+      img.onload = () => img.classList.add('is-visible');
+      img.src = data.heroImg;
+    }
     const ytContainer = document.getElementById('dynamic-yt-container');
     const vId = this.parseYoutubeId(data.ytUrl);
     ytContainer.innerHTML = vId 
@@ -168,6 +184,23 @@ const ContentManager = {
       ? `<iframe src="${embedUrl}" loading="lazy" allowfullscreen></iframe>`
       : `<div style="padding:20px; text-align:center; color:#999;">地図未設定</div>`;
 
+    const page = document.body.dataset.page;
+    if (data.pageHeaders && data.pageHeaders[page]) {
+      const header = data.pageHeaders[page];
+      document.getElementById('page-header-text').textContent = header.text || "";
+      const linksWrapper = document.getElementById('page-header-links');
+      if (header.links) {
+        header.links.forEach(item => {
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+          a.href = item.url;
+          a.textContent = item.label;
+          a.target = '_blank';
+          li.appendChild(a);
+          linksWrapper.appendChild(li);
+        });
+      }
+    }
     if (window.lucide) lucide.createIcons();
   },
 
@@ -180,46 +213,44 @@ const ContentManager = {
 
 const pdfjsLib = window['pdfjs-dist/build/pdf'];
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
 let carouselIndices = {};
 let carouselTotalSlides = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. フッターなどの静的テキスト取得
+  const heroText     = document.getElementById('dynamic-hero-text');
+  const heroLawmaker = document.getElementById('dynamic-hero-lawmaker');
+  const heroName     = document.getElementById('dynamic-hero-name');
+  const heroImg      = document.getElementById('dynamic-hero-img');
+
+  // JSON読み込み
   fetch('data/static-texts.json')
     .then(res => res.json())
     .then(data => {
-      const page = document.body.dataset.page;
-      if (data.pageHeaders && data.pageHeaders[page]) {
-        const header = data.pageHeaders[page];
-        document.getElementById('page-header-text').textContent = header.text;
-        const linksWrapper = document.getElementById('page-header-links');
-        if (header.links) {
-          header.links.forEach(item => {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.href = item.url; a.textContent = item.label; a.target = '_blank';
-            li.appendChild(a); linksWrapper.appendChild(li);
-          });
-        }
+      if (data.top) {
+        heroText.textContent     = data.top.text || "";
+        heroLawmaker.textContent = data.top.lawmaker || "";
+        heroName.textContent     = data.top.name || "";
       }
+
+      // 順番フロートイン
+      setTimeout(() => heroText.classList.add('is-visible'), 500);       // text
+      setTimeout(() => heroLawmaker.classList.add('is-visible'), 500);   // lawmaker
+      setTimeout(() => heroName.classList.add('is-visible'), 500);       // name
+      setTimeout(() => heroImg.classList.add('float-in'), 1500);         // 画像
     });
 
-  // 2. 活動報告データの取得（最新4件を表示）
+  // --- 他の処理 ---
   const checkDB = setInterval(async () => {
     if (typeof fetchActivityReports === 'function') {
       clearInterval(checkDB);
       const reports = await fetchActivityReports();
-      if (reports && reports.length > 0) {
-        // 年代順にソートして最新4件を抽出
-        const latestReports = [...reports]
-          .sort((a, b) => b.year - a.year)
-          .slice(0, 4);
-        renderPolicyCarousel(latestReports);
+      if (reports?.length) {
+        renderPolicyCarousel(reports.sort((a,b) => b.year - a.year).slice(0,4));
       }
     }
   }, 100);
 
-  // 3. TOPページ管理データ取得
   fetch('/api/top-page')
     .then(res => res.json())
     .then(data => ContentManager.applyData(data))
@@ -228,12 +259,93 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadLatestShihoPress();
 });
 
+// ===== Shiho Press 描画関数 (別タブでPDFを開く設定) =====
+async function loadLatestShihoPress() {
+  const container = document.getElementById('shiho-press-container');
+  if (!container) return;
+
+  try {
+    const response = await fetch('/api/pdfs');
+    if (!response.ok) throw new Error('API Error');
+    const pdfs = await response.json();
+    if (!pdfs || pdfs.length === 0) {
+      container.innerHTML = '<p style="text-align:center; padding:20px;">現在、新しい記事はありません。</p>';
+      return;
+    }
+
+    const years = pdfs.map(pdf => new Date(pdf.created_at).getFullYear());
+    const latestYear = Math.max(...years);
+    const latestYearData = pdfs.filter(pdf => new Date(pdf.created_at).getFullYear() === latestYear).sort((a, b) => b.id - a.id);
+
+    const yearKey = 'shihopress_latest';
+    carouselTotalSlides[yearKey] = latestYearData.length;
+    carouselIndices[yearKey] = 0;
+
+    container.innerHTML = `
+      <div style="margin-bottom: 10px; font-weight: bold; color: #03709b;">最新：${latestYear}年度</div>
+      <div class="pdf-year-section" data-carousel-year="${yearKey}">
+        <div class="pdf-carousel-wrapper">
+          <div class="pdf-carousel">
+            <button class="carousel-nav carousel-prev" onclick="handlePrevClickIndex('${yearKey}')">❮</button>
+            <div class="pdf-carousel-inner" id="pdf-carousel-inner-${yearKey}">
+              ${latestYearData.map(pdf => `
+                <div class="pdf-item">
+                  <div class="report-thumb" id="thumb-container-${pdf.id}" onclick="window.open('${pdf.file_path}', '_blank')" style="cursor: pointer;">
+                    <div class="loading-spinner" style="height:200px; display:flex; align-items:center; justify-content:center; background:#f0f0f0; color:#999;">読み込み中...</div>
+                  </div>
+                  <div class="pdf-item-meta">${new Date(pdf.created_at).getFullYear()}年 / Shiho Press</div>
+                  <h3>${pdf.title}</h3>
+                  <div class="pdf-actions">
+                    <button class="pdf-btn" onclick="window.open('${pdf.file_path}', '_blank')">PDFを開く</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <button class="carousel-nav carousel-next" onclick="handleNextClickIndex('${yearKey}')">❯</button>
+          </div>
+          <div class="carousel-dots">
+            ${latestYearData.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlideIndex('${yearKey}', ${i})"></div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+
+    updateCarouselIndex(yearKey);
+    latestYearData.forEach(pdf => generatePdfThumbnail(pdf.file_path, `thumb-container-${pdf.id}`));
+
+  } catch (error) {
+    console.error('ShihoPress Carousel Error:', error);
+  }
+}
+
+// サムネイル生成
+async function generatePdfThumbnail(pdfUrl, containerId) {
+  try {
+    const loadingTask = pdfjsLib.getDocument(pdfUrl);
+    const pdf = await loadingTask.promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 0.5 });
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    await page.render({ canvasContext: context, viewport: viewport }).promise;
+    
+    const container = document.getElementById(containerId);
+    if (container) {
+      container.innerHTML = `<img src="${canvas.toDataURL()}" style="width:100%; height:200px; object-fit:cover;">`;
+    }
+  } catch (e) {
+    console.error("Thumbnail error:", e);
+  }
+}
+
+// 活動報告カルーセル描画
 function renderPolicyCarousel(reports) {
   const container = document.getElementById('policy-carousel-container');
   const yearKey = 'policy_latest';
   carouselTotalSlides[yearKey] = reports.length;
   carouselIndices[yearKey] = 0;
-  
+
   container.innerHTML = `
     <div class="pdf-year-section" data-carousel-year="${yearKey}">
       <div class="pdf-carousel-wrapper">
@@ -261,76 +373,41 @@ function renderPolicyCarousel(reports) {
   updateCarouselIndex(yearKey);
 }
 
-async function loadLatestShihoPress() {
-  try {
-    const response = await fetch('/api/pdfs');
-    const pdfs = response.ok ? await response.json() : [];
-    renderShihoPressCarousel(pdfs);
-  } catch (e) { console.error(e); }
-}
-
-function renderShihoPressCarousel(pdfs) {
-  const container = document.getElementById('shiho-press-container');
-  if (!pdfs || !pdfs.length) return;
-  const latestYear = new Date(pdfs[0].created_at).getFullYear();
-  const yearPdfs = pdfs.filter(p => new Date(p.created_at).getFullYear() === latestYear);
-  carouselTotalSlides[latestYear] = yearPdfs.length;
-  carouselIndices[latestYear] = 0;
-  container.innerHTML = `<div class="pdf-year-section" data-carousel-year="${latestYear}"><div class="pdf-carousel-wrapper"><div class="pdf-year-title">${latestYear}年</div><div class="pdf-carousel"><button class="carousel-nav carousel-prev" onclick="handlePrevClickIndex('${latestYear}')">❮</button><div class="pdf-carousel-inner" id="pdf-carousel-inner-${latestYear}">${yearPdfs.map((pdf, index) => `<div class="pdf-item"><div class="pdf-thumbnail-container" id="thumb-${latestYear}-${index}"><div class="thumbnail-loading">生成中...</div></div><h3 onclick="window.open('${pdf.file_path}', '_blank')">${pdf.title}</h3>${pdf.description ? `<p>${pdf.description}</p>` : ''}<div class="pdf-item-meta" style="margin-bottom:10px; font-size:0.85em; color:#666;">${pdf.created_at ? `アップロード日時: ${new Date(pdf.created_at).toLocaleDateString('ja-JP')}` : ''}</div><div class="pdf-actions"><a href="${pdf.file_path}" target="_blank" class="pdf-btn">PDFを表示</a></div></div>`).join('')}</div><button class="carousel-nav carousel-next" onclick="handleNextClickIndex('${latestYear}')">❯</button></div><div class="carousel-dots">${yearPdfs.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlideIndex('${latestYear}', ${i})"></div>`).join('')}</div></div></div>`;
-  updateCarouselIndex(latestYear);
-  generateThumbnails(yearPdfs, latestYear);
-}
-
-async function generateThumbnails(pdfs, year) {
-  for (let i = 0; i < pdfs.length; i++) {
-    const thumbContainer = document.getElementById(`thumb-${year}-${i}`);
-    try {
-      const loadingTask = pdfjsLib.getDocument(pdfs[i].file_path);
-      const pdf = await loadingTask.promise;
-      const page = await pdf.getPage(1);
-      const viewport = page.getViewport({ scale: 0.4 });
-      const canvas = document.createElement('canvas');
-      canvas.height = viewport.height; canvas.width = viewport.width;
-      await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
-      const img = document.createElement('img');
-      img.src = canvas.toDataURL(); img.className = 'pdf-thumbnail-img';
-      img.onclick = () => window.open(pdfs[i].file_path, '_blank');
-      thumbContainer.innerHTML = ''; thumbContainer.appendChild(img);
-    } catch (err) { thumbContainer.innerHTML = '📄'; }
-  }
-}
-
+// カルーセル共通操作
 function updateCarouselIndex(key) {
   const section = document.querySelector(`[data-carousel-year="${key}"]`);
   if (!section) return;
   const inner = section.querySelector('.pdf-carousel-inner');
   const items = section.querySelectorAll('.pdf-item');
   const index = carouselIndices[key];
-  
   const visibleItems = window.innerWidth < 768 ? 1 : (window.innerWidth < 1024 ? 2 : 3);
   const itemWidth = 100 / visibleItems;
   const offset = (visibleItems - 1) / 2;
-  
   inner.style.transform = `translateX(${-(index - offset) * itemWidth}%)`;
   items.forEach((item, i) => item.classList.toggle('center', i === index));
-  
   const dots = section.querySelectorAll('.dot');
   dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
 }
 
-function handlePrevClickIndex(key) { 
+function handlePrevClickIndex(key) {
   const total = carouselTotalSlides[key];
+  if (total <= 1) return;
   carouselIndices[key] = (carouselIndices[key] > 0) ? carouselIndices[key] - 1 : total - 1;
   updateCarouselIndex(key);
 }
 
-function handleNextClickIndex(key) { 
+function handleNextClickIndex(key) {
   const total = carouselTotalSlides[key];
+  if (total <= 1) return;
   carouselIndices[key] = (carouselIndices[key] < total - 1) ? carouselIndices[key] + 1 : 0;
   updateCarouselIndex(key);
 }
 
-function goToSlideIndex(key, index) { carouselIndices[key] = index; updateCarouselIndex(key); }
+function goToSlideIndex(key, index) {
+  carouselIndices[key] = index;
+  updateCarouselIndex(key);
+}
+
 window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
 </script>
 <script src="src/header.js"></script>

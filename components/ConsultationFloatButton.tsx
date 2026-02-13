@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 /**
- * ConsultationFloatButton クラス
- * インラインスタイルのみを使用して TypeScript の型エラーを回避した完全版
+ * ConsultationFloatButton: 浮遊ボタンおよびモーダルウィンドウ
+ * スマホでの表示を最適化（はみ出し防止）し、PCでも適切なサイズに調整。
  */
 export default function ConsultationFloatButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -93,39 +93,52 @@ export default function ConsultationFloatButton() {
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 10001,
+      // スマホではみ出さないよう、外側にパディングを確保
+      padding: '16px',
+      boxSizing: 'border-box'
     },
     modal: {
       backgroundColor: 'white',
-      width: '95%',
-      maxWidth: '500px',
+      // スマホ時は画面幅いっぱい(左右余白除)から、PC時は最大700pxに制限
+      width: '100%',
+      maxWidth: '700px', 
+      height: '80vh',         // 90vhから80vhに下げて圧迫感を軽減
       borderRadius: '12px',
       overflow: 'hidden',
-      boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
       animation: 'modalFadeIn 0.3s ease-out',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative'
     },
     header: {
-      padding: '10px 20px',
+      padding: '12px 20px',
       borderBottom: '1px solid #eee',
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
       background: '#fdf2f5',
+      flexShrink: 0
     },
     iframe: {
       width: '100%',
-      height: '600px',
-      border: 'none',
-    },
+      flex: 1,
+      border: 'none'
+    }
   };
 
   return (
     <>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes modalFadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: scale(0.98); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        /* モバイル端末での表示を微調整 */
+        @media (max-width: 480px) {
+          .modal-responsive {
+            height: 85vh !important;
+          }
         }
 
         @keyframes fadeInOut {
@@ -152,19 +165,17 @@ export default function ConsultationFloatButton() {
 
       {isOpen && (
         <div style={styles.overlay} onClick={closeModal}>
-          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+          <div 
+            style={styles.modal} 
+            className="modal-responsive"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div style={styles.header}>
               <span style={{ fontWeight: 'bold', color: '#333' }}>ご相談フォーム</span>
               <button
                 type="button"
-                onClick={closeModal}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '24px',
-                  cursor: 'pointer',
-                  color: '#666',
-                }}
+                onClick={closeModal} 
+                style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', color: '#666', lineHeight: 1 }}
               >
                 ×
               </button>

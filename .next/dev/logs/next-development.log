@@ -1,4 +1,0 @@
-[00:00:01.483] Server  LOG     ✓ Ready in 1109ms
-[00:00:05.658] Server  LOG     ✅ Using Turso database
-[00:00:13.926] Server  LOG     Tables created or already exist.
-[00:00:13.943] Server  LOG     Data already exists, skipping initial data insertion.
