@@ -1,47 +1,88 @@
 // directory: scripts/setup-consultations.ts
 
-import { client } from '../db/client';
+import { client } from '../db/client.ts'; // 環境によっては拡張子が必要
+import * as dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// ESM環境で__dirnameを再現
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// .envファイルを読み込む
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 /**
- * データベースの初期化：相談テーブルと設定用テーブルの構築
+ * DatabaseSetup: データベースのマイグレーションと初期化を管理
  */
-async function setup() {
-  try {
-    console.log("⏳ Database schema updating...");
+class DatabaseSetup {
+  async run() {
+    try {
+      console.log("⏳ Database schema updating (Turso/LibSQL)...");
 
-    // 1. 相談内容保存テーブル
-    await client.execute(`
-      CREATE TABLE IF NOT EXISTS consultations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        target_type TEXT NOT NULL,
-        place_type TEXT NOT NULL,
-        content_type TEXT NOT NULL,
-        needs_reply INTEGER DEFAULT 0,
-        email TEXT,
-        message TEXT NOT NULL,
-        status TEXT DEFAULT 'unread',
-        ip_hash TEXT NOT NULL,
-        user_agent TEXT,
-        referer_url TEXT,
-        created_at DATETIME DEFAULT (datetime('now', 'localtime'))
-      );
-    `);
+      // 1. consultationsテーブルの作成 / 更新
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS consultations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          target_type TEXT NOT NULL,
+          place_type TEXT NOT NULL,
+          content_type TEXT NOT NULL,
+          suggestion_topic TEXT NOT NULL DEFAULT '未分類',
+          needs_reply INTEGER DEFAULT 0,
+          email TEXT,
+          message TEXT NOT NULL,
+          status TEXT DEFAULT 'unread',
+          admin_memo TEXT,
+          ip_hash TEXT NOT NULL,
+          user_agent TEXT,
+          referer_url TEXT,
+          created_at DATETIME DEFAULT (datetime('now', 'localtime'))
+        );
+      `);
 
-    // 2. システム設定用テーブル
-    await client.execute(`
-      CREATE TABLE IF NOT EXISTS site_settings (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL,
-        updated_at DATETIME DEFAULT (datetime('now', 'localtime'))
-      );
-    `);
+      // 2. カラムの存在チェックと追加
+      await this.ensureColumns();
 
-    // 3. 設定値の初期レコード登録（メール通知用、送信用Gmail、送信用パスワード）
-    // すでにキーが存在する場合は無視(IGNORE)し、ない場合のみ空文字で作成します
+      // 3. 設定用テーブルの作成
+      await client.execute(`
+        CREATE TABLE IF NOT EXISTS site_settings (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL,
+          updated_at DATETIME DEFAULT (datetime('now', 'localtime'))
+        );
+      `);
+
+      // 4. 初期レコードの登録
+      await this.seedInitialSettings();
+
+      console.log("✅ Database schema is now up to date.");
+    } catch (error) {
+      console.error("❌ Setup failed:", error);
+      process.exit(1);
+    }
+  }
+
+  private async ensureColumns() {
+    // PRAGMAはテーブルの構造情報を返す
+    const tableInfo = await client.execute("PRAGMA table_info(consultations);");
+    const existingColumns = tableInfo.rows.map(row => String(row.name));
+
+    if (!existingColumns.includes('suggestion_topic')) {
+      await client.execute(`ALTER TABLE consultations ADD COLUMN suggestion_topic TEXT NOT NULL DEFAULT '未分類';`);
+      console.log("➕ Added 'suggestion_topic' column.");
+    }
+
+    if (!existingColumns.includes('admin_memo')) {
+      await client.execute(`ALTER TABLE consultations ADD COLUMN admin_memo TEXT;`);
+      console.log("➕ Added 'admin_memo' column.");
+    }
+  }
+
+  private async seedInitialSettings() {
     const initialSettings = [
-      ['admin_notification_email', ''], // 通知を受け取る議員本人のメアド
-      ['smtp_user', ''],               // 送信元として使うGmailアドレス
-      ['smtp_pass', '']                // Googleで発行した16桁のアプリパスワード
+      ['admin_notification_email', ''],
+      ['smtp_user', ''],
+      ['smtp_pass', '']
     ];
 
     for (const [key, value] of initialSettings) {
@@ -50,11 +91,8 @@ async function setup() {
         args: [key, value]
       });
     }
-
-    console.log("✅ Database tables and initial settings are ready.");
-  } catch (error) {
-    console.error("❌ Setup failed:", error);
   }
 }
 
-setup();
+const setup = new DatabaseSetup();
+setup.run();

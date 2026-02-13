@@ -673,6 +673,18 @@ var CareerManager = /** @class */ (function () {
     };
     return CareerManager;
 }());
+
+function activateTab(tabId) {
+  const allTabs = document.querySelectorAll('.tab-content');
+  allTabs.forEach(tab => {
+    tab.classList.remove('active');
+  });
+
+  const selectedTab = document.getElementById(tabId);
+  if (selectedTab) {
+    selectedTab.classList.add('active');
+  }
+}
 /**
  * 管理者ページメインクラス
  */
@@ -687,49 +699,70 @@ var AdminManager = /** @class */ (function () {
         this.pdf = new PDFManager(this.api);
         this.activityReports = new ActivityReportManager(this.api);
         this.adminPassword = null;
+        this.adminPassword = sessionStorage.getItem('adminPassword') || '';
     }
     /**
-     * 初期化
-     */
+    * 初期化
+    */
     AdminManager.prototype.initialize = function () {
-        this.setupEventListeners();
-        this.initializeTabs();
-    };
-    /**
-     * イベントリスナーを設定
-     */
-    AdminManager.prototype.setupEventListeners = function () {
-                        // --- カテゴリのローカルストレージ管理 ---
-                        var CATEGORY_KEY = 'activity_custom_categories';
-                        var select = document.getElementById('activity-category');
-                        // 初期化時にlocalStorageから復元
-                        function loadCustomCategories() {
-                            if (!select) return;
-                            var saved = localStorage.getItem(CATEGORY_KEY);
-                            if (saved) {
-                                try {
-                                    var arr = JSON.parse(saved);
-                                    arr.forEach(function(val) {
-                                        if (!Array.from(select.options).some(function(opt){return opt.value===val;})) {
-                                            var opt = document.createElement('option');
-                                            opt.value = val;
-                                            opt.textContent = val;
-                                            select.appendChild(opt);
-                                        }
-                                    });
-                                } catch(e) {}
-                            }
-                        }
-                        loadCustomCategories();
+  const password = sessionStorage.getItem('adminPassword');
 
-                        function saveCustomCategories() {
-                            if (!select) return;
-                            var defaultVals = ['committee','childcare','reform','topics',''];
-                            var arr = Array.from(select.options)
-                                .map(function(opt){return opt.value;})
-                                .filter(function(val){return val && !defaultVals.includes(val);});
-                            localStorage.setItem(CATEGORY_KEY, JSON.stringify(arr));
-                        }
+  // 🔐 パスワードが存在するかつログインフォームが非表示なら表示
+  if (password && !document.getElementById('login-form').offsetParent) {
+    const tab = document.getElementById('change-password-tab');
+    if (tab) tab.style.display = 'block';
+  }
+
+  this.setupEventListeners();
+  this.initializeTabs();
+};
+
+/** * イベントリスナーを設定 */ 
+AdminManager.prototype.setupEventListeners = function () { 
+    const tabButtons = document.querySelectorAll('.tab-button'); 
+    tabButtons.forEach(button => { button.addEventListener('click', () => 
+        { const targetId = button.getAttribute('data-target'); 
+            activateTab(targetId); tabButtons.forEach(btn => btn.classList.remove('active')); 
+            button.classList.add('active'); }); }); 
+            const passwordForm = document.getElementById('change-password-form'); 
+            if (passwordForm) 
+                { passwordForm.addEventListener( 'submit', this.handleChangePassword.bind(this) );
+                } 
+  // --- カテゴリのローカルストレージ管理 ---
+  const CATEGORY_KEY = 'activity_custom_categories';
+  const select = document.getElementById('activity-category');
+
+  // 初期化時にlocalStorageから復元
+  function loadCustomCategories() {
+    if (!select) return;
+    const saved = localStorage.getItem(CATEGORY_KEY);
+    if (saved) {
+      try {
+        const arr = JSON.parse(saved);
+        arr.forEach(function (val) {
+          if (!Array.from(select.options).some(opt => opt.value === val)) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = val;
+            select.appendChild(opt);
+          }
+        });
+      } catch (e) {
+        console.warn('カテゴリの読み込みに失敗しました:', e);
+      }
+    }
+  }
+
+  loadCustomCategories();
+
+  function saveCustomCategories() {
+    if (!select) return;
+    const defaultVals = ['committee', 'childcare', 'reform', 'topics', ''];
+    const arr = Array.from(select.options)
+      .map(opt => opt.value)
+      .filter(val => val && !defaultVals.includes(val));
+    localStorage.setItem(CATEGORY_KEY, JSON.stringify(arr));
+  }
                 // 活動報告カテゴリ追加ボタン
                 var addCategoryBtn = document.getElementById('add-activity-category');
                 if (addCategoryBtn) {
@@ -804,6 +837,11 @@ var AdminManager = /** @class */ (function () {
             if (e.key === 'Enter')
                 _this.filterComments();
         });
+        // ✅ パスワード変更フォーム
+        const changePasswordForm = document.getElementById('change-password-form');
+        if (changePasswordForm) {
+            changePasswordForm.addEventListener('submit', this.handleChangePassword.bind(this));
+        }
         // お問い合わせフィルター
         document.getElementById('filter-contact-button').addEventListener('click', function () { return _this.filterContacts(); });
         document.getElementById('clear-contact-filter').addEventListener('click', function () { return _this.clearContactFilter(); });
@@ -952,6 +990,10 @@ var AdminManager = /** @class */ (function () {
 
         console.log('[Admin] ログイン成功！');
         this.adminPassword = password;
+        sessionStorage.setItem('adminPassword', password);
+
+        const tab = document.getElementById('change-password-tab'); 
+        if (tab) tab.style.display = 'block';
 
         Utils.showElement('login-form', false);
         Utils.showElement('admin-content', true);
@@ -980,7 +1022,65 @@ var AdminManager = /** @class */ (function () {
         document.getElementById('password').value = '';
         Utils.showElement('login-form', true);
         Utils.showElement('admin-content', false);
+        sessionStorage.removeItem('adminPassword');
+
+        const allTabs = document.querySelectorAll('.tab-content'); 
+        allTabs.forEach(tab => tab.classList.remove('active'));  
+        const tabButtons = document.querySelectorAll('.tab-button'); 
+        tabButtons.forEach(btn => btn.classList.remove('active'));
     };
+    //パスワード変更処理
+    AdminManager.prototype.handleChangePassword = async function (e) {
+    e.preventDefault();
+
+    const currentPassword = this.adminPassword;
+    const newPassword = document.getElementById('new-password').value.trim();
+    const confirmPassword = document.getElementById('confirm-password').value.trim();
+
+    console.log('[Admin] パスワード変更開始');
+    console.log('[Admin] 現在のパスワード:', currentPassword);
+    console.log('[Admin] 新しいパスワード:', newPassword);
+    console.log('[Admin] パスワードの長さ:', newPassword.length);
+
+    // ▼ 追加：パスワード一致チェック
+    if (newPassword !== confirmPassword) {
+        Utils.showMessage('password-error', 'パスワードが一致しません', 3000);
+        return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+        Utils.showMessage('password-error', '新しいパスワードは6文字以上にしてください', 3000);
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            Utils.showMessage('password-error', data.message, 3000);
+            console.warn('[Admin] ⚠ パスワード変更失敗:', data.message);
+            return;
+    }
+
+    Utils.showMessage('password-success', '✔ パスワードを変更しました！', 3000);
+    console.log('[Admin] パスワード変更成功');
+
+    // 入力欄クリア
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+
+  } catch (err) {
+    console.error('[Admin] パスワード変更通信エラー:', err);
+    Utils.showMessage('password-error', '通信エラーが発生しました', 5000);
+  }
+};
+
     /**
      * すべてのデータを描画
      */

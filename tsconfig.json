@@ -40,7 +40,8 @@
     "app/**/*",   // app フォルダ内の全ての TypeScript ファイルを対象にする
     "src/**/*",    // src フォルダ内の全ての TypeScript ファイルも対象にする
     "db/**/*",     // db フォルダ内も対象にする
-    "**/*.tsx"     // TypeScript の JSX ファイルも対象に
+    "**/*.tsx",     // TypeScript の JSX ファイルも対象に
+    "types/**/*.d.ts" // ← 追加！
   ],
   "exclude": [
     "node_modules",
@@ -49,6 +50,5 @@
     "dist",        // 出力ファイルを除外
     "scripts",     // スクリプトファイルを除外
     "**/*.js",     // JS ファイルを除外（必要に応じて）
-    "**/*.d.ts"    // 型定義ファイルも除外
   ]
 }
