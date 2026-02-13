@@ -145,32 +145,38 @@
 
     // コメント取得関数を独立（401エラー対策のログを追加）
     async function loadComments(title) {
-  const commentList = document.getElementById('comment-list');
-  try {
-    const adminPassword = sessionStorage.getItem('adminPassword'); // ← ログイン時に保存しておいたパスワードを取得！
+      const commentList = document.getElementById('comment-list');
+      try {
+        const adminPassword = sessionStorage.getItem('adminPassword') || '';
+        
+        // パスワードがある時だけクエリに含める
+        let url = `/api/comments?article_title=${encodeURIComponent(title)}`;
+        if (adminPassword) {
+          url += `&password=${encodeURIComponent(adminPassword)}`;
+        }
 
-    const commentRes = await fetch(`/api/comments?article_title=${encodeURIComponent(title)}&password=${encodeURIComponent(adminPassword)}`);
+        const commentRes = await fetch(url);
 
-    if (commentRes.ok) {
-      const comments = await commentRes.json();
-      if (Array.isArray(comments) && comments.length > 0) {
-        commentList.innerHTML = comments.map(comment => `
-          <div class="comment-bubble">
-            <div class="comment-name">${comment.name || '匿名'}</div>
-            <div class="comment-message">${comment.message}</div>
-          </div>
-        `).join('');
-      } else {
-        commentList.innerHTML = '<p>まだコメントはありません。最初の感想をお寄せください。</p>';
+        if (commentRes.ok) {
+          const comments = await commentRes.json();
+          if (Array.isArray(comments) && comments.length > 0) {
+            commentList.innerHTML = comments.map(comment => `
+              <div class="comment-bubble">
+                <div class="comment-name">${comment.name || '匿名'}さん</div>
+                <div class="comment-message">${comment.message}</div>
+              </div>
+            `).join('');
+          } else {
+            commentList.innerHTML = '<p>まだコメントはありません。最初の感想をお寄せください。</p>';
+          }
+        } else {
+          // ここで 401 が出なくなります
+          commentList.innerHTML = '<p>コメントを表示できませんでした。</p>';
+        }
+      } catch (e) {
+        console.error('コメント取得エラー:', e);
       }
-    } else {
-      commentList.innerHTML = '<p>コメントの取得に失敗しました（認証エラー）。</p>';
     }
-  } catch (e) {
-    commentList.innerHTML = '<p>コメントの取得に失敗しました。</p>';
-    console.error('コメント取得エラー:', e);
-  }
-}
   </script>
   <script src="src/header.js"></script>
 </body>

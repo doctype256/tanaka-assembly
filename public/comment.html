@@ -52,19 +52,20 @@
     </form>
   </section>
   <div class="back-link-area--comment">
-        <a href="policy.html" class="back-button--comment">活動報告一覧へ戻る</a>
-      </div>
+    <a href="policy.html" class="back-button--comment">活動報告一覧へ戻る</a>
+  </div>
 </main>
 
 <script>
   const params = new URLSearchParams(window.location.search);
   const typeParam = params.get('type'); 
   const indexParam = params.get('index');
-  
+  const titleParam = params.get('article_title'); // URLから直接タイトルを取得
+
   fetch('data/static-texts.json')
     .then(res => res.json())
     .then(data => {
-      // 1. ヘッダー情報の反映（rinen.name を優先、なければ profile.name）
+      // 1. ヘッダー情報の反映
       const headerName = data.rinen ? data.rinen.name : data.profile.name;
       document.getElementById('header-name').textContent = headerName;
       
@@ -85,9 +86,8 @@
         document.getElementById('page-title').textContent = commentConfig.title;
         document.getElementById('page-text').textContent = commentConfig.text;
         
-        // プライバシーポリシーの反映
         const bodyWrapper = document.getElementById('privacy-body');
-        bodyWrapper.innerHTML = ''; // クリア
+        bodyWrapper.innerHTML = ''; 
         commentConfig.privacy.body.forEach(text => {
           const p = document.createElement('p');
           p.textContent = text;
@@ -96,25 +96,29 @@
         document.getElementById('privacy-agree-text').textContent = commentConfig.privacy.checkboxLabel;
       }
 
-      // 3. 対象記事の特定と表示
-      let article;
-      if (typeParam === 'topics') {
-        article = data.activities.topics;
-      } else if (indexParam !== null && data.activities.reports) {
-        article = data.activities.reports[indexParam];
-      }
-
+      // 3. 対象記事の特定と表示（タイトル一致のための重要ロジック）
       const infoBox = document.getElementById('target-article-info');
       const titleInput = document.getElementById('article-title-input');
+      let finalTitle = "";
 
-      if (article) {
+      if (titleParam) {
+        // 詳細ページからの遷移（article_titleがURLにある場合）を最優先
+        finalTitle = titleParam;
+      } else if (typeParam === 'topics') {
+        finalTitle = data.activities.topics.title;
+      } else if (indexParam !== null && data.activities.reports && data.activities.reports[indexParam]) {
+        finalTitle = data.activities.reports[indexParam].title;
+      } else {
+        finalTitle = '一般的なご意見';
+      }
+
+      // 画面表示と隠しインプットへのセット
+      if (finalTitle) {
         infoBox.innerHTML = `
           <p class="target-label" style="font-size:0.85rem; color:#666; margin-bottom:4px;">対象の活動報告：</p>
-          <p class="target-title" style="font-weight:bold; color:#03709b; margin-bottom:20px;">「${article.title}」</p>
+          <p class="target-title" style="font-weight:bold; color:#03709b; margin-bottom:20px;">「${finalTitle}」</p>
         `;
-        titleInput.value = article.title;
-      } else {
-        titleInput.value = '一般的なご意見';
+        titleInput.value = finalTitle;
       }
 
       // 4. フォーム送信処理
@@ -122,6 +126,7 @@
       commentForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
+        // セットされたタイトルを取得（ここがDBのarticle_titleになる）
         const articleTitle = titleInput.value.trim();
         const name = document.getElementById('nickname').value.trim();
         const message = document.getElementById('message').value.trim();
@@ -145,7 +150,6 @@
           });
 
           if (response.ok) {
-            // 成功時は type=comment を付けてサンクスページへ
             window.location.href = `thanks.html?type=comment`;
           } else {
             const error = await response.json();
