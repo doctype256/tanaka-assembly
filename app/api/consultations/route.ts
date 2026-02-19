@@ -7,31 +7,32 @@ import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
 /**
- * ユーザーからの相談を受け付け、DB保存および管理者へのメール通知を行う
- * 送信設定（Gmail認証情報）はデータベースから動的に取得します。
+ * POST: 相談受付・保存・管理者通知
+ * タイトルを簡潔にし、本文のレイアウトを視認性重視で構築しました。
  */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    // 1. 必須項目のバリデーション
-    const { target_type, place_type, content_type, message } = body;
-    if (!target_type || !place_type || !content_type || !message) {
+    // 1. バリデーション
+    const { target_type, place_type, content_type, suggestion_topic, message } = body;
+    if (!target_type || !place_type || !content_type || !suggestion_topic || !message) {
       return NextResponse.json({ error: '必須項目が不足しています。' }, { status: 400 });
     }
 
-    // 2. セキュリティ・メタデータの取得
+    // 2. メタデータ取得
     const forwarded = req.headers.get('x-forwarded-for');
     const ip = forwarded ? forwarded.split(',')[0] : '127.0.0.1';
     const ip_hash = crypto.createHash('sha256').update(ip).digest('hex');
     const user_agent = req.headers.get('user-agent') || 'unknown';
     const referer_url = req.headers.get('referer') || 'unknown';
 
-    // 3. DBへの保存実行（オブジェクト指向に基づきRepositoryを使用）
+    // 3. DB保存
     await ConsultationRepository.create({
       target_type,
       place_type,
       content_type,
+      suggestion_topic,
       needs_reply: body.needs_reply || false,
       email: body.email || '',
       message,
@@ -40,14 +41,12 @@ export async function POST(req: NextRequest) {
       referer_url,
     });
 
-    // 4. DBからメール送信設定を一括取得
-    // 必要な3つのキー（通知先、送信元、パスワード）を一度に取得します
+    // 4. 送信設定取得
     const settingsResult = await client.execute({
       sql: "SELECT key, value FROM site_settings WHERE key IN ('admin_notification_email', 'smtp_user', 'smtp_pass')",
       args: []
     });
 
-    // 取得したレコードを使いやすいようにマップ化
     const settings: Record<string, string> = {};
     settingsResult.rows.forEach(row => {
       settings[row.key as string] = row.value as string;
@@ -57,46 +56,50 @@ export async function POST(req: NextRequest) {
     const smtpUser = settings['smtp_user'];
     const smtpPass = settings['smtp_pass'];
 
-    // 5. 管理者へのメール送信処理
-    // 全ての設定値がDBに保存されている場合のみ実行
+    // 5. メール送信
     if (targetEmail && smtpUser && smtpPass) {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
-        auth: {
-          user: smtpUser,
-          pass: smtpPass, // 管理画面で入力された16桁のアプリパスワード
-        },
+        auth: { user: smtpUser, pass: smtpPass },
       });
 
+      // 【修正】件名を簡潔にし、一目でテーマがわかるように
       const mailOptions = {
         from: smtpUser,
         to: targetEmail,
-        subject: `【相談通知】新しい相談が届きました (${target_type})`,
+        subject: `【新着相談】${suggestion_topic}`,
         text: `
-相談内容が届きました。
+新しい相談が届きました。
+詳細は以下の通りです。
 
-■ 相談の分類
-・ターゲット: ${target_type}
-・場所: ${place_type}
-・内容の種類: ${content_type}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 相談テーマ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+テーマ：${suggestion_topic}
 
-■ 連絡先情報
-・返信希望: ${body.needs_reply ? 'あり' : 'なし'}
-・メールアドレス: ${body.email || '未入力'}
+【分類情報】
+・対象：${target_type}
+・場所：${place_type}
+・内容：${content_type}
 
-■ 相談内容
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 連絡先
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+・返信希望　：${body.needs_reply ? 'あり' : 'なし'}
+・メール　　：${body.email || '未入力'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+■ 相談内容詳細
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${message}
 
----
-このメールはシステムより自動送信されています。
-管理者画面から詳細を確認し、対応を行ってください。
-        `.trim(),
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+※このメールはシステムからの自動通知です。
+管理画面より対応状況の更新を行ってください。
+`.trim(),
       };
 
       await transporter.sendMail(mailOptions);
-      console.log(`Notification sent successfully to ${targetEmail}`);
-    } else {
-      console.warn("Mail sending skipped: Missing DB settings (email, user, or pass)");
     }
 
     return NextResponse.json({ success: true, message: '送信が完了しました。' });
