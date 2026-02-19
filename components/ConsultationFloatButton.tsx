@@ -117,7 +117,7 @@ export default function ConsultationFloatButton() {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      background: '#fdf2f5',
+      background: '#4a86c5',
       flexShrink: 0
     },
     iframe: {
@@ -171,11 +171,11 @@ export default function ConsultationFloatButton() {
             onClick={(e) => e.stopPropagation()}
           >
             <div style={styles.header}>
-              <span style={{ fontWeight: 'bold', color: '#333' }}>ご相談フォーム</span>
+              <span style={{ fontWeight: 'bold', color: '#FCFDFE' }}>ご相談フォーム</span>
               <button
                 type="button"
                 onClick={closeModal} 
-                style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', color: '#666', lineHeight: 1 }}
+                style={{ background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', color: '#FCFDFE', lineHeight: 1 }}
               >
                 ×
               </button>
