@@ -8,21 +8,34 @@ interface SessionData {
   isAdmin?: boolean;
 }
 
-// GET: コメント一覧（管理者のみ）
 export async function GET(req: Request) {
-  const res = new NextResponse();
-  const session = await getIronSession<SessionData>(req, res, sessionOptions);
+  const { searchParams } = new URL(req.url);
+  const articleTitle = searchParams.get('article_title');
+  const all = searchParams.get('all');
 
-  if (!session.isAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // ★ all=true のときは article_title を要求しない
+  if (!all && !articleTitle) {
+    return NextResponse.json({ error: 'Missing article_title' }, { status: 400 });
   }
 
+  // ★ 管理画面用：全件取得
+  if (all) {
+    const result = await db.execute(
+      'SELECT id, article_title, name, message, approved, created_at FROM comments ORDER BY created_at DESC'
+    );
+    return NextResponse.json(result.rows);
+  }
+
+  // ★ 一般公開用：記事ごとの approved=1 のコメント
   const result = await db.execute(
-    'SELECT id, article_title, name, message, approved, created_at FROM comments ORDER BY created_at DESC'
+    'SELECT id, article_title, name, message, approved, created_at FROM comments WHERE article_title = ? AND approved = 1 ORDER BY created_at DESC',
+    [articleTitle]
   );
 
   return NextResponse.json(result.rows);
 }
+
+
 
 // POST: コメント投稿（誰でもOK）
 export async function POST(req: Request) {

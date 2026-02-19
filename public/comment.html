@@ -21,13 +21,17 @@
 <main>
   <section class="contact-section">
     <h1 class="contact-title" id="page-title" style="font-family: 'Noto Serif JP', serif;"></h1>
-    
-    <div id="target-article-info" class="target-article-info"></div>
 
     <p class="contact-text" id="page-text"></p>
 
     <form class="contact-form" id="comment-form">
       <input type="hidden" id="article-title-input" name="article_title" value="">
+      <input type="hidden" id="article-id-input" value="">
+
+      <!-- ★ 記事名をここに表示 ★ -->
+      <div id="target-article-info" class="target-article-info"
+           style="margin-bottom: 1.2em; padding: 0.8em; background:#f5f7fa; border-left:4px solid #03709b; border-radius:6px;">
+      </div>
 
       <div class="form-group">
         <label for="nickname">お名前（ペンネーム可）</label>
@@ -51,20 +55,22 @@
       <button type="submit" class="submit-button" id="submit-btn-text">送信する</button>
     </form>
   </section>
+
   <div class="back-link-area--comment">
-        <a href="policy.html" class="back-button--comment">活動報告一覧へ戻る</a>
-      </div>
+    <a id="back-to-article" class="back-button--comment">記事に戻る</a>
+  </div>
 </main>
 
 <script>
   const params = new URLSearchParams(window.location.search);
-  const typeParam = params.get('type'); 
-  const indexParam = params.get('index');
-  
+
+  /* ★ URL から記事タイトルとIDを取得 */
+  const articleTitleParam = params.get('article_title');
+  const articleIdParam = params.get('id');
+
   fetch('data/static-texts.json')
     .then(res => res.json())
     .then(data => {
-      // 1. ヘッダー情報の反映（rinen.name を優先、なければ profile.name）
       const headerName = data.rinen ? data.rinen.name : data.profile.name;
       document.getElementById('header-name').textContent = headerName;
       
@@ -78,16 +84,14 @@
         });
       }
 
-      // 2. 投書用データ(comment)の反映
       const commentConfig = data.comment;
       if (commentConfig) {
         document.title = `${commentConfig.title} | ${headerName}`;
         document.getElementById('page-title').textContent = commentConfig.title;
         document.getElementById('page-text').textContent = commentConfig.text;
-        
-        // プライバシーポリシーの反映
+
         const bodyWrapper = document.getElementById('privacy-body');
-        bodyWrapper.innerHTML = ''; // クリア
+        bodyWrapper.innerHTML = '';
         commentConfig.privacy.body.forEach(text => {
           const p = document.createElement('p');
           p.textContent = text;
@@ -96,28 +100,33 @@
         document.getElementById('privacy-agree-text').textContent = commentConfig.privacy.checkboxLabel;
       }
 
-      // 3. 対象記事の特定と表示
-      let article;
-      if (typeParam === 'topics') {
-        article = data.activities.topics;
-      } else if (indexParam !== null && data.activities.reports) {
-        article = data.activities.reports[indexParam];
-      }
-
       const infoBox = document.getElementById('target-article-info');
       const titleInput = document.getElementById('article-title-input');
+      const idInput = document.getElementById('article-id-input');
 
-      if (article) {
+      /* ★ 記事名を表示 */
+      if (articleTitleParam) {
         infoBox.innerHTML = `
-          <p class="target-label" style="font-size:0.85rem; color:#666; margin-bottom:4px;">対象の活動報告：</p>
-          <p class="target-title" style="font-weight:bold; color:#03709b; margin-bottom:20px;">「${article.title}」</p>
+          <p class="target-label" style="font-size:0.85rem; color:#666; margin-bottom:4px;">
+            閲覧中の活動報告：「${articleTitleParam}」
+          </p>
         `;
-        titleInput.value = article.title;
-      } else {
-        titleInput.value = '一般的なご意見';
+        titleInput.value = articleTitleParam;
       }
 
-      // 4. フォーム送信処理
+      /* ★ ID を hidden に保存 */
+      if (articleIdParam) {
+        idInput.value = articleIdParam;
+      }
+
+      /* ★ 戻るリンクを article.html に設定 */
+      const backLink = document.getElementById('back-to-article');
+      if (articleIdParam) {
+        backLink.href = `article.html?id=${articleIdParam}`;
+      } else {
+        backLink.href = "activity-reports.html"; // fallback
+      }
+
       const commentForm = document.getElementById('comment-form');
       commentForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -145,7 +154,6 @@
           });
 
           if (response.ok) {
-            // 成功時は type=comment を付けてサンクスページへ
             window.location.href = `thanks.html?type=comment`;
           } else {
             const error = await response.json();
