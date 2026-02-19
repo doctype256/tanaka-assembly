@@ -6,62 +6,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="src/style.css">
   <style>
-    /* 全体の突き出し防止 */
-    .activity-grid {
-      overflow-x: hidden;
-      width: 100%;
+    .activity-grid { overflow-x: hidden; width: 100%; }
+    .pdf-carousel-wrapper { position: relative; width: 100%; overflow: hidden; padding: 20px 0; }
+    .pdf-carousel { width: 100%; position: relative; overflow: visible; }
+    .pdf-carousel-inner { display: flex; transition: transform 0.5s ease; will-change: transform; }
+
+    .pdf-item { 
+      flex: 0 0 33.333%; 
+      box-sizing: border-box; 
+      padding: 0 10px; 
+      cursor: pointer; 
+      transition: transform 0.4s ease, opacity 0.4s ease; 
     }
 
-    /* カルーセル構造の最適化 */
-    .pdf-carousel-wrapper {
-      position: relative;
-      width: 100%;
-      overflow: hidden; /* 突き出しをここで完全にカット */
-      padding: 20px 0;
+    .pdf-item.center { 
+      transform: scale(0.9); 
+      opacity: 1; 
+      z-index: 2;
     }
 
-    .pdf-carousel {
-      width: 100%;
-      position: relative;
-      overflow: visible; /* 移動アニメーションを見せる */
+    /* ホバー時に拡大 */
+    .pdf-item:hover { 
+      transform: scale(1) !important; 
+      z-index: 5; 
     }
 
-    .pdf-carousel-inner {
-      display: flex;
-      transition: transform 0.5s ease;
-      will-change: transform;
-    }
+    .pdf-year-title.is-continuation { font-size: 1.1rem; opacity: 0.7; margin-top: -10px; }
 
-    /* スマホ表示のカード設定 */
-    @media (max-width: 767px) {
-      .pdf-item {
-        flex: 0 0 85% !important; /* 1枚の幅を85%に固定 */
-        width: 85% !important;
-        margin: 0 !important;
-        opacity: 0.4;
-        transform: scale(0.9);
-        transition: all 0.4s ease;
-        box-sizing: border-box;
-      }
-      .pdf-item.center {
-        opacity: 1 !important;
-        transform: scale(1.0) !important;
-      }
-      
-      /* ナビボタンが消えないように調整 */
-      .carousel-nav {
-        z-index: 10;
-        background: rgba(0,0,0,0.5) !important;
-      }
-    }
-
-    .pdf-year-title.is-continuation {
-      font-size: 1.1rem;
-      opacity: 0.7;
-      margin-top: -10px;
-    }
     #menu-toggle { z-index: 101; }
+    .pdf-viewer { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index:999; flex-direction: column; }
+    .pdf-viewer.show { display:flex; }
+    .pdf-viewer-header { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#fff; color:#000; }
+    .pdf-viewer-body { flex:1; display:flex; justify-content:center; align-items:center; overflow:auto; background:#333; }
+    .pdf-page-container { display:flex; justify-content:center; align-items:center; }
+    .pdf-viewer-close { cursor:pointer; }
+    .pdf-viewer-controls { display:flex; justify-content:center; align-items:center; gap:5px; margin:5px 0; flex-wrap:wrap; }
+    .pdf-controls-btn { padding:5px 10px; cursor:pointer; color:#000; background:#fff; border:none; text-decoration:none; }
+
+    .report-thumb { width: 100%; height: 200px; background:#f3f3f3; border-radius:4px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+    .pdf-thumb-canvas { width: 100%; height: 100%; object-fit: cover; object-position: top; }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body data-page="activity">
 
@@ -91,167 +76,258 @@
     <h1 class="activity-title" id="activity-title" style="margin-bottom:30px;">活動報告</h1>
     <div id="carousel-root"></div>
   </div>
+
+  <!-- PDF VIEWER -->
+  <div id="pdf-viewer" class="pdf-viewer">
+    <div class="pdf-viewer-header">
+      <h2 id="pdf-title" class="pdf-viewer-title">PDF ドキュメント</h2>
+      <button id="pdf-close-btn" class="pdf-viewer-close">✕</button>
+    </div>
+
+    <div class="pdf-viewer-controls">
+      <button class="pdf-controls-btn" id="pdf-prev-btn">前へ</button>
+      <div class="pdf-page-info">
+        <span id="pdf-current-page">1</span> /
+        <span id="pdf-total-pages">1</span>
+      </div>
+      <button class="pdf-controls-btn" id="pdf-next-btn">次へ</button>
+      <button class="pdf-controls-btn" id="pdf-zoom-in-btn">拡大</button>
+      <button class="pdf-controls-btn" id="pdf-zoom-out-btn">縮小</button>
+      <a id="pdf-download-btn" class="pdf-controls-btn">ダウンロード</a>
+    </div>
+
+    <div class="pdf-viewer-body">
+      <div class="pdf-page-container">
+        <canvas id="pdf-canvas"></canvas>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script src="js/activity-reports.js"></script>
-
 <script>
-  // カルーセルとフィルタのロジックのみに限定
-  let activeCategory = 'all';
-  let activeYear = null;
-  let activityData = null;
-  let carouselIndices = {};
-  let carouselTotalSlides = {};
+let activeCategory = 'all';
+let activeYear = null;
+let activityData = null;
+let carouselIndices = {};
+let carouselTotalSlides = {};
 
-  window.addEventListener('DOMContentLoaded', async () => {
-    const checkDB = setInterval(async () => {
-      if (typeof fetchActivityReports === 'function') {
-        clearInterval(checkDB);
-        const reports = await fetchActivityReports();
-        activityData = { 
-          categories: [
-            { id: 'committee', label: '委員会活動' },
-            { id: 'childcare', label: '子育て政策' },
-            { id: 'reform', label: '京都府議会・定例会' },
-            { id: 'topics', label: 'Topics' }
-          ], 
-          reports: reports.sort((a, b) => b.year - a.year)
-        };
-        render();
-      }
-    }, 100);
-  });
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  function render(scrollTop = false) {
-    if (!activityData) return;
-    const root = document.getElementById('carousel-root');
-    root.innerHTML = '';
-    carouselIndices = {};
+async function generateThumbnail(pdfPath, canvasId) {
+  try {
+    const loadingTask = pdfjsLib.getDocument(pdfPath);
+    const pdf = await loadingTask.promise;
+    const page = await pdf.getPage(1);
+    const viewport = page.getViewport({ scale: 0.6 });
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+  } catch (e) {
+    console.error('サムネイル生成エラー:', e);
+  }
+}
 
-    renderSidebarButtons();
+window.addEventListener('DOMContentLoaded', async () => {
+  const checkDB = setInterval(async () => {
+    if (typeof fetchActivityReports === 'function') {
+      clearInterval(checkDB);
 
-    const allReports = activityData.reports;
-    if (activeYear) {
-      renderInChunks(`${activeYear}年の活動`, allReports.filter(r => Number(r.year) === activeYear));
-    } else if (activeCategory === 'all') {
-      activityData.categories.forEach(cat => {
-        let filtered = allReports.filter(r => r.category === cat.id).slice(0, 3);
-        if(filtered.length) renderCarousel(cat.id, cat.label, filtered);
-      });
-    } else {
-      const catLabel = activityData.categories.find(c => c.id === activeCategory)?.label;
-      renderInChunks(catLabel, allReports.filter(r => r.category === activeCategory));
+      const reports = await fetchActivityReports();
+      const pdfs = await fetch('/api/pdfs').then(r => r.json()).catch(() => []);
+
+      const formattedPDFs = pdfs.map(p => ({
+        id: p.id,
+        title: p.title,
+        year: new Date(p.created_at).getFullYear(),
+        category: 'pdf',
+        type: 'pdf',
+        file_path: p.file_path
+      }));
+
+      activityData = { 
+        categories: [
+          { id: 'committee', label: '委員会活動' },
+          { id: 'childcare', label: '子育て政策' },
+          { id: 'reform', label: '京都府議会・定例会' },
+          { id: 'topics', label: 'Topics' },
+          { id: 'pdf', label: 'ShihoPress' } 
+        ], 
+        reports: [...reports, ...formattedPDFs].sort((a, b) => b.year - a.year)
+      };
+
+      render();
     }
-    if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  }, 100);
+});
 
-  function renderInChunks(title, items) {
-    for (let i = 0; i < items.length; i += 5) {
-      renderCarousel(`chunk-${i}`, i > 0 ? `${title} (続き)` : title, items.slice(i, i + 5), i > 0);
-    }
-  }
+function render(scrollTop = false) {
+  if (!activityData) return;
+  const root = document.getElementById('carousel-root');
+  root.innerHTML = '';
+  carouselIndices = {};
+  renderSidebarButtons();
 
-  function renderCarousel(key, title, items, isContinuation = false) {
-    carouselTotalSlides[key] = items.length;
-    carouselIndices[key] = 0;
-
-    const section = document.createElement('div');
-    section.className = 'pdf-year-section';
-    section.setAttribute('data-carousel-year', key);
-    section.innerHTML = `
-      <h2 class="pdf-year-title ${isContinuation ? 'is-continuation' : ''}">${title}</h2>
-      <div class="pdf-carousel-wrapper">
-        <div class="pdf-carousel">
-          <button class="carousel-nav carousel-prev" onclick="handlePrevClickIndex('${key}')">❮</button>
-          <div class="pdf-carousel-inner">
-            ${items.map(r => `
-              <div class="pdf-item" onclick="location.href='article.html?type=report&id=${r.id}'">
-                <div class="report-thumb">
-                  <img src="${(r.photos && r.photos[0]) ? r.photos[0] : ''}" onerror="this.src='https://placehold.jp/24/03709b/ffffff/300x200.png?text=No+Photo'">
-                </div>
-                <div class="pdf-item-meta">${r.year}年 / ${activityData.categories.find(c=>c.id===r.category)?.label || ''}</div>
-                <h3>${r.title}</h3>
-                <div class="pdf-actions"><span class="pdf-btn">詳細を見る</span></div>
-              </div>
-            `).join('')}
-          </div>
-          <button class="carousel-nav carousel-next" onclick="handleNextClickIndex('${key}')">❯</button>
-        </div>
-        <div class="carousel-dots">
-          ${items.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlideIndex('${key}', ${i})"></div>`).join('')}
-        </div>
-      </div>
-    `;
-    document.getElementById('carousel-root').appendChild(section);
-    setTimeout(() => updateCarouselIndex(key), 50);
-  }
-
-  // --- 【重要】左寄りを直すための 100% 基準計算 ---
-  function updateCarouselIndex(key) {
-    const section = document.querySelector(`[data-carousel-year="${key}"]`);
-    if (!section) return;
-    const inner = section.querySelector('.pdf-carousel-inner');
-    const pdfItems = section.querySelectorAll('.pdf-item');
-    const index = carouselIndices[key];
-
-    // TOPページとロジックは同じですが、基準をvw(画面)ではなく100%(親)に固定
-    const isMobile = window.innerWidth < 768;
-    const itemWidth = isMobile ? 85 : 33.333; // 85% または 33.3%
-    const offset = (100 - itemWidth) / 2;     // 親要素内での中央位置(7.5%など)
-    
-    // 移動量計算
-    const moveX = (index * itemWidth) - offset;
-
-    // translateX(-X%) で移動
-    inner.style.transform = `translateX(${-moveX}%)`;
-    
-    pdfItems.forEach((item, i) => {
-      item.classList.toggle('center', i === index);
+  const allReports = activityData.reports;
+  if (activeYear) {
+    renderInChunks(`${activeYear}年の活動`, allReports.filter(r => Number(r.year) === activeYear));
+  } else if (activeCategory === 'all') {
+    activityData.categories.forEach(cat => {
+      let filtered = allReports.filter(r => r.category === cat.id).slice(0, 3);
+      if(filtered.length) renderCarousel(cat.id, cat.label, filtered);
     });
-
-    const dots = section.querySelectorAll('.dot');
-    dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+  } else {
+    const catLabel = activityData.categories.find(c => c.id === activeCategory)?.label;
+    renderInChunks(catLabel, allReports.filter(r => r.category === activeCategory));
   }
 
-  window.handlePrevClickIndex = (key) => {
-    carouselIndices[key] = (carouselIndices[key] > 0) ? carouselIndices[key] - 1 : carouselTotalSlides[key] - 1;
-    updateCarouselIndex(key);
-  };
-  window.handleNextClickIndex = (key) => {
-    carouselIndices[key] = (carouselIndices[key] < carouselTotalSlides[key] - 1) ? carouselIndices[key] + 1 : 0;
-    updateCarouselIndex(key);
-  };
-  window.goToSlideIndex = (key, idx) => {
-    carouselIndices[key] = idx;
-    updateCarouselIndex(key);
-  };
+  if (scrollTop) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-  function renderSidebarButtons() {
-    const catButtons = document.getElementById('category-buttons');
-    const yearButtons = document.getElementById('year-buttons');
-    if(!catButtons || !yearButtons) return;
-    catButtons.innerHTML = `<button data-category="all" class="${activeCategory === 'all' && !activeYear ? 'is-active' : ''}">すべて</button>` +
-      activityData.categories.map(cat => `<button data-category="${cat.id}" class="${activeCategory === cat.id && !activeYear ? 'is-active' : ''}">${cat.label}</button>`).join('');
-    const years = [...new Set(activityData.reports.map(r => r.year))].sort((a,b)=>b-a);
-    yearButtons.innerHTML = years.map(y => `<button data-year="${y}" class="${activeYear === Number(y) ? 'is-active' : ''}">${y}年</button>`).join('');
+function renderInChunks(title, items) {
+  for (let i = 0; i < items.length; i += 5) {
+    renderCarousel(`chunk-${i}`, i > 0 ? `${title} (続き)` : title, items.slice(i, i + 5), i > 0);
   }
+}
 
-  window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
+function renderCarousel(key, title, items, isContinuation = false) {
+  carouselTotalSlides[key] = items.length;
+  carouselIndices[key] = 0;
 
-  document.addEventListener('click', e => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    if (btn.dataset.category || btn.dataset.year) {
-      if (btn.dataset.category) { activeCategory = btn.dataset.category; activeYear = null; }
-      else { activeYear = Number(btn.dataset.year); activeCategory = null; }
-      render(true);
-    } else if (btn.id === 'category-toggle') {
-      document.getElementById('activity-sidebar').classList.toggle('is-open');
-    }
-  });
+  const section = document.createElement('div');
+  section.className = 'pdf-year-section';
+  section.setAttribute('data-carousel-year', key);
+
+  section.innerHTML = `
+    <h2 class="pdf-year-title ${isContinuation ? 'is-continuation' : ''}">${title}</h2>
+    <div class="pdf-carousel-wrapper">
+      <div class="pdf-carousel">
+        <button class="carousel-nav carousel-prev" onclick="handlePrevClickIndex('${key}')">❮</button>
+        <div class="pdf-carousel-inner">
+          ${items.map((r, idx) => {
+            const canvasId = `thumb-${key}-${idx}`;
+            const isPDF = r.type === 'pdf';
+            setTimeout(() => isPDF && generateThumbnail(r.file_path, canvasId), 50);
+            return `
+            <div class="pdf-item" onclick="${isPDF ? `openPDF('${r.file_path}', '${r.title.replace(/'/g,"\\'")}')` : `location.href='article.html?type=report&id=${r.id}'`}">
+              <div class="report-thumb">
+                ${
+                  isPDF
+                    ? `<canvas id="${canvasId}" class="pdf-thumb-canvas"></canvas>`
+                    : `<img src="${(r.photos && r.photos[0]) ? r.photos[0] : ''}" onerror="this.src='https://placehold.jp/24/03709b/ffffff/300x200.png?text=No+Photo'">`
+                }
+              </div>
+              <div class="pdf-item-meta">
+                ${r.year}年 / ${activityData.categories.find(c=>c.id===r.category)?.label || ''}
+              </div>
+              <h3>${r.title}</h3>
+              <div class="pdf-actions">
+                ${
+                  isPDF
+                    ? `<span class="pdf-btn">開く</span>
+                       <a href="${r.file_path}" download class="pdf-btn" onclick="event.stopPropagation()">ダウンロード</a>`
+                    : `<span class="pdf-btn">詳細を見る</span>`
+                }
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <button class="carousel-nav carousel-next" onclick="handleNextClickIndex('${key}')">❯</button>
+      </div>
+      <div class="carousel-dots">
+        ${items.map((_, i) => `<div class="dot ${i === 0 ? 'active' : ''}" onclick="goToSlideIndex('${key}', ${i})"></div>`).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('carousel-root').appendChild(section);
+  setTimeout(() => updateCarouselIndex(key), 50);
+}
+
+function updateCarouselIndex(key) {
+  const section = document.querySelector(`[data-carousel-year="${key}"]`);
+  if (!section) return;
+  const inner = section.querySelector('.pdf-carousel-inner');
+  const pdfItems = section.querySelectorAll('.pdf-item');
+  const index = carouselIndices[key];
+
+  const isMobile = window.innerWidth < 768;
+  const itemWidth = isMobile ? 85 : 33.333;
+  const offset = (100 - itemWidth) / 2;
+  const moveX = (index * itemWidth) - offset;
+  inner.style.transform = `translateX(${-moveX}%)`;
+  
+  pdfItems.forEach((item, i) => { item.classList.toggle('center', i === index); });
+  const dots = section.querySelectorAll('.dot');
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+}
+
+window.handlePrevClickIndex = key => { carouselIndices[key] = (carouselIndices[key] > 0) ? carouselIndices[key] - 1 : carouselTotalSlides[key] - 1; updateCarouselIndex(key); };
+window.handleNextClickIndex = key => { carouselIndices[key] = (carouselIndices[key] < carouselTotalSlides[key] - 1) ? carouselIndices[key] + 1 : 0; updateCarouselIndex(key); };
+window.goToSlideIndex = (key, idx) => { carouselIndices[key] = idx; updateCarouselIndex(key); };
+
+function renderSidebarButtons() {
+  const catButtons = document.getElementById('category-buttons');
+  const yearButtons = document.getElementById('year-buttons');
+  if(!catButtons || !yearButtons) return;
+
+  catButtons.innerHTML = `<button data-category="all" class="${activeCategory === 'all' && !activeYear ? 'is-active' : ''}">すべて</button>` +
+    activityData.categories.map(cat => `<button data-category="${cat.id}" class="${activeCategory === cat.id && !activeYear ? 'is-active' : ''}">${cat.label}</button>`).join('');
+
+  const years = [...new Set(activityData.reports.map(r => r.year))].sort((a,b)=>b-a);
+  yearButtons.innerHTML = years.map(y => `<button data-year="${y}" class="${activeYear === Number(y) ? 'is-active' : ''}">${y}年</button>`).join('');
+}
+
+window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  if (btn.dataset.category || btn.dataset.year) {
+    if (btn.dataset.category) { activeCategory = btn.dataset.category; activeYear = null; }
+    else { activeYear = Number(btn.dataset.year); activeCategory = null; }
+    render(true);
+  } else if (btn.id === 'category-toggle') {
+    document.getElementById('activity-sidebar').classList.toggle('is-open');
+  }
+});
+
+let currentPdf = null, currentPageNum = 1, currentScale = 1.5;
+
+async function openPDF(filePath, title) {
+  const pdf = await pdfjsLib.getDocument(filePath).promise;
+  currentPdf = pdf; currentPageNum = 1;
+  document.getElementById('pdf-title').textContent = title;
+  document.getElementById('pdf-total-pages').textContent = pdf.numPages;
+  document.getElementById('pdf-download-btn').href = filePath;
+  document.getElementById('pdf-viewer').classList.add('show');
+  renderPage(1);
+}
+
+async function renderPage(pageNum) {
+  if (!currentPdf) return;
+  currentPageNum = pageNum;
+  document.getElementById('pdf-current-page').textContent = pageNum;
+  const page = await currentPdf.getPage(pageNum);
+  const viewport = page.getViewport({ scale: currentScale });
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = viewport.width; canvas.height = viewport.height;
+  await page.render({ canvasContext: ctx, viewport }).promise;
+  document.getElementById('pdf-prev-btn').disabled = pageNum <= 1;
+  document.getElementById('pdf-next-btn').disabled = pageNum >= currentPdf.numPages;
+}
+
+document.getElementById('pdf-close-btn').onclick = () => { document.getElementById('pdf-viewer').classList.remove('show'); currentPdf = null; };
+document.getElementById('pdf-prev-btn').onclick = () => renderPage(currentPageNum - 1);
+document.getElementById('pdf-next-btn').onclick = () => renderPage(currentPageNum + 1);
+document.getElementById('pdf-zoom-in-btn').onclick = () => { currentScale += 0.1; renderPage(currentPageNum); };
+document.getElementById('pdf-zoom-out-btn').onclick = () => { if (currentScale > 0.5) currentScale -= 0.1; renderPage(currentPageNum); };
 </script>
 
 <script src="src/header.js"></script>
-
 </body>
 </html>
