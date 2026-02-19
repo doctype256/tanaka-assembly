@@ -21,13 +21,17 @@
 <main>
   <section class="contact-section">
     <h1 class="contact-title" id="page-title" style="font-family: 'Noto Serif JP', serif;"></h1>
-    
-    <div id="target-article-info" class="target-article-info"></div>
 
     <p class="contact-text" id="page-text"></p>
 
     <form class="contact-form" id="comment-form">
       <input type="hidden" id="article-title-input" name="article_title" value="">
+      <input type="hidden" id="article-id-input" value="">
+
+      <!-- ★ 記事名をここに表示 ★ -->
+      <div id="target-article-info" class="target-article-info"
+           style="margin-bottom: 1.2em; padding: 0.8em; background:#f5f7fa; border-left:4px solid #03709b; border-radius:6px;">
+      </div>
 
       <div class="form-group">
         <label for="nickname">お名前（ペンネーム可）</label>
@@ -51,13 +55,19 @@
       <button type="submit" class="submit-button" id="submit-btn-text">送信する</button>
     </form>
   </section>
+
   <div class="back-link-area--comment">
+    <a id="back-to-article" class="back-button--comment">記事に戻る</a>
     <a href="policy.html" class="back-button--comment">活動報告一覧へ戻る</a>
   </div>
 </main>
 
 <script>
   const params = new URLSearchParams(window.location.search);
+
+  /* ★ URL から記事タイトルとIDを取得 */
+  const articleTitleParam = params.get('article_title');
+  const articleIdParam = params.get('id');
   const typeParam = params.get('type'); 
   const indexParam = params.get('index');
   const titleParam = params.get('article_title'); // URLから直接タイトルを取得
@@ -79,12 +89,14 @@
         });
       }
 
-      // 2. 投書用データ(comment)の反映
       const commentConfig = data.comment;
       if (commentConfig) {
         document.title = `${commentConfig.title} | ${headerName}`;
         document.getElementById('page-title').textContent = commentConfig.title;
         document.getElementById('page-text').textContent = commentConfig.text;
+
+        const bodyWrapper = document.getElementById('privacy-body');
+        bodyWrapper.innerHTML = '';
         
         const bodyWrapper = document.getElementById('privacy-body');
         bodyWrapper.innerHTML = ''; 
@@ -96,6 +108,31 @@
         document.getElementById('privacy-agree-text').textContent = commentConfig.privacy.checkboxLabel;
       }
 
+      const infoBox = document.getElementById('target-article-info');
+      const titleInput = document.getElementById('article-title-input');
+      const idInput = document.getElementById('article-id-input');
+
+      /* ★ 記事名を表示 */
+      if (articleTitleParam) {
+        infoBox.innerHTML = `
+          <p class="target-label" style="font-size:0.85rem; color:#666; margin-bottom:4px;">
+            閲覧中の活動報告：「${articleTitleParam}」
+          </p>
+        `;
+        titleInput.value = articleTitleParam;
+      }
+
+      /* ★ ID を hidden に保存 */
+      if (articleIdParam) {
+        idInput.value = articleIdParam;
+      }
+
+      /* ★ 戻るリンクを article.html に設定 */
+      const backLink = document.getElementById('back-to-article');
+      if (articleIdParam) {
+        backLink.href = `article.html?id=${articleIdParam}`;
+      } else {
+        backLink.href = "activity-reports.html"; // fallback
       // 3. 対象記事の特定と表示（タイトル一致のための重要ロジック）
       const infoBox = document.getElementById('target-article-info');
       const titleInput = document.getElementById('article-title-input');
@@ -121,7 +158,6 @@
         titleInput.value = finalTitle;
       }
 
-      // 4. フォーム送信処理
       const commentForm = document.getElementById('comment-form');
       commentForm.addEventListener('submit', async (e) => {
         e.preventDefault();

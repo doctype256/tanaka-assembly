@@ -1616,7 +1616,7 @@ AdminManager.prototype.setupEventListeners = function () {
         const file = fileInput.files[0];
 
         const formData = new FormData();
-        formData.append("file_data", file);
+        formData.append("file", file);
         formData.append("filename", "pdf_" + Date.now() + "_" + file.name);
         formData.append("folder", "pdfs");
         formData.append("password", this.adminPassword);

@@ -6,142 +6,92 @@
   <title>活動詳細 | 田中しほ</title>
   <link rel="stylesheet" href="src/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Serif+JP:wght@700;800&display=swap" rel="stylesheet">
-  <style>
-    /* ハンバーガーボタン用の補強（style.cssの仕様に合わせる） */
-    #menu-toggle {
-      z-index: 101;
-    }
 
-    /* コメント欄のスタイル */
-    .comment-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2em;
-      margin: 1.5em 0;
-    }
-    .comment-bubble {
-      background: #f5f7fa;
-      border-radius: 16px;
-      padding: 1em 1.2em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      max-width: 480px;
-      position: relative;
-    }
-    .comment-bubble:before {
-      content: '';
-      position: absolute;
-      left: 18px;
-      top: -12px;
-      width: 0;
-      height: 0;
-      border-left: 12px solid transparent;
-      border-right: 12px solid transparent;
-      border-bottom: 12px solid #f5f7fa;
-    }
-    .comment-name {
-      font-size: 0.95em;
-      color: #03709b;
-      font-weight: bold;
-      margin-bottom: 0.3em;
-    }
-    .comment-message {
-      font-size: 1.05em;
-      color: #222;
-      white-space: pre-line;
+  <style>
+    #menu-toggle { z-index: 101; }
+
+    .article-year {
+      color: #666;
+      font-size: 0.95rem;
+      margin-top: -10px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
-<body data-page="policy">
 
-  <header>
-    <nav class="header-inner">
-      <div id="header-name"></div>
-      <div id="header-nav"></div>
-      <button id="menu-toggle" aria-label="メニュー">☰</button>
-    </nav>
-  </header>
+<body data-page="article">
 
-  <main class="container">
-    <article class="article-content-wrapper">
-      <div class="article-meta-area">
-        <div id="article-meta" class="period"></div>
-      </div>
+<header>
+  <nav class="header-inner">
+    <div id="header-name"></div>
+    <div id="header-nav"></div>
+    <button id="menu-toggle" aria-label="メニュー">☰</button>
+  </nav>
+</header>
 
-      <h1 id="article-title" class="article-detail-title"></h1>
-      <div id="article-content" class="article-detail-body"></div>
-      <div id="article-photos" class="article-detail-photos"></div>
-      
-      <section class="comment-section">
-        <h2 class="comment-title">読者の声</h2>
-        <div id="comment-list" class="comment-list">
-          </div>
+<main class="container">
+  <article class="article-content-wrapper">
 
-        <div class="comment-post-box">
-          <p class="comment-notice">この記事へのご意見・ご感想をお寄せください。活動の参考にさせていただきます。</p>
-          <a id="comment-link" href="comment.html" class="comment-submit-button">この報告に感想を送る</a>
-        </div>
-      </section>
+    <h1 id="article-title" class="article-detail-title"></h1>
+    <p id="article-year" class="article-year"></p>
 
-      <div class="back-link-area">
-        <a href="policy.html" class="back-button">活動報告一覧へ戻る</a>
-      </div>
-    </article>
-  </main>
+    <div id="article-content" class="article-detail-body"></div>
+    <div id="article-photos" class="article-detail-photos"></div>
 
-  <script src="js/activity-reports.js"></script>
-  
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
+    <div class="back-link-area">
+      <a href="policy.html" class="back-button">活動報告一覧へ戻る</a>
+    </div>
 
-    window.addEventListener('DOMContentLoaded', () => {
-      if (id) {
-        renderActivityReportDetail(id);
-      } else {
-        alert('記事IDが指定されていません。');
-      }
-    });
+  </article>
+</main>
 
-    async function renderActivityReportDetail(id) {
-      try {
-        const response = await fetch(`/api/activity-reports?id=${id}`);
-        if (!response.ok) throw new Error('記事の取得に失敗しました。');
-        
-        const data = await response.json();
-        if (data.success && data.reports && data.reports.length > 0) {
-          const article = data.reports[0];
-          
-          // コメント送信リンクの設定
-          const commentLink = document.getElementById('comment-link');
-          if (commentLink) {
-            commentLink.href = `comment.html?article_title=${encodeURIComponent(article.title)}`;
-          }
+<script src="src/header.js"></script>
 
-          document.getElementById('article-title').innerText = article.title;
-          document.getElementById('article-meta').innerText = `${article.year}`;
-          document.getElementById('article-content').innerHTML = article.items ? article.items.join('<br><br>') : '';
-          
-          const photoContainer = document.getElementById('article-photos');
-          photoContainer.innerHTML = '';
-          if (article.photos && article.photos.length > 0) {
-            article.photos.forEach(photo => {
-              const img = document.createElement('img');
-              img.src = photo.startsWith('assets/') ? `/${photo}` : `/assets/${photo}`;
-              img.alt = `Photo for ${article.title}`;
-              photoContainer.appendChild(img);
-            });
-          }
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
 
-          // コメント取得処理
-          await loadComments(article.title);
-
-        } else {
-          alert('指定された記事が見つかりませんでした。');
-        }
-      } catch (error) {
-        console.error('記事の取得に失敗しました:', error);
-      }
+  window.addEventListener('DOMContentLoaded', () => {
+    if (id) {
+      renderActivityReportDetail(id);
+    } else {
+      alert('記事IDが指定されていません。');
     }
+  });
+
+  async function renderActivityReportDetail(id) {
+    try {
+      const response = await fetch(`/api/activity-reports?id=${id}`);
+      if (!response.ok) throw new Error('記事の取得に失敗しました。');
+      
+      const data = await response.json();
+      if (data.success && data.reports && data.reports.length > 0) {
+        const article = data.reports[0];
+
+        document.getElementById('article-title').innerText = article.title;
+        document.getElementById('article-year').innerText = `${article.year}年`;
+        document.getElementById('article-content').innerHTML =
+          article.items ? article.items.join('<br><br>') : '';
+
+        const photoContainer = document.getElementById('article-photos');
+        photoContainer.innerHTML = '';
+        if (article.photos && article.photos.length > 0) {
+          article.photos.forEach(photo => {
+            const img = document.createElement('img');
+            img.src = photo.startsWith('assets/') ? `/${photo}` : `/assets/${photo}`;
+            img.alt = `Photo for ${article.title}`;
+            photoContainer.appendChild(img);
+          });
+        }
+
+      } else {
+        alert('指定された記事が見つかりませんでした。');
+      }
+    } catch (error) {
+      console.error('記事の取得に失敗しました:', error);
+    }
+  }
+</script>
 
     // コメント取得関数を独立（401エラー対策のログを追加）
     async function loadComments(title) {
