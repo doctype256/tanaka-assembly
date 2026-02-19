@@ -24,3 +24,13 @@ export async function GET(req: Request) {
 
   return NextResponse.json(result.rows);
 }
+
+export async function POST(req: Request) { 
+  const body = await req.json(); 
+  const { name, email, message } = body; 
+  await db.execute( 
+    'INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)', [name, email, message] 
+  ); 
+  
+  return NextResponse.json({ success: true }); 
+}
