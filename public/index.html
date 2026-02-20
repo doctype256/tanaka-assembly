@@ -277,7 +277,125 @@
     text-align: center;
   }
 }
-    
+
+/* FAQ css　ここから */
+/* FAQ全体のスタイル */
+.faq-section {
+  padding-top: 10px !important;    /* セクション自体の上の余白を最小化 */
+  padding-bottom: 20px !important;
+}
+
+/* 外枠（ここが大きな空白の原因でした） */
+.faq-outer-wrapper {
+  max-width: 800px;
+  margin: 10px auto;              /* 上下の余白を 40px → 10px に縮小 */
+  padding: 0 20px;
+}
+
+/* 押す前の「大きな箱」 */
+.faq-main-toggle {
+  background-color: #4682B4; /* 田中さんのテーマカラーに合わせて調整 */
+  color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.faq-main-toggle:hover {
+  background-color: #3a6d96;
+  transform: translateY(-2px);
+}
+
+.faq-toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.faq-main-chevron {
+  transition: transform 0.4s ease;
+}
+
+/* スライドして出てくる中身のコンテナ */
+.faq-slide-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+  background-color: #f0f7ff;
+  border-radius: 0 0 12px 12px;
+  margin-top: -5px; /* 箱と一体化させる */
+}
+
+/* 開いた時の状態 */
+.faq-outer-wrapper.is-open .faq-slide-container {
+  max-height: 2000px; /* 十分な高さ */
+  transition: max-height 1s ease-in-out;
+  border: 2px solid #4682B4;
+  border-top: none;
+}
+
+.faq-outer-wrapper.is-open #section-chevron {
+  transform: rotate(180deg);
+}
+
+/* 中のリスト項目 */
+.faq-inner-list {
+  padding: 20px;
+}
+
+.faq-item {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #dce8f0;
+  padding-bottom: 15px;
+}
+
+/* Q（質問）のスタイル：青色 */
+.faq-q {
+  font-weight: bold;
+  color: #4682B4; /* 田中さんのテーマカラー（青） */
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start; /* 複数行になってもQが上に固定されるように */
+}
+
+.faq-q::before {
+  content: "Q.";
+  margin-right: 10px;
+  font-size: 1.2rem;
+  color: #4682B4; /* Qの文字を青に */
+}
+
+/* A（回答）のスタイル：ピンク色 */
+.faq-a {
+  color: #444;
+  line-height: 1.6;
+  padding-left: 0; /* 位置調整のため一度リセット */
+  display: flex;
+  align-items: flex-start;
+}
+
+.faq-a::before {
+  content: "A.";
+  margin-right: 10px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #e91e63; /* ★回答のAをピンクに */
+}
+
+.faq-a {
+  color: #444;
+  line-height: 1.6;
+  padding-left: 25px;
+}
+/*FAQ cssここまで*/
 </style>
 </head>
 
@@ -318,6 +436,42 @@
   </a>
 </section>
 <!-- ご相談セクションここまで -->
+ <!--FAQ セクション ここから-->
+<section class="faq-section">
+  <div class="faq-outer-wrapper">
+    
+    <div class="faq-main-toggle" onclick="toggleFaqSection()">
+      <div class="faq-toggle-content">
+        <i data-lucide="help-circle" class="faq-main-icon"></i>
+        <span>よくある投稿例 (FAQ) を見る</span>
+      </div>
+      <i data-lucide="chevron-down" id="section-chevron" class="faq-main-chevron"></i>
+    </div>
+
+    <div id="faq-slide-content" class="faq-slide-container">
+      <div class="faq-inner-list">
+        
+        <div class="faq-item">
+          <div class="faq-q">子育て支援の具体的な取り組みは？</div>
+          <div class="faq-a">京都府議会では、待機児童解消や一時預かりの拡充など、現場の声を反映した政策を推進しています。</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">相談はどこからできますか？</div>
+          <div class="faq-a">サイト内の「ご相談ポスト」や公式LINEから、いつでもお気軽にご連絡いただけます。</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">地域の活動予定を知るにはどうすればいいですか？</div>
+          <div class="faq-a">当サイトの「活動報告」や各SNS（Instagram、Facebook等）にて随時スケジュールを更新しております。</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- FAQ セクション ここまで -->
 
   <section class="youtube-section">
     <div class="video-wrapper" id="dynamic-yt-container">
@@ -601,6 +755,14 @@ function goToSlideIndex(key, index) {
 }
 
 window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
+
+
+/*小倉　追加部分*/
+/*FAQのjavascript　ここから*/
+function toggleFaqSection() {
+  const wrapper = document.querySelector('.faq-outer-wrapper');
+  wrapper.classList.toggle('is-open');
+}
 </script>
 <script src="src/header.js"></script>
 </body>
