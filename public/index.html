@@ -128,6 +128,68 @@
         letter-spacing: 0.05em;
       }
     }
+
+/*相談*/
+/* バナー全体の箱（ここで大きさをコントロール） */
+.consultation-banner-img-type {
+  display: block;
+  width: 95% !important;        /* スマホでは画面幅いっぱいに近く */
+  max-width: 750px !important;  /* ★ここを 700px〜800px にすると大きくなります */
+  margin: 0 auto !important;
+  left: auto !important;
+  position: relative !important;
+  
+  border-radius: 15px;
+  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* 大きい画像に合わせて影も少しリッチに */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ホバー時の演出 */
+.consultation-banner-img-type:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 画像の設定 */
+.base-image {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* 画像の横幅ピッタリのボタン */
+.banner-footer-btn {
+  width: 100%;
+  background-color: #4682B4; /* テーマカラーのピンク */
+  color: #ffffff;
+  padding: 20px 0;           /* 大きめのバナーに合わせて少し厚みを出しました */
+  text-align: center;
+  font-size: 1.4rem;         /* 文字も少し大きくして視認性アップ */
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  transition: background-color 0.3s ease;
+}
+
+.consultation-banner-img-type:hover .banner-footer-btn {
+  background-color: #be185d;
+}
+
+/* セクション全体の余白を極限まで削る */
+.consultation-section {
+  padding-top: 30px !important;      /* 上の隙間をゼロに */
+  padding-bottom: 30px !important; /* 下（ニュース）との隙間は少し残す */
+  margin-top: -10px !important;   /* 必要なら少し上に食い込ませる */
+  display: flex;
+  justify-content: center;
+}
+
+/* ヒーローセクションの下の隙間も念のためゼロに */
+.hero-container {
+  margin-bottom: 0 !important;
+}
+
     
 </style>
 </head>
@@ -155,32 +217,26 @@
         <p>京都府議会議員 田中しほ</p>
     </div>
 </section>
-<section class="h-16 w-full bg-[#4682B4] md:hidden"></section>
 
 
 <!-- ご相談セクション -->
 <section class="consultation-section">
-  <a href="post.html" class="consultation-card-integrated">
-    <div class="card-content-overlay">
-      <h2 class="card-main-title">子育ての疑問に寄り添う</h2>
-      <p class="card-sub-title">あなたの声をお聞かせください</p>
-      <div class="comment-submit-button">ご相談はコチラ ＞</div>
+  <a href="post.html" class="consultation-banner-img-type">
+    <div class="banner-image-container">
+      <img src="assets/ポストバナー.PNG" alt="子育て相談ポスト" class="base-image">
+    </div>
+    <div class="banner-footer-btn">
+      思いを伝える
     </div>
   </a>
 </section>
+<!-- ご相談セクションここまで -->
+
+
 
   <section class="youtube-section">
     <div class="video-wrapper" id="dynamic-yt-container">
       <div class="thumbnail-loading">動画読み込み中...</div>
-    </div>
-  </section>
-
-  <section class="link-nav-section">
-    <div class="link-grid">
-      <a href="profile.html" class="link-card profile-link">
-        <span class="en">Profile</span>
-        <span class="jp">自己紹介 ＞</span>
-      </a>
     </div>
   </section>
 
@@ -195,7 +251,6 @@
     <h2 class="section-title">SNS</h2>
     <div class="sns-list" id="dynamic-sns-container"></div>
   </section>
-</main>
 
 <section class="page-header">
   <div class="page-header-inner">
