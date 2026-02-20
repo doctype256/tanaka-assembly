@@ -8,9 +8,29 @@ interface SessionData {
   isAdmin?: boolean;
 }
 
-// GET: コメント一覧（管理者のみ）
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
+  const articleTitle = searchParams.get('article_title');
+  const all = searchParams.get('all');
+
+  // ★ all=true のときは article_title を要求しない
+  if (!all && !articleTitle) {
+    return NextResponse.json({ error: 'Missing article_title' }, { status: 400 });
+  }
+
+  // ★ 管理画面用：全件取得
+  if (all) {
+    const result = await db.execute(
+      'SELECT id, article_title, name, message, approved, created_at FROM comments ORDER BY created_at DESC'
+    );
+    return NextResponse.json(result.rows);
+  }
+
+  // ★ 一般公開用：記事ごとの approved=1 のコメント
+  const result = await db.execute(
+    'SELECT id, article_title, name, message, approved, created_at FROM comments WHERE article_title = ? AND approved = 1 ORDER BY created_at DESC',
+    [articleTitle]
+  );
   const article_title = searchParams.get('article_title'); // 特定の記事用
   const password = searchParams.get('password');
 
@@ -46,6 +66,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+
 
 // POST: コメント投稿（誰でもOK）
 export async function POST(req: Request) {

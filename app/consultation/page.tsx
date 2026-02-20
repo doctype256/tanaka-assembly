@@ -121,13 +121,42 @@ export default function ConsultationPage() {
   if (!isInitialized) return null;
 
   return (
-    <div style={{ padding: '20px', width: '100%', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
-      
+  <div
+    style={{
+      position: 'relative',
+      padding: '20px',
+      width: '100%',
+      maxWidth: '800px',
+      margin: '0 auto',
+      fontFamily: 'sans-serif',
+      boxSizing: 'border-box',
+      minHeight: '100vh',
+      overflow: 'hidden'
+    }}
+  >
+    {/* 背景イラストレイヤー */}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundImage: 'url("/assets/ご相談ポスト背景1.jpg")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+        opacity: 0.4,
+        zIndex: 0,
+        pointerEvents: 'none'
+      }}
+    />
+
+    {/* フォーム本体 */}
+    <div style={{ position: 'relative', zIndex: 1 }}>
+
       {step <= 7 && (
-        <div style={{ marginBottom: '30px', fontSize: '12px', color: '#666' }}>
+        <div style={{ marginBottom: '30px', fontSize: '14px', fontWeight: 'bold', color: '#666' }}>
           進捗: {progressPercent}%
-          <div style={{ width: '100%', height: '6px', background: '#eee', marginTop: '8px', borderRadius: '3px', overflow: 'hidden' }}>
-            <div style={{ width: `${progressPercent}%`, height: '100%', background: '#2d3748', transition: '0.3s ease-in-out' }}></div>
+          <div style={{ width: '100%', height: '6px', background: '#FCFDFE', marginTop: '8px', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ width: `${progressPercent}%`, height: '100%', background: '#4a86c5', transition: '0.3s ease-in-out' }}></div>
           </div>
         </div>
       )}
@@ -290,6 +319,7 @@ export default function ConsultationPage() {
         </div>
       )}
     </div>
+    </div>
   );
 }
 
@@ -297,7 +327,7 @@ export default function ConsultationPage() {
 const titleStyle: React.CSSProperties = { fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 'bold' };
 const gridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' };
 const buttonStyle: React.CSSProperties = { padding: '20px', fontSize: '16px', cursor: 'pointer', border: '1px solid #ddd', borderRadius: '12px', width: '100%', backgroundColor: '#fff', transition: 'all 0.2s', textAlign: 'center' };
-const nextButtonStyle: React.CSSProperties = { width: '100%', padding: '18px', marginTop: '15px', backgroundColor: '#2d3748', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' };
+const nextButtonStyle: React.CSSProperties = { width: '100%', padding: '18px', marginTop: '15px', backgroundColor: '#4378b1', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '15px', fontSize: '16px', borderRadius: '12px', border: '2px solid #e2e8f0', marginTop: '10px', boxSizing: 'border-box', outline: 'none' };
-const backLinkStyle: React.CSSProperties = { marginTop: '25px', display: 'block', background: 'none', border: 'none', color: '#888', cursor: 'pointer', textDecoration: 'underline', textAlign: 'center', width: '100%' };
-const resetButtonStyle: React.CSSProperties = { background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline', marginBottom: '10px' };
+const backLinkStyle: React.CSSProperties = { marginTop: '25px', display: 'block', background: 'none', border: 'none', color: '#888', cursor: 'pointer', textDecoration: 'underline', textAlign: 'center', width: '100%' ,fontWeight:'bold',fontSize: '16px'};
+const resetButtonStyle: React.CSSProperties = { background: 'none', border: 'none', color: '#e53e3e', cursor: 'pointer', fontSize: '16px', textDecoration: 'underline', marginBottom: '10px'};

@@ -1,7 +1,12 @@
-// app/api/upload-image/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { getIronSession } from "iron-session";
+import { sessionOptions } from "@/lib/session";
 import { v2 as cloudinary } from "cloudinary";
 import { Readable } from "stream";
+
+interface SessionData {
+  isAdmin?: boolean;
+}
 
 // Cloudinary 設定
 cloudinary.config({
@@ -17,7 +22,7 @@ const setCorsHeaders = (res: NextResponse) => {
 };
 
 // OPTIONS
-export async function OPTIONS(req: NextRequest) {
+export async function OPTIONS() {
   const res = NextResponse.json({});
   setCorsHeaders(res);
   return res;
@@ -26,18 +31,19 @@ export async function OPTIONS(req: NextRequest) {
 // POST
 export async function POST(req: NextRequest) {
   try {
+    const res = new NextResponse();
+    const session = await getIronSession<SessionData>(req, res, sessionOptions);
+
+    // 🔥 管理者チェック（/api/profile と同じ）
+    if (!session.isAdmin) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const formData = await req.formData();
 
-    // 🔥 フロントと合わせる
     const file = formData.get("file") as File;
     const filename = formData.get("filename");
     const folder = formData.get("folder") || "uploads";
-    const password = formData.get("password");
-
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (password !== adminPassword) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
     if (!file || !filename) {
       return NextResponse.json({ error: "Invalid file" }, { status: 400 });
@@ -65,7 +71,7 @@ export async function POST(req: NextRequest) {
       Readable.from(buffer).pipe(uploadStream);
     });
 
-    const res = NextResponse.json({
+    const json = NextResponse.json({
       success: true,
       url: (uploadResult as any).secure_url,
       public_id: (uploadResult as any).public_id,
@@ -73,8 +79,8 @@ export async function POST(req: NextRequest) {
       uploaded_at: new Date().toISOString(),
     });
 
-    setCorsHeaders(res);
-    return res;
+    setCorsHeaders(json);
+    return json;
 
   } catch (error) {
     console.error("Upload error:", error);

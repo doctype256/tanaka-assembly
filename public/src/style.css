@@ -853,11 +853,24 @@ section.hero {
 }
 
 /* タイトル */
-.profile-title {
-  text-align: center;
+#profile-title {
+  font-size: 34px;  /* 大きくして変化を確認 */
   font-family: "Noto Serif JP", serif;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+
+/* タイトル */
+#profile-title {
+  font-size: 30px;  /* 大きくして変化を確認 */
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
 }
 
 /* ==========================
@@ -891,12 +904,12 @@ section.hero {
 }
 
 .profile-name h2 {
-  font-size: 1.4rem;
+  font-size: 32px;
   font-weight: 700;
 }
 
 .profile-name p {
-  font-size: 1.5rem;
+  font-size: 22px;
   color: #666;
   margin-top: 0.25rem;
 }
@@ -904,69 +917,374 @@ section.hero {
 .profile-name span {
   display: inline-block;
   margin-top: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 0rem;
   padding-bottom: 2px;
   border-bottom: 1px solid #000;
 }
 
+@media (max-width: 767px) {
+  .profile-name h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 18px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+}
+
 /* ==========================
+   名前・肩書
+========================== */
+.profile-name {
+  margin-bottom: 2rem;
+}
+
+.profile-name h2 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 22px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.profile-name span {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0rem;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #000;
+}
+
+@media (max-width: 767px) {
+  .profile-name h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 18px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+}
+
+/*==========================
    基本情報
 ========================== */
 .profile-basic {
-  position: relative;
-  margin-bottom: 3rem;
+  max-width: 420px;
+  margin: 0 auto 2rem;
+
 }
 
 .basic-row {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
+  align-items: center;
+  position: relative;      /* 中央線を絶対位置で置くため必要 */
+  gap: 4rem;
+  margin-bottom: 1.5rem;
 }
 
-/* 丸ポチ */
-.basic-row .dot {
-  width: 10px;
-  height: 10px;
+/* 中央線 */
+.basic-row::before {
+  content: "";
+  position: absolute;
+  left: 50%;               /* 横幅の中央 */
+  top: 0;
+  bottom: 0;
+  width: 2px;
   background: #000;
-  border-radius: 50%;
-  margin-top: 0.4rem;
-  flex-shrink: 0;
+  transform: translateX(-50%);
+  z-index: 0;              /* ラベル・値の背後に表示 */
 }
 
-/* ラベルと値 */
-.basic-row strong {
-  font-size: 1.2rem;
-  display: block;
+.basic-row .label,
+.basic-row .value {
+  z-index: 1;              /* ラベルと値を縦線の上に表示 */
 }
 
-.basic-row p {
-  font-size: 1rem;
-  margin-top: 0.1rem;
+/* ラベル */
+.basic-row .label {
+  flex: 0 0 180px;         /* 幅固定 */
+  text-align: right;
+}
+
+/* 値 */
+.basic-row .value {
+  flex: 1;
+  text-align: left;
+}
+
+
+/* 文字サイズ調整 */
+.basic-row strong { font-size: 22px; }
+.basic-row p { font-size: 20px; margin: 0; }
+
+@media (max-width: 768px) {
+  .basic-row {
+    gap: 2.5rem;            /* PCより少し狭く */
+  }
+
+  .basic-row::before {
+    left: 50%;            /* 縦線を少し右に移動 */
+  }
+
+  .basic-row .label {
+    flex: 0 0 160px;      /* ラベル幅を縮小 */
+    text-align: right;
+  }
+
+  .basic-row .value {
+    flex: 1;
+    text-align: left;
+  }
+
+  .basic-row strong {
+    font-size: 18px;
+  }
+
+  .basic-row p {
+    font-size: 16px;
+  }
+}
+
+
+
+
+/* ==========================
+   政策
+========================== */
+.profile-policies {
+  margin-top: 80px;
+  padding-top: 40px;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* 経歴と完全統一 */
+.profile-policies h3 {
+  font-size: 28px;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #000;
+  display: inline-block;
+  font-weight: 700;
+}
+
+.policy-buttons {
+  display: flex;      /* 横に連結 */
+  flex-wrap: wrap;
+  gap: 0;                    /* 隙間をなくして繋げる */
+  margin-bottom: 24px;
+  border: 1px solid #ccc;    /* 外枠 */
+  border-radius: 8px;        /* 角丸（四角寄り） */
+  overflow: hidden;          /* 角を綺麗に */
+}
+
+.policy-btn {
+  padding: 16px 32px;
+  border: none;              /* 個別の枠線を消す */
+  border-right: 1px solid #ccc; /* 区切り線 */
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  font-size: 22px;         /* ← 文字サイズも拡大 */
+  min-height: 80px;    /* 高さを安定させる（超重要） */
+  border-radius: 0;          /* ←丸を完全に削除（重要） */
+  flex: 1;                   /* ← 均等に広げる */  
+}
+
+/* 最後のボタンの区切り線だけ消す */
+.policy-btn:last-child {
+  border-right: none;
+}
+
+.policy-btn:hover {
+  background: #f0f6ff;
+}
+
+.policy-btn.active {
+  background: #007bff;
+  color: #fff;
+}
+
+
+.policy-content {
+  background: transparent;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.policy-content h4 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.policy-content p {
+  position: relative;
+  padding-left: 1.2em; /* ・の分だけ左余白を確保 */
+  margin-bottom: 8px;  /* 行間も少し整える */
+  font-size: 20px;
+}
+
+.policy-content p::before {
+  content: "・";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 700;
+  color: #000; /* 黒の・ */
 }
 
 /* ==========================
-   経歴
+   スマホ用（政策ボタンサイズ調整）
 ========================== */
+@media (max-width: 768px) {
+
+  /* 経歴と完全統一 */
+.profile-policies h3 {
+  font-size: 24px;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #000;
+  display: inline-block;
+  font-weight: 700;
+}
+
+  .policy-buttons {
+    display: flex;
+    flex-wrap: nowrap;   /* ← 折り返さない（重要） */
+    width: 100%;
+  }
+
+  .policy-btn {
+    flex: 1;             /* ← 全ボタンを均等幅に固定 */
+    padding: 12px 8px;   /* スマホでも押しやすいサイズ */
+    font-size: 18px;
+    text-align: center;
+    white-space: nowrap; /* ← 改行防止で高さズレ防止 */
+  }
+
+  .policy-content p {
+  position: relative;
+  padding-left: 1.2em; /* ・の分だけ左余白を確保 */
+  margin-bottom: 8px;  /* 行間も少し整える */
+  font-size: 16px;
+}
+}
+
+
+
+/* ==========================
+   経歴（中央タイムライン）
+========================== */
+.profile-history {
+  position: relative;
+  margin-top: 20px;
+  padding: 40px 0;
+}
+
+/* 中央の縦線 */
+.profile-history::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 80px;       /* h3の下から開始 */
+  bottom: 0;
+  width: 3px;
+  background: #D4E2F1; /* 緑の線（画像風） */
+  transform: translateX(-50%);
+}
+
+/* 見出し */
 .profile-history h3 {
-  font-size: 2rem;
-  margin-bottom: 1rem;
+  font-size: 28px;
+  margin: 0 0 3rem 20px; /* ← 左に余白＝右へ20pxずれる */
   border-bottom: 1px solid #000;
   display: inline-block;
 }
 
+/* 各行（1つの経歴） */
 .history-row {
+  position: relative;
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
+  align-items: center;
+  justify-content: center;
+  margin: 0;              /* ← 3rem消す */
+  padding: 10px 0;        /* ← これが神（縦余白を自然に拡張） */
+  min-height: 120px;      /* ← 丸と文章の間隔を安定させる */
 }
 
+
+/* 丸（タイムラインの点） */
+.history-row::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  background: #4a86c5;      /* 黄緑の丸（画像風） */
+  border: 3px solid #D4E2F1;/* 緑の枠 */
+  border-radius: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%); /* ← 縦中央に完全固定 */
+  z-index: 2;
+}
+
+/* 年（左側に配置） */
 .history-row .year {
-  min-width: 3rem;
+  position: absolute;
+  left: calc(50% - 190px); /* 中央より左に配置 */
+  width: 150px;
+  text-align: right;
   font-weight: 900;
+  font-size: 22px; /* 年代文字 */
 }
 
+/* 内容（右側に配置） */
 .history-row p {
-  font-size: 1rem;
+  position: absolute;
+  left: calc(50% + 40px); /* 中央より右に配置 */
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.8;
+  font-size: 20px;
+}
+
+@media (max-width: 768px) {
+  /* 見出し */
+.profile-history h3 {
+  font-size: 24px;
+  margin: 0 0 3rem 20px; /* ← 左に余白＝右へ20pxずれる */
+  border-bottom: 1px solid #000;
+  display: inline-block;
+}
+/* 年（左側に配置） */
+.history-row .year {
+  position: absolute;
+  left: calc(50% - 190px); /* 中央より左に配置 */
+  width: 150px;
+  text-align: right;
+  font-weight: 900;
+  font-size: 18px; /* 年代文字 */
+}
+/* 内容（右側に配置） */
+.history-row p {
+  position: absolute;
+  left: calc(50% + 40px); /* 中央より右に配置 */
+  margin: 0;
+  max-width: 400px;
+  line-height: 1.8;
+  font-size: 16px;
+}
+  
 }
 
 /* ==========================
