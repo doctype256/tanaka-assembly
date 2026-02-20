@@ -190,6 +190,93 @@
   margin-bottom: 0 !important;
 }
 
+
+/* 活動報告のカルーセル */
+/* カルーセル全体の最大幅を制限 */
+#policy-carousel-container {
+  max-width: 1200px; /* 画面いっぱいに広がらないよう制限 */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* カルーセル内部のアイテム（各報告）の調整 */
+.pdf-item {
+  box-sizing: border-box;
+  padding: 15px; /* アイテム間の余白 */
+  flex: 0 0 33.333%; /* PCでは3つ並ぶ計算 */
+  max-width: 33.333%;
+  transition: opacity 0.3s ease;
+}
+
+/* 報告画像のサイズを固定して揃える */
+.report-thumb {
+  width: 100%;
+  aspect-ratio: 3 / 2; /* 横長で統一 */
+  overflow: hidden;
+  border-radius: 8px;
+  background: #eee;
+}
+
+.report-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 画像を枠いっぱいに綺麗に収める */
+}
+
+/* タイトルの文字数が多い場合の対策 */
+.pdf-item h3 {
+  font-size: 1.1rem;
+  margin: 10px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 2行で省略 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.8em; /* 高さを固定してボタンの位置を揃える */
+}
+
+/* --- スマホ版（768px以下）の調整 --- */
+@media (max-width: 768px) {
+  .pdf-item {
+    flex: 0 0 100%; /* スマホは1枚表示 */
+    max-width: 100%;
+    padding: 10px 20px;
+  }
+}
+
+/* 「一覧へ」ボタンの強化 */
+.more-btn {
+  display: block;
+  width: fit-content;      /* 文字の幅に合わせる */
+  margin: 30px auto 0;     /* 上に余白を作り、中央寄せ */
+  padding: 12px 40px;      /* ボタンの上下左右の余白を広げる */
+  
+  font-size: 1.4rem;       /* ★文字を大きく（元の約1.5倍〜2倍） */
+  font-weight: bold;       /* 太字にして視認性アップ */
+  color: #4682B4;          /* テーマカラーの青 */
+  text-decoration: none;   /* 下線を消す */
+  
+  border: 2px solid #4682B4; /* 枠線をつける */
+  border-radius: 50px;     /* 角を丸めてボタンらしく */
+  transition: all 0.3s ease; /* ホバー時の動きを滑らかに */
+}
+
+/* ホバー（マウスを乗せた時）の演出 */
+.more-btn:hover {
+  background-color: #4682B4;
+  color: #fff;             /* 色を反転させる */
+  transform: translateY(-3px); /* 少し浮き上がらせる */
+  box-shadow: 0 5px 15px rgba(70, 130, 180, 0.3);
+}
+
+/* スマホ版の調整 */
+@media (max-width: 768px) {
+  .more-btn {
+    font-size: 1.2rem;     /* スマホでは少しだけ控えめに調整 */
+    padding: 10px 30px;
+    width: 80%;            /* スマホでは横幅を広げて押しやすく */
+    text-align: center;
+  }
+}
     
 </style>
 </head>
@@ -231,8 +318,6 @@
   </a>
 </section>
 <!-- ご相談セクションここまで -->
-
-
 
   <section class="youtube-section">
     <div class="video-wrapper" id="dynamic-yt-container">
