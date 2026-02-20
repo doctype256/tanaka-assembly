@@ -989,7 +989,7 @@ section.hero {
   display: flex;
   align-items: center;
   position: relative;      /* 中央線を絶対位置で置くため必要 */
-  gap: 4rem;
+  gap: 6rem;
   margin-bottom: 1.5rem;
 }
 
@@ -1013,7 +1013,7 @@ section.hero {
 
 /* ラベル */
 .basic-row .label {
-  flex: 0 0 180px;         /* 幅固定 */
+  flex: 0 0 160px;         /* 幅固定 */
   text-align: right;
 }
 
