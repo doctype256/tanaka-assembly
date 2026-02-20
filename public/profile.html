@@ -45,6 +45,15 @@
       <span id="profile-role"></span>
     </div>
     <div class="profile-basic" id="profile-basic"></div>
+     <section class="profile-policies">
+  <h3 id="policies-title"></h3>
+
+  <!-- ボタン -->
+  <div id="policy-buttons" class="policy-buttons"></div>
+
+  <!-- 切替表示エリア -->
+ <div class="policy-content" id="policy-text"></div>
+</section>
     <section class="profile-history">
       <h3>経歴</h3>
       <div id="profile-history"></div>
@@ -139,6 +148,56 @@ async function loadProfile() {
         div.innerHTML = `<span class="year">${h.year}</span><p>${h.text}</p>`;
         historyWrap.appendChild(div);
       });
+
+      // 4. 政策（ボタン切替表示）
+const policiesData = staticData.policies;
+
+if (policiesData) {
+  const policiesTitle = document.getElementById('policies-title');
+  const buttonsWrap = document.getElementById('policy-buttons');
+  const textEl = document.getElementById('policy-text');
+
+  // タイトル表示
+  policiesTitle.textContent = policiesData.title;
+
+  // 初期表示（1番目）
+  if (policiesData.items && policiesData.items.length > 0) {
+    const first = policiesData.items[0];
+
+    if (Array.isArray(first.texts)) {
+      textEl.innerHTML = first.texts
+        .map(t => `<p>${t}</p>`)
+        .join('');
+    } else {
+      textEl.textContent = first.texts || '';
+    }
+  }
+
+  // ボタン生成
+  buttonsWrap.innerHTML = '';
+  policiesData.items.forEach((item, index) => {
+    const btn = document.createElement('button');
+    btn.className = 'policy-btn';
+    btn.textContent = item.title;
+
+    btn.addEventListener('click', () => {
+      if (Array.isArray(item.texts)) {
+        textEl.innerHTML = item.texts
+          .map(t => `<p>${t}</p>`)
+          .join('');
+      } else {
+        textEl.textContent = item.texts || '';
+      }
+
+      document.querySelectorAll('.policy-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+
+    if (index === 0) btn.classList.add('active');
+    buttonsWrap.appendChild(btn);
+  });
+}
 
       // 3. 地図と住所の表示ロジック（pageHeaders を参照せず API データのみを使用）
       if (topRes.ok) {
