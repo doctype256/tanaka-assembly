@@ -853,11 +853,24 @@ section.hero {
 }
 
 /* タイトル */
-.profile-title {
-  text-align: center;
+#profile-title {
+  font-size: 34px;  /* 大きくして変化を確認 */
   font-family: "Noto Serif JP", serif;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+
+/* タイトル */
+#profile-title {
+  font-size: 30px;  /* 大きくして変化を確認 */
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
 }
 
 /* ==========================
@@ -891,12 +904,12 @@ section.hero {
 }
 
 .profile-name h2 {
-  font-size: 1.4rem;
+  font-size: 32px;
   font-weight: 700;
 }
 
 .profile-name p {
-  font-size: 1.5rem;
+  font-size: 22px;
   color: #666;
   margin-top: 0.25rem;
 }
@@ -904,45 +917,147 @@ section.hero {
 .profile-name span {
   display: inline-block;
   margin-top: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 0rem;
   padding-bottom: 2px;
   border-bottom: 1px solid #000;
 }
 
+@media (max-width: 767px) {
+  .profile-name h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 18px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+}
+
 /* ==========================
+   名前・肩書
+========================== */
+.profile-name {
+  margin-bottom: 2rem;
+}
+
+.profile-name h2 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 22px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.profile-name span {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0rem;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #000;
+}
+
+@media (max-width: 767px) {
+  .profile-name h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 18px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+}
+
+/*==========================
    基本情報
 ========================== */
 .profile-basic {
-  position: relative;
-  margin-bottom: 3rem;
+  max-width: 420px;
+  margin: 0 auto 2rem;
+
 }
 
 .basic-row {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
+  align-items: center;
+  position: relative;      /* 中央線を絶対位置で置くため必要 */
+  gap: 4rem;
+  margin-bottom: 1.5rem;
 }
 
-/* 丸ポチ */
-.basic-row .dot {
-  width: 10px;
-  height: 10px;
+/* 中央線 */
+.basic-row::before {
+  content: "";
+  position: absolute;
+  left: 50%;               /* 横幅の中央 */
+  top: 0;
+  bottom: 0;
+  width: 2px;
   background: #000;
-  border-radius: 50%;
-  margin-top: 0.4rem;
-  flex-shrink: 0;
+  transform: translateX(-50%);
+  z-index: 0;              /* ラベル・値の背後に表示 */
 }
 
-/* ラベルと値 */
-.basic-row strong {
-  font-size: 1.2rem;
-  display: block;
+.basic-row .label,
+.basic-row .value {
+  z-index: 1;              /* ラベルと値を縦線の上に表示 */
 }
 
-.basic-row p {
-  font-size: 1rem;
-  margin-top: 0.1rem;
+/* ラベル */
+.basic-row .label {
+  flex: 0 0 180px;         /* 幅固定 */
+  text-align: right;
 }
+
+/* 値 */
+.basic-row .value {
+  flex: 1;
+  text-align: left;
+}
+
+
+/* 文字サイズ調整 */
+.basic-row strong { font-size: 22px; }
+.basic-row p { font-size: 20px; margin: 0; }
+
+@media (max-width: 768px) {
+  .basic-row {
+    gap: 2.5rem;            /* PCより少し狭く */
+  }
+
+  .basic-row::before {
+    left: 50%;            /* 縦線を少し右に移動 */
+  }
+
+  .basic-row .label {
+    flex: 0 0 160px;      /* ラベル幅を縮小 */
+    text-align: right;
+  }
+
+  .basic-row .value {
+    flex: 1;
+    text-align: left;
+  }
+
+  .basic-row strong {
+    font-size: 18px;
+  }
+
+  .basic-row p {
+    font-size: 16px;
+  }
+}
+
+
+
 
 /* ==========================
    政策
@@ -1084,7 +1199,7 @@ section.hero {
   top: 80px;       /* h3の下から開始 */
   bottom: 0;
   width: 3px;
-  background: #4a86c5; /* 緑の線（画像風） */
+  background: #D4E2F1; /* 緑の線（画像風） */
   transform: translateX(-50%);
 }
 
@@ -1115,8 +1230,8 @@ section.hero {
   left: 50%;
   width: 18px;
   height: 18px;
-  background: #fa85a0;      /* 黄緑の丸（画像風） */
-  border: 3px solid #4a86c5;/* 緑の枠 */
+  background: #4a86c5;      /* 黄緑の丸（画像風） */
+  border: 3px solid #D4E2F1;/* 緑の枠 */
   border-radius: 50%;
   top: 50%;
   transform: translate(-50%, -50%); /* ← 縦中央に完全固定 */
