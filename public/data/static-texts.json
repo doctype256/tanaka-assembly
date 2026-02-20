@@ -7,9 +7,7 @@
     { "href": "index.html", "text": "TOPページ" },
     { "href": "profile.html", "text": "自己紹介" },
     { "href": "policy.html", "text": "活動報告" },
-    { "href": "contact.html", "text": "お問い合わせ" },
-    { "href": "post.html", "text": "ご相談ポスト" },
-    { "href": "pdf-text.html", "text": "Shiho Press" }
+    { "href": "post.html", "text": "ご相談ポスト" }
   ],
 
   "header": {

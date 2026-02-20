@@ -121,8 +121,37 @@ export default function ConsultationPage() {
   if (!isInitialized) return null;
 
   return (
-    <div style={{ padding: '20px', width: '100%', maxWidth: '800px', margin: '0 auto', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
-      
+  <div
+    style={{
+      position: 'relative',
+      padding: '20px',
+      width: '100%',
+      maxWidth: '800px',
+      margin: '0 auto',
+      fontFamily: 'sans-serif',
+      boxSizing: 'border-box',
+      minHeight: '100vh',
+      overflow: 'hidden'
+    }}
+  >
+    {/* 背景イラストレイヤー */}
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundImage: 'url("/assets/ご相談ポスト背景1.jpg")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+        opacity: 0.4,
+        zIndex: 0,
+        pointerEvents: 'none'
+      }}
+    />
+
+    {/* フォーム本体 */}
+    <div style={{ position: 'relative', zIndex: 1 }}>
+
       {step <= 7 && (
         <div style={{ marginBottom: '30px', fontSize: '12px', color: '#666' }}>
           進捗: {progressPercent}%
@@ -289,6 +318,7 @@ export default function ConsultationPage() {
           <p style={{ fontSize: '12px', color: '#a0aec0', margin: 0 }}>※入力内容は自動保存されています。</p>
         </div>
       )}
+    </div>
     </div>
   );
 }
