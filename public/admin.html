@@ -484,19 +484,11 @@
 </head>
 
 <body data-page="admin">
- <!-- <header>
-    <nav class="header-inner">
-      <div id="header-name"></div>
-      <div id="header-nav"></div>
-      <button id="menu-toggle" aria-label="メニュー">☰</button>
-    </nav>
-  </header> -->
 
   <main>
   <div class="admin-container">
     <div class="admin-header">
       <h1>管理者ページ</h1>
-      <p>コメント・お問い合わせの管理</p>
     </div>
 
     <!-- ログインフォーム -->
@@ -521,7 +513,6 @@
 
       <!-- タブナビゲーション -->
       <div class="tabs">
-        <button class="tab-button active" data-tab="comments-tab">活動報告対するコメント</button>
         <button class="tab-button" data-tab="profile-tab">自己紹介</button>
         <button class="tab-button" data-tab="pdf-tab">shihoPress</button>
         <button class="tab-button" data-tab="activity-reports-tab">活動報告</button>
@@ -543,52 +534,6 @@
     <iframe src="test-top.html" style="width: 100%; height: 800px; border: 1px solid #ddd; border-radius: 8px; margin-top: 20px;"></iframe>
   </div>
 </div>
-
-      <!-- コメントタブ -->
-      <div id="comments-tab" class="tab-content active">
-        <div class="admin-stats">
-          <div class="stat-item">
-            <div class="stat-label">総コメント数</div>
-            <div class="stat-value" id="total-comments">0</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-label">記事数</div>
-            <div class="stat-value" id="article-count">0</div>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <input type="text" id="filter-article" class="filter-input" placeholder="記事タイトルで検索...">
-          <button class="filter-button" id="filter-button">検索</button>
-          <button class="clear-filter-button" id="clear-filter">クリア</button>
-        </div>
-
-        <div class="error-message" id="error-message"></div>
-        <div class="success-message" id="success-message"></div>
-
-        <div id="comments-container"></div>
-      </div>
-
-      <!-- お問い合わせタブ -->
-      <div id="contacts-tab" class="tab-content">
-        <div class="admin-stats">
-          <div class="stat-item">
-            <div class="stat-label">総お問い合わせ数</div>
-            <div class="stat-value" id="total-contacts">0</div>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <input type="text" id="filter-contact-email" class="filter-input" placeholder="メールアドレスで検索...">
-          <button class="filter-button" id="filter-contact-button">検索</button>
-          <button class="clear-filter-button" id="clear-contact-filter">クリア</button>
-        </div>
-
-        <div class="error-message" id="error-message-contact"></div>
-        <div class="success-message" id="success-message-contact"></div>
-
-        <div id="contacts-container"></div>
-      </div>
 
       <!-- ご相談ポストタブ -->
       <div id="posts-tab" class="tab-content">
@@ -790,27 +735,8 @@
     <iframe src="/admin/consultations" style="width: 100%; height: 900px; border: 1px solid #ddd; border-radius: 8px; background: white;"></iframe>
   </div>
 </div>
-    <!-- </div>
-  </div>
-</div>
-    パスワード変更タブ 
-     <div id="change-password-tab" class="tab-content"> 
-      <h3>🔒 パスワード変更</h3> 
-      <form id="change-password-form" class="profile-edit-form"> 
-        <div class="form-group"> <label for="new-password">新しいパスワード</label> 
-          <input type="password" id="new-password" name="new-password" placeholder="6文字以上" minlength="6" required aria-required="true" /> 
-        </div>  <div class="form-group"> 
-          <label for="confirm-password">新しいパスワード（確認）</label> 
-          <input type="password" id="confirm-password" name="confirm-password" placeholder="もう一度入力" minlength="6" required aria-required="true" /> 
-        </div> 
-        <button type="submit" class="login-button">💾 変更する</button> 
-      </form> 
-   <div id="password-success" class="success-message"></div> 
-   <div id="password-error" class="error-message"></div> -->
 </div>
 </main>
-
-
   <script type="module" src="/js/admin.js"></script>
 </body>
 </html>

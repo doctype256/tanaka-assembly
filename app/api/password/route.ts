@@ -14,30 +14,15 @@ const db = createClient({
 });
 
 // ログをファイルに出力する関数
+// ログ出力を完全に無効化
 function writeLog(message: string) {
-　console.log('[writeLog 呼び出し]', message); // ← 追加！
-  const logDir = path.join(process.cwd(), 'logs');
-  const logPath = path.join(logDir, 'password.log');
-  const timestamp = new Date().toISOString();
-  const logMessage = `[${timestamp}] ${message}\n`;
-
-  try {
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir);
-    }
-    fs.appendFileSync(logPath, logMessage, 'utf8');
-  } catch (err) {
-    console.error('[ログ出力エラー]', err);
-  }
+  // 何もしない
 }
 
 export async function POST(req: NextRequest) {
   const { currentPassword, newPassword } = await req.json();
 
-  console.log('[API] パスワード変更リクエスト受信');
-  writeLog('パスワード変更リクエスト受信');
-  writeLog(`currentPassword: ${currentPassword}`);
-  writeLog(`newPassword: ${newPassword}`);
+  // ...existing code...
 
   try {
     // 現在のハッシュを取得
