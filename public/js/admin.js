@@ -2,6 +2,71 @@
  * AdminManager クラス
  * 管理画面全体を管理するクラス
  */
+// （APIClientクラスの重複定義を削除）
+
+// Utilsクラスをここで定義（public/js/utils.js からコピー）
+class Utils {
+    static escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    static formatDateJP(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const hh = String(date.getHours()).padStart(2, '0');
+        const min = String(date.getMinutes()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd} ${hh}:${min}`;
+    }
+    static showMessage(id, message, timeout = 3000) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.textContent = message;
+        el.style.display = 'block';
+        if (timeout > 0) {
+            setTimeout(() => {
+                el.style.display = 'none';
+            }, timeout);
+        }
+    }
+    static showElement(id, show = true) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = show ? 'block' : 'none';
+    }
+}
+
+// APIClientクラスをここで定義（public/js/api.js からコピー）
+class APIClient {
+    constructor(baseUrl = '/api') {
+        this.baseUrl = baseUrl;
+    }
+    async call(endpoint, options = {}) {
+        const url = `${this.baseUrl}${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(options.headers || {}),
+        };
+        let body = options.body;
+        if (body && typeof body === 'object') {
+            body = JSON.stringify(body);
+        }
+        const response = await fetch(url, {
+            ...options,
+            headers,
+            body,
+        });
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+        return response.json();
+    }
+}
+// ここまでAPIClient
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -49,397 +114,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-import APIClient from './api.js';
-import Utils from './utils.js';
-/**
- * コメント管理クラス
- */
-var CommentManager = /** @class */ (function () {
-    function CommentManager(api) {
-        this.api = api;
-        this.allComments = [];
-        this.filteredComments = [];
-    }
-    /**
-     * コメント一覧を取得
-     */
-    CommentManager.prototype.fetchAll = function (password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _a = this;
-                        return [4 /*yield*/, this.api.getAllComments(password)];
-                    case 1:
-                        _a.allComments = _b.sent();
-                        this.filteredComments = this.allComments;
-                        return [2 /*return*/, this.allComments];
-                }
-            });
-        });
-    };
-    /**
-     * コメントを描画
-     */
-    CommentManager.prototype.renderComments = function (container) {
-        if (this.filteredComments.length === 0) {
-            container.innerHTML = Utils.getEmptyStateHtml('💬', 'コメントはありません');
-            return;
-        }
-        var html = "\n      <table class=\"comments-table\">\n        <thead>\n          <tr>\n            <th>\u8A18\u4E8B\u30BF\u30A4\u30C8\u30EB</th>\n            <th>\u6295\u7A3F\u8005</th>\n            <th>\u30B3\u30E1\u30F3\u30C8</th>\n            <th>\u65E5\u6642</th>\n            <th>\u30B9\u30C6\u30FC\u30BF\u30B9</th>\n            <th>\u64CD\u4F5C</th>\n          </tr>\n        </thead>\n        <tbody>\n          ".concat(this.filteredComments.map(function (comment) { return "\n            <tr>\n              <td>".concat(Utils.escapeHtml(comment.article_title), "</td>\n              <td>").concat(Utils.escapeHtml(comment.name), "</td>\n              <td class=\"comment-message\">").concat(Utils.escapeHtml(comment.message), "</td>\n              <td>").concat(Utils.formatDateJP(comment.created_at), "</td>\n              <td>\n                <span class=\"approval-status ").concat(comment.approved ? 'approved' : 'pending', "\">\n                  ").concat(comment.approved ? '承認済み' : '保留中', "\n                </span>\n              </td>\n              <td>\n                <button \n                  class=\"").concat(comment.approved ? 'unapprove-button' : 'approve-button', "\" \n                  onclick=\"window.adminManager.toggleCommentApproval(").concat(comment.id, ", ").concat(!comment.approved, ")\">\n                  ").concat(comment.approved ? '不承認にする' : '承認する', "\n                </button>\n                <button class=\"delete-button\" onclick=\"window.adminManager.deleteCommentHandler(").concat(comment.id, ")\">\n                  \u524A\u9664\n                </button>\n              </td>\n            </tr>\n          "); }).join(''), "\n        </tbody>\n      </table>\n    ");
-        container.innerHTML = html;
-    };
-    /**
-     * コメント承認ステータスを切り替え
-     */
-    CommentManager.prototype.toggleApproval = function (id, approved, password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var comment;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.api.updateCommentApproval(id, approved, password)];
-                    case 1:
-                        _a.sent();
-                        comment = this.allComments.find(function (c) { return c.id === id; });
-                        if (comment)
-                            comment.approved = approved;
-                        this.filteredComments = this.allComments.filter(function (c) { return c.id !== id || c; });
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * コメントを削除
-     */
-    CommentManager.prototype.delete = function (id, password) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.api.deleteComment(id, password)];
-                    case 1:
-                        _a.sent();
-                        this.allComments = this.allComments.filter(function (c) { return c.id !== id; });
-                        this.filteredComments = this.allComments;
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * コメントをフィルタリング
-     */
-    CommentManager.prototype.filter = function (articleTitle) {
-        if (!articleTitle) {
-            this.filteredComments = this.allComments;
-        }
-        else {
-            this.filteredComments = this.allComments.filter(function (c) {
-                return c.article_title.toLowerCase().includes(articleTitle.toLowerCase());
-            });
-        }
-    };
-    /**
-     * 統計情報を取得
-     */
-    CommentManager.prototype.getStats = function () {
-        var uniqueArticles = new Set(this.allComments.map(function (c) { return c.article_title; }));
-        return {
-            total: this.allComments.length,
-            articles: uniqueArticles.size,
-        };
-    };
-    return CommentManager;
-}());
-/**
- * お問い合わせ管理クラス
- */
-var ContactListManager = /** @class */ (function () {
-    function ContactListManager(api) {
-        this.api = api;
-        this.allContacts = [];
-        this.filteredContacts = [];
-    }
-    /**
-     * お問い合わせ一覧を取得
-     */
-    ContactListManager.prototype.fetchAll = function (password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0:
-                        _a = this;
-                        return [4 /*yield*/, this.api.getAllContacts(password)];
-                    case 1:
-                        _a.allContacts = _b.sent();
-                        this.filteredContacts = this.allContacts;
-                        return [2 /*return*/, this.allContacts];
-                }
-            });
-        });
-    };
-    /**
-     * お問い合わせを描画
-     */
-    ContactListManager.prototype.renderContacts = function (container) {
-                if (this.filteredContacts.length === 0) {
-                        container.innerHTML = Utils.getEmptyStateHtml('📧', 'お問い合わせはありません');
-                        return;
-                }
-                const html = `
-                    <table class="comments-table">
-                        <thead>
-                            <tr>
-                                <th>お名前</th>
-                                <th>フリガナ</th>
-                                <th>メールアドレス</th>
-                                <th>お問い合わせ内容</th>
-                                <th>日時</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${this.filteredContacts.map(contact => `
-                                <tr>
-                                    <td>${Utils.escapeHtml(contact.name)}</td>
-                                    <td>${Utils.escapeHtml(contact.furigana)}</td>
-                                    <td>${Utils.escapeHtml(contact.email)}</td>
-                                    <td class="comment-message">${Utils.escapeHtml(contact.message)}</td>
-                                    <td>${Utils.formatDateJP(contact.created_at)}</td>
-                                    <td>
-                                        <button class="delete-button" onclick="window.adminManager.deleteContactHandler(${contact.id})">
-                                            削除
-                                        </button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                `;
-                container.innerHTML = html;
-    };
-    /**
-     * お問い合わせを削除
-     */
-    ContactListManager.prototype.delete = function (id, password) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.api.deleteContact(id, password)];
-                    case 1:
-                        _a.sent();
-                        this.allContacts = this.allContacts.filter(function (c) { return c.id !== id; });
-                        this.filteredContacts = this.allContacts;
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * お問い合わせをフィルタリング
-     */
-    ContactListManager.prototype.filter = function (email) {
-        if (!email) {
-            this.filteredContacts = this.allContacts;
-        }
-        else {
-            this.filteredContacts = this.allContacts.filter(function (c) {
-                return c.email.toLowerCase().includes(email.toLowerCase());
-            });
-        }
-    };
-    /**
-     * 統計情報を取得
-     */
-    ContactListManager.prototype.getStats = function () {
-        return {
-            total: this.allContacts.length,
-        };
-    };
-    return ContactListManager;
-}());
-/**
- * ご相談ポスト管理クラス
- */
-var PostManager = /** @class */ (function () {
-    function PostManager(api) {
-        this.api = api;
-        this.allPosts = [];
-    }
-    /**
-     * ポスト一覧を取得
-     */
-    PostManager.prototype.fetchAll = function (password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response, _a;
-            return __generator(this, function (_b) {
-                switch (_b.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/posts?all=true&password=' + encodeURIComponent(password))];
-                    case 1:
-                        response = _b.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to fetch posts');
-                        _a = this;
-                        return [4 /*yield*/, response.json()];
-                    case 2:
-                        _a.allPosts = _b.sent();
-                        return [2 /*return*/, this.allPosts];
-                }
-            });
-        });
-    };
-    /**
-     * ポストを描画
-     */
-    PostManager.prototype.renderPosts = function (container) {
-        if (this.allPosts.length === 0) {
-            container.innerHTML = Utils.getEmptyStateHtml('📝', 'ポストはありません');
-            return;
-        }
-        const html = `
-          <div style="display: flex; flex-direction: column; gap: 15px;">
-            ${this.allPosts.map(post => `
-              <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f9f9f9;">
-                <div style="margin-bottom: 10px;">
-                  <strong>相談者:</strong> ${post.name || '（未入力）'} | <strong>件名:</strong> ${post.subject || '（未入力）'}<br/>
-                  <strong>投稿日:</strong> ${new Date(post.created_at).toLocaleString('ja-JP')}<br/>
-                  <strong>ステータス:</strong> ${post.approved ? '<span style="color: green;">✓ 承認済み</span>' : '<span style="color: red;">✗ 未承認</span>'}
-                </div>
-                <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 3px;">
-                  <strong>相談内容:</strong><br/>
-                  ${post.content}
-                </div>
-                <div style="margin-bottom: 10px;">
-                  <label style="display: block; margin-bottom: 5px;"><strong>返信内容:</strong></label>
-                  <textarea 
-                    id="reply-${post.id}" 
-                    placeholder="返信内容を入力してください"
-                    style="width: 100%; min-height: 100px; padding: 8px; border: 1px solid #ccc; border-radius: 3px; font-family: inherit;"
-                  >${post.reply || ''}</textarea>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                  <button 
-                    class="login-button" 
-                    style="flex: 1;"
-                    onclick="window.adminManager.savePostReplyAndApprove(${post.id})">
-                    返信を保存して承認
-                  </button>
-                  <button 
-                    class="login-button" 
-                    style="flex: 1; background-color: #666;"
-                    onclick="window.adminManager.savePostReply(${post.id})">
-                    返信を保存
-                  </button>
-                  <button class="delete-button" onclick="window.adminManager.deletePostHandler(${post.id})">削除</button>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        `;
-        container.innerHTML = html;
-    };
-    /**
-     * 承認ステータスを切り替え
-     */
-    PostManager.prototype.toggleApproval = function (id, approved, password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/posts', {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: id, approved: approved, password: password })
-                        })];
-                    case 1:
-                        response = _a.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to update post');
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * ポストに返信を保存
-     */
-    PostManager.prototype.saveReply = function (id, reply, password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/posts', {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: id, reply: reply, password: password })
-                        })];
-                    case 1:
-                        response = _a.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to save reply');
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * ポストに返信を保存して承認
-     */
-    PostManager.prototype.saveReplyAndApprove = function (id, reply, password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/posts', {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: id, reply: reply, approved: 1, password: password })
-                        })];
-                    case 1:
-                        response = _a.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to save reply and approve post');
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * ポストを削除
-     */
-    PostManager.prototype.delete = function (id, password) {
-        return __awaiter(this, void 0, void 0, function () {
-            var response;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, fetch('/api/posts', {
-                            method: 'DELETE',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ id: id, password: password })
-                        })];
-                    case 1:
-                        response = _a.sent();
-                        if (!response.ok)
-                            throw new Error('Failed to delete post');
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * 統計情報を取得
-     */
-    PostManager.prototype.getStats = function () {
-        var unapproved = this.allPosts.filter(function (p) { return !p.approved; }).length;
-        return {
-            total: this.allPosts.length,
-            unapproved: unapproved,
-        };
-    };
-    return PostManager;
-}());
 /**
  * プロフィール管理クラス
  */
@@ -691,9 +365,7 @@ function activateTab(tabId) {
 var AdminManager = /** @class */ (function () {
     function AdminManager() {
         this.api = new APIClient();
-        this.comments = new CommentManager(this.api);
-        this.contacts = new ContactListManager(this.api);
-        this.posts = new PostManager(this.api);
+        // コメント・お問い合わせ機能削除に伴いPostManagerの生成も削除
         this.profile = new ProfileManager(this.api);
         this.career = new CareerManager(this.api);
         this.pdf = new PDFManager(this.api);
@@ -830,25 +502,11 @@ AdminManager.prototype.setupEventListeners = function () {
         // ログインフォーム
         document.getElementById('login-input').addEventListener('submit', function (e) { return _this.handleLogin(e); });
         document.getElementById('logout-button').addEventListener('click', function () { return _this.handleLogout(); });
-        // コメントフィルター
-        document.getElementById('filter-button').addEventListener('click', function () { return _this.filterComments(); });
-        document.getElementById('clear-filter').addEventListener('click', function () { return _this.clearCommentFilter(); });
-        document.getElementById('filter-article').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter')
-                _this.filterComments();
-        });
         // ✅ パスワード変更フォーム
         const changePasswordForm = document.getElementById('change-password-form');
         if (changePasswordForm) {
             changePasswordForm.addEventListener('submit', this.handleChangePassword.bind(this));
         }
-        // お問い合わせフィルター
-        document.getElementById('filter-contact-button').addEventListener('click', function () { return _this.filterContacts(); });
-        document.getElementById('clear-contact-filter').addEventListener('click', function () { return _this.clearContactFilter(); });
-        document.getElementById('filter-contact-email').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter')
-                _this.filterContacts();
-        });
         // プロフィール編集フォーム
         document.getElementById('profile-form').addEventListener('submit', function (e) { return _this.handleProfileSave(e); });
         // プロフィール画像ファイル選択時のイベント
@@ -944,7 +602,6 @@ AdminManager.prototype.setupEventListeners = function () {
         });
         // 最初のタブをアクティブに
         document.querySelector('.tab-button').classList.add('active');
-        document.getElementById('comments-tab').classList.add('active');
     };
     //ログイン処理
     AdminManager.prototype.handleLogin = async function (e) {
@@ -971,22 +628,14 @@ AdminManager.prototype.setupEventListeners = function () {
         console.log('[Admin] サーバー認証成功、データ取得を開始します');
 
         // 認証成功後にデータ取得
-        const [comments, contacts, profile, career, pdf, activityReports] = await Promise.all([
-            this.comments.fetchAll(password),
-            this.contacts.fetchAll(password),
+        const [profile, career, pdf, activityReports] = await Promise.all([
             this.profile.fetch(password),
             this.career.fetch(password),
             this.pdf.fetchAll(password),
             this.activityReports.fetch(password),
         ]);
 
-        try {
-            await this.posts.fetchAll(password);
-            console.log('[Admin] posts データ取得成功');
-        } catch (postsErr) {
-            console.warn('[Admin] posts データ取得失敗（テーブルが存在しない可能性）:', postsErr);
-            this.posts.allPosts = [];
-        }
+        // コメント・お問い合わせ機能削除に伴いposts関連の処理も削除
 
         console.log('[Admin] ログイン成功！');
         this.adminPassword = password;
@@ -1013,9 +662,7 @@ AdminManager.prototype.setupEventListeners = function () {
      */
     AdminManager.prototype.handleLogout = function () {
         this.adminPassword = null;
-        this.comments = new CommentManager(this.api);
-        this.contacts = new ContactListManager(this.api);
-        this.posts = new PostManager(this.api);
+        // コメント・お問い合わせ機能削除に伴いposts関連のリセットも削除
         this.profile = new ProfileManager(this.api);
         this.career = new CareerManager(this.api);
         this.activityReports = new ActivityReportManager(this.api);
@@ -1085,301 +732,17 @@ AdminManager.prototype.setupEventListeners = function () {
      * すべてのデータを描画
      */
     AdminManager.prototype.renderAllData = function () {
-        var commentsContainer = document.getElementById('comments-container');
-        var contactsContainer = document.getElementById('contacts-container');
-        var postsContainer = document.getElementById('posts-container');
-        this.comments.renderComments(commentsContainer);
-        this.contacts.renderContacts(contactsContainer);
-        this.posts.renderPosts(postsContainer);
-        this.updateStats();
+        // コメント・お問い合わせ機能削除に伴いposts関連の描画も削除
+        // this.updateStats();
     };
     /**
      * 統計情報を更新
      */
     AdminManager.prototype.updateStats = function () {
-        var commentStats = this.comments.getStats();
-        var contactStats = this.contacts.getStats();
         var postStats = this.posts.getStats();
-        document.getElementById('total-comments').textContent = commentStats.total.toString();
-        document.getElementById('article-count').textContent = commentStats.articles.toString();
-        document.getElementById('total-contacts').textContent = contactStats.total.toString();
-        document.getElementById('total-posts').textContent = postStats.total.toString();
-        document.getElementById('unapproved-posts').textContent = postStats.unapproved.toString();
-    };
-    /**
-     * コメントをフィルタリング
-     */
-    AdminManager.prototype.filterComments = function () {
-        var articleTitle = document.getElementById('filter-article').value;
-        this.comments.filter(articleTitle);
-        this.comments.renderComments(document.getElementById('comments-container'));
-    };
-    /**
-     * コメントフィルターをクリア
-     */
-    AdminManager.prototype.clearCommentFilter = function () {
-        document.getElementById('filter-article').value = '';
-        this.comments.filter('');
-        this.comments.renderComments(document.getElementById('comments-container'));
-    };
-    /**
-     * お問い合わせをフィルタリング
-     */
-    AdminManager.prototype.filterContacts = function () {
-        var email = document.getElementById('filter-contact-email').value;
-        this.contacts.filter(email);
-        this.contacts.renderContacts(document.getElementById('contacts-container'));
-    };
-    /**
-     * お問い合わせフィルターをクリア
-     */
-    AdminManager.prototype.clearContactFilter = function () {
-        document.getElementById('filter-contact-email').value = '';
-        this.contacts.filter('');
-        this.contacts.renderContacts(document.getElementById('contacts-container'));
-    };
-    /**
-     * コメント承認ステータスを切り替え（公開メソッド）
-     */
-    AdminManager.prototype.toggleCommentApproval = function (id, approved) {
-        return __awaiter(this, void 0, void 0, function () {
-            var err_3;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.comments.toggleApproval(id, approved, this.adminPassword)];
-                    case 2:
-                        _a.sent();
-                        this.comments.renderComments(document.getElementById('comments-container'));
-                        Utils.showMessage('success-message', approved ? '承認しました' : '不承認にしました', 3000);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_3 = _a.sent();
-                        console.error('Error:', err_3);
-                        Utils.showMessage('error-message', 'ステータス更新に失敗しました', 3000);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * コメント削除ハンドラー（公開メソッド）
-     */
-    AdminManager.prototype.deleteCommentHandler = function (id) {
-        return __awaiter(this, void 0, void 0, function () {
-            var err_4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!confirm('このコメントを削除しますか？'))
-                            return [2 /*return*/];
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.comments.delete(id, this.adminPassword)];
-                    case 2:
-                        _a.sent();
-                        this.comments.renderComments(document.getElementById('comments-container'));
-                        this.updateStats();
-                        Utils.showMessage('success-message', '削除しました', 3000);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_4 = _a.sent();
-                        console.error('Error:', err_4);
-                        Utils.showMessage('error-message', '削除に失敗しました', 3000);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * お問い合わせ削除ハンドラー（公開メソッド）
-     */
-    AdminManager.prototype.deleteContactHandler = function (id) {
-        return __awaiter(this, void 0, void 0, function () {
-            var err_5;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!confirm('このお問い合わせを削除しますか？'))
-                            return [2 /*return*/];
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, this.contacts.delete(id, this.adminPassword)];
-                    case 2:
-                        _a.sent();
-                        this.contacts.renderContacts(document.getElementById('contacts-container'));
-                        this.updateStats();
-                        Utils.showMessage('success-message-contact', '削除しました', 3000);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        err_5 = _a.sent();
-                        console.error('Error:', err_5);
-                        Utils.showMessage('error-message-contact', '削除に失敗しました', 3000);
-                        return [3 /*break*/, 4];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * ポスト承認ステータスを切り替え（公開メソッド）
-     */
-    AdminManager.prototype.togglePostApproval = function (id, approved) {
-        return __awaiter(this, void 0, void 0, function () {
-            var err_6;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 4, , 5]);
-                        return [4 /*yield*/, this.posts.toggleApproval(id, approved, this.adminPassword)];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.posts.fetchAll(this.adminPassword)];
-                    case 3:
-                        _a.sent();
-                        this.posts.renderPosts(document.getElementById('posts-container'));
-                        this.updateStats();
-                        Utils.showMessage('success-message-posts', approved ? '承認しました' : '不承認にしました', 3000);
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_6 = _a.sent();
-                        console.error('Error:', err_6);
-                        Utils.showMessage('error-message-posts', 'ステータス更新に失敗しました', 3000);
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * ポスト返信保存ハンドラー（公開メソッド）
-     */
-    AdminManager.prototype.savePostReply = function (id) {
-        return __awaiter(this, void 0, void 0, function () {
-            var replyText, err_7;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 4, , 5]);
-                        replyText = document.getElementById('reply-' + id).value;
-                        if (!replyText || !replyText.trim()) {
-                            Utils.showMessage('error-message-posts', '返信内容を入力してください', 3000);
-                            return [2 /*return*/];
-                        }
-                        return [4 /*yield*/, this.posts.saveReply(id, replyText, this.adminPassword)];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.posts.fetchAll(this.adminPassword)];
-                    case 3:
-                        _a.sent();
-                        this.posts.renderPosts(document.getElementById('posts-container'));
-                        Utils.showMessage('success-message-posts', '返信を保存しました', 3000);
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_7 = _a.sent();
-                        console.error('Error:', err_7);
-                        Utils.showMessage('error-message-posts', '保存に失敗しました', 3000);
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * ポスト返信保存して承認ハンドラー（公開メソッド）
-     */
-    AdminManager.prototype.savePostReplyAndApprove = function (id) {
-        return __awaiter(this, void 0, void 0, function () {
-            var replyText, err_8;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 4, , 5]);
-                        replyText = document.getElementById('reply-' + id).value;
-                        if (!replyText || !replyText.trim()) {
-                            Utils.showMessage('error-message-posts', '返信内容を入力してください', 3000);
-                            return [2 /*return*/];
-                        }
-                        return [4 /*yield*/, this.posts.saveReplyAndApprove(id, replyText, this.adminPassword)];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.posts.fetchAll(this.adminPassword)];
-                    case 3:
-                        _a.sent();
-                        this.posts.renderPosts(document.getElementById('posts-container'));
-                        this.updateStats();
-                        Utils.showMessage('success-message-posts', '返信を保存して承認しました', 3000);
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_8 = _a.sent();
-                        console.error('Error:', err_8);
-                        Utils.showMessage('error-message-posts', '保存に失敗しました', 3000);
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /**
-     * ポスト削除ハンドラー（公開メソッド）
-     */
-    AdminManager.prototype.deletePostHandler = function (id) {
-        return __awaiter(this, void 0, void 0, function () {
-            var err_9;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        if (!confirm('このポストを削除しますか？'))
-                            return [2 /*return*/];
-                        if (!this.adminPassword)
-                            return [2 /*return*/];
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 4, , 5]);
-                        return [4 /*yield*/, this.posts.delete(id, this.adminPassword)];
-                    case 2:
-                        _a.sent();
-                        return [4 /*yield*/, this.posts.fetchAll(this.adminPassword)];
-                    case 3:
-                        _a.sent();
-                        this.posts.renderPosts(document.getElementById('posts-container'));
-                        this.updateStats();
-                        Utils.showMessage('success-message-posts', '削除しました', 3000);
-                        return [3 /*break*/, 5];
-                    case 4:
-                        err_9 = _a.sent();
-                        console.error('Error:', err_9);
-                        Utils.showMessage('error-message-posts', '削除に失敗しました', 3000);
-                        return [3 /*break*/, 5];
-                    case 5: return [2 /*return*/];
-                }
-            });
-        });
+        document.getElementById('article-count').textContent = postStats.articles.toString();
+        document.getElementById('total-posts').textContent = postStats.totalPosts.toString();
+        document.getElementById('unapproved-posts').textContent = postStats.unapprovedPosts.toString();
     };
     /**
      * 画像プレビューを更新

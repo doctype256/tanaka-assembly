@@ -131,14 +131,19 @@ async function loadProfile() {
         document.getElementById('profile-photo').innerHTML = `<img src="${photoUrl}" alt="${profile.name}" loading="lazy">`;
       }
 
-      const basicWrap = document.getElementById('profile-basic');
-      basicWrap.innerHTML = '';
-      profile.basic.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'basic-row';
-        div.innerHTML = `<span class="dot"></span><div><strong>${item.label}</strong><p>${item.value}</p></div>`;
-        basicWrap.appendChild(div);
-      });
+     const basicWrap = document.getElementById('profile-basic');
+basicWrap.innerHTML = '';  // 古い要素を消す
+
+profile.basic.forEach(item => {
+  const div = document.createElement('div');
+  div.className = 'basic-row';
+  div.innerHTML = `
+    <div class="label"><strong>${item.label}</strong></div>
+    <div class="value"><p>${item.value}</p></div>
+  `;
+  basicWrap.appendChild(div);
+});
+
 
       const historyWrap = document.getElementById('profile-history');
       historyWrap.innerHTML = '';

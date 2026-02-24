@@ -854,11 +854,24 @@ section.hero {
 }
 
 /* タイトル */
-.profile-title {
-  text-align: center;
+#profile-title {
+  font-size: 34px;  /* 大きくして変化を確認 */
   font-family: "Noto Serif JP", serif;
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+
+/* タイトル */
+#profile-title {
+  font-size: 30px;  /* 大きくして変化を確認 */
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  text-align: center;
+  color: #333;
+}
 }
 
 /* ==========================
@@ -892,12 +905,12 @@ section.hero {
 }
 
 .profile-name h2 {
-  font-size: 1.4rem;
+  font-size: 32px;
   font-weight: 700;
 }
 
 .profile-name p {
-  font-size: 1.5rem;
+  font-size: 22px;
   color: #666;
   margin-top: 0.25rem;
 }
@@ -905,45 +918,162 @@ section.hero {
 .profile-name span {
   display: inline-block;
   margin-top: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 0rem;
   padding-bottom: 2px;
   border-bottom: 1px solid #000;
 }
 
+@media (max-width: 767px) {
+  .profile-name h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 18px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+}
+
 /* ==========================
+   名前・肩書
+========================== */
+.profile-name {
+  margin-bottom: 2rem;
+}
+
+.profile-name h2 {
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 22px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.profile-name span {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 0rem;
+  padding-bottom: 2px;
+  border-bottom: 1px solid #000;
+}
+
+@media (max-width: 767px) {
+  .profile-name h2 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-name p {
+  font-size: 18px;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+}
+
+/*==========================
+   基本情報
+========================== */
+/*==========================
    基本情報
 ========================== */
 .profile-basic {
-  position: relative;
-  margin-bottom: 3rem;
+  max-width: 420px;
+  margin: 0 auto 2rem;
 }
 
 .basic-row {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
+  align-items: center;
+  position: relative;
+  gap: 6rem; /* PC */
+  margin-bottom: 1.5rem;
 }
 
-/* 丸ポチ */
-.basic-row .dot {
-  width: 10px;
-  height: 10px;
+/* 中央線（余白のど真ん中） */
+.basic-row::before {
+  content: "";
+  position: absolute;
+  /* ラベル幅160px + gap(6rem)の半分(3rem) */
+  left: calc(160px + 3rem);
+  top: 0;
+  bottom: 0;
+  width: 2px;
   background: #000;
-  border-radius: 50%;
-  margin-top: 0.4rem;
-  flex-shrink: 0;
+  transform: translateX(-50%);
+  z-index: 0;
 }
 
-/* ラベルと値 */
-.basic-row strong {
-  font-size: 1.2rem;
-  display: block;
+.basic-row .label,
+.basic-row .value {
+  z-index: 1;
 }
 
-.basic-row p {
-  font-size: 1rem;
-  margin-top: 0.1rem;
+/* ラベル */
+.basic-row .label {
+  flex: 0 0 160px;
+  text-align: right;
 }
+
+/* 値 */
+.basic-row .value {
+  flex: 1;
+  text-align: left;
+}
+
+/* 文字サイズ */
+.basic-row strong { 
+  font-size: 22px; 
+}
+.basic-row p { 
+  font-size: 20px; 
+  margin: 0; 
+}
+
+/* ===== タブレット（iPad・iPad mini）===== */
+@media (max-width: 768px) {
+  .basic-row {
+    gap: 2.5rem; /* gapが変わる */
+  }
+
+  /* ★ここが最重要（50%は絶対使わない） */
+  .basic-row::before {
+    /* ラベル160px + gap(2.5rem)の半分(1.25rem) */
+    left: calc(160px + 1.25rem);
+  }
+
+  .basic-row strong {
+    font-size: 18px;
+  }
+
+  .basic-row p {
+    font-size: 16px;
+  }
+}
+
+/* ===== スマホ ===== */
+@media (max-width: 480px) {
+  .basic-row {
+    gap: 2.5rem;
+  }
+
+  .basic-row::before {
+    /* ラベル160px + gap(1.5rem)の半分(0.75rem) */
+    left: calc(160px + 1.25rem);
+  }
+
+  .basic-row .label {
+    flex: 0 0 160px; /* スマホは少し縮めるとさらに安定 */
+  }
+}
+
+
 
 /* ==========================
    政策
@@ -1085,7 +1215,7 @@ section.hero {
   top: 80px;       /* h3の下から開始 */
   bottom: 0;
   width: 3px;
-  background: #4a86c5; /* 緑の線（画像風） */
+  background: #D4E2F1; /* 緑の線（画像風） */
   transform: translateX(-50%);
 }
 
@@ -1116,8 +1246,8 @@ section.hero {
   left: 50%;
   width: 18px;
   height: 18px;
-  background: #fa85a0;      /* 黄緑の丸（画像風） */
-  border: 3px solid #4a86c5;/* 緑の枠 */
+  background: #4a86c5;      /* 黄緑の丸（画像風） */
+  border: 3px solid #D4E2F1;/* 緑の枠 */
   border-radius: 50%;
   top: 50%;
   transform: translate(-50%, -50%); /* ← 縦中央に完全固定 */

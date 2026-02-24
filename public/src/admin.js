@@ -235,16 +235,24 @@ class AdminManager {
    * イベントリスナーを設定
    */
   setupEventListeners() {
-    // ログインフォーム
-    document.getElementById('login-input').addEventListener('submit', (e) => this.handleLogin(e));
-    document.getElementById('logout-button').addEventListener('click', () => this.handleLogout());
+  // ログインフォーム
+  document.getElementById('login-input').addEventListener('submit', (e) => this.handleLogin(e));
+  document.getElementById('logout-button').addEventListener('click', () => this.handleLogout());
 
-    // コメントフィルター
-    document.getElementById('filter-button').addEventListener('click', () => this.filterComments());
-    document.getElementById('clear-filter').addEventListener('click', () => this.clearCommentFilter());
-    document.getElementById('filter-article').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.filterComments();
-    });
+  // コメントフィルター
+  document.getElementById('filter-button').addEventListener('click', () => this.filterComments());
+  document.getElementById('clear-filter').addEventListener('click', () => this.clearCommentFilter());
+  document.getElementById('filter-article').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') this.filterComments();
+  });
+
+  // ✅ パスワード変更フォーム
+  const changePasswordForm = document.getElementById('change-password-form');
+  if (changePasswordForm) {
+    changePasswordForm.addEventListener('submit', this.handleChangePassword.bind(this));
+  }
+
+
 
     // お問い合わせフィルター
     document.getElementById('filter-contact-button').addEventListener('click', () => this.filterContacts());

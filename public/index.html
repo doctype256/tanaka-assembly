@@ -10,39 +10,393 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    .page-header-columns { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
-    @media (min-width: 1024px) { .page-header-columns { flex-direction: row; } }
-    .page-header-left { 
-        flex: 0 0 auto;   /* ← 伸びない */
-        width: 100%;
-        max-width: 500px; /* 好きな最大幅 */
-     }
-    .map-embed-wrapper { 
-      position: relative; 
-      width: 100%; 
-      aspect-ratio: 1 / 1; 
-      border-radius: 24px; 
-      overflow: hidden; 
-      background: #f0f0f0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+<style>
+.hero-container {
+      position: relative;
+      width: 100vw !important;
+      left: 50% !important;
+      margin-left: -50vw !important;
+      height: 90vh; 
+      min-height: 700px;
+      max-width: none !important;
+      padding: 0 !important;
+      overflow: hidden;
+      z-index: 5;
+      background-color: #fff;
     }
-    .map-embed-wrapper iframe { border: 0; width: 100%; height: 100%; }
 
-    .sns-icon-lucide {
-      width: 20px;
-      height: 20px;
-      margin-right: 12px;
-      display: inline-block;
-      vertical-align: middle;
+    /* 人物画像：PC版は「80% 5%」を死守 */
+    #dynamic-hero-img {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 80%; 
+      height: 100%;
+      object-fit: cover;
+      object-position: 80% 5%; 
+      z-index: 1;
     }
-    .sns-icon-lucide.instagram { color: #E1306C; }
-    .sns-icon-lucide.facebook { color: #1877F2; }
-    .sns-icon-lucide.x { color: #000000; }
-    .sns-icon-lucide.tiktok { color: #000000; }
-    .sns-icon-lucide.line { color: #06C755; }
-    .sns-icon-lucide.default { color: #666666; }
-  </style>
+
+    /* 青い斜めセクション：向きは逆（上が狭く、下が広い） */
+    .hero-clip-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 60%; 
+      height: 100%;
+      background-color: #4682B4;
+      z-index: 10;
+      pointer-events: none;
+      clip-path: polygon(0 0, 30% 0, 60% 100%, 0 100%);
+    }
+
+    /* 文字ボックス：PCは左ライン */
+    .hero-copy {
+      position: absolute;
+      bottom: 5%; 
+      left: 3%; 
+      z-index: 20;
+      background-color: rgba(255, 255, 255, 0.98); 
+      padding: 50px 60px;
+      border-radius: 4px; 
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2); 
+      border-left: 15px solid #4682B4; 
+      max-width: 700px;
+    }
+
+    .hero-copy h2 {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 4.2rem;
+      font-weight: 900;
+      color: #333; 
+      line-height: 1.1;
+      margin: 0 0 20px 0;
+      white-space: nowrap; 
+    }
+
+    .hero-copy p {
+      font-size: 1.8rem; 
+      color: #555;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.1em;
+    }
+
+/* --- スマホ版調整 --- */
+    @media (max-width: 768px) {
+      .hero-container {
+        height: 85vh;
+        min-height: 500px;
+      }
+
+      /* お顔を少し左（中央寄り）に */
+      #dynamic-hero-img {
+        width: 100%;
+        object-position: 65% 10%; 
+      }
+
+      /* スマホの青い帯 */
+      .hero-clip-bg {
+        width: 100%;
+        height: 35%; 
+        top: auto;
+        bottom: 0;
+        clip-path: polygon(0 0, 100% 30%, 100% 100%, 0 100%);
+      }
+
+      .hero-copy {
+        bottom: 5%; 
+        left: 3%; /* 左右の余白を少し広げて一行に入りやすく調整 */
+        right: 3%;
+        padding: 20px 10px; /* 上下の余白を詰める */
+        max-width: 94%;
+        border-left: none; 
+        border-bottom: 10px solid #4682B4; 
+        text-align: center;
+      }
+
+      .hero-copy h2 {
+        /* ★1行に収まるようサイズを調整。vwを使って画面幅に合わせます */
+        font-size: clamp(1.4rem, 6.5vw, 2rem); 
+        white-space: nowrap; /* ★改行を禁止して1行に強制 */
+        letter-spacing: -0.02em; /* 文字間をわずかに詰めて収まりを良く */
+        margin-bottom: 8px;
+      }
+
+      .hero-copy p {
+        font-size: 1rem;
+        letter-spacing: 0.05em;
+      }
+    }
+
+/*相談*/
+/* バナー全体の箱（ここで大きさをコントロール） */
+.consultation-banner-img-type {
+  display: block;
+  width: 95% !important;        /* スマホでは画面幅いっぱいに近く */
+  max-width: 750px !important;  /* ★ここを 700px〜800px にすると大きくなります */
+  margin: 0 auto !important;
+  left: auto !important;
+  position: relative !important;
+  
+  border-radius: 15px;
+  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* 大きい画像に合わせて影も少しリッチに */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ホバー時の演出 */
+.consultation-banner-img-type:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 画像の設定 */
+.base-image {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+/* 画像の横幅ピッタリのボタン */
+.banner-footer-btn {
+  width: 100%;
+  background-color: #4682B4; /* テーマカラーのピンク */
+  color: #ffffff;
+  padding: 20px 0;           /* 大きめのバナーに合わせて少し厚みを出しました */
+  text-align: center;
+  font-size: 1.4rem;         /* 文字も少し大きくして視認性アップ */
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  transition: background-color 0.3s ease;
+}
+
+.consultation-banner-img-type:hover .banner-footer-btn {
+  background-color: #be185d;
+}
+
+/* セクション全体の余白を極限まで削る */
+.consultation-section {
+  padding-top: 30px !important;      /* 上の隙間をゼロに */
+  padding-bottom: 30px !important; /* 下（ニュース）との隙間は少し残す */
+  margin-top: -10px !important;   /* 必要なら少し上に食い込ませる */
+  display: flex;
+  justify-content: center;
+}
+
+/* ヒーローセクションの下の隙間も念のためゼロに */
+.hero-container {
+  margin-bottom: 0 !important;
+}
+
+
+/* 活動報告のカルーセル */
+/* カルーセル全体の最大幅を制限 */
+#policy-carousel-container {
+  max-width: 1200px; /* 画面いっぱいに広がらないよう制限 */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* カルーセル内部のアイテム（各報告）の調整 */
+.pdf-item {
+  box-sizing: border-box;
+  padding: 15px; /* アイテム間の余白 */
+  flex: 0 0 33.333%; /* PCでは3つ並ぶ計算 */
+  max-width: 33.333%;
+  transition: opacity 0.3s ease;
+}
+
+/* 報告画像のサイズを固定して揃える */
+.report-thumb {
+  width: 100%;
+  aspect-ratio: 3 / 2; /* 横長で統一 */
+  overflow: hidden;
+  border-radius: 8px;
+  background: #eee;
+}
+
+.report-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 画像を枠いっぱいに綺麗に収める */
+}
+
+/* タイトルの文字数が多い場合の対策 */
+.pdf-item h3 {
+  font-size: 1.1rem;
+  margin: 10px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 2行で省略 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.8em; /* 高さを固定してボタンの位置を揃える */
+}
+
+/* --- スマホ版（768px以下）の調整 --- */
+@media (max-width: 768px) {
+  .pdf-item {
+    flex: 0 0 100%; /* スマホは1枚表示 */
+    max-width: 100%;
+    padding: 10px 20px;
+  }
+}
+
+/* 「一覧へ」ボタンの強化 */
+.more-btn {
+  display: block;
+  width: fit-content;      /* 文字の幅に合わせる */
+  margin: 30px auto 0;     /* 上に余白を作り、中央寄せ */
+  padding: 12px 40px;      /* ボタンの上下左右の余白を広げる */
+  
+  font-size: 1.4rem;       /* ★文字を大きく（元の約1.5倍〜2倍） */
+  font-weight: bold;       /* 太字にして視認性アップ */
+  color: #4682B4;          /* テーマカラーの青 */
+  text-decoration: none;   /* 下線を消す */
+  
+  border: 2px solid #4682B4; /* 枠線をつける */
+  border-radius: 50px;     /* 角を丸めてボタンらしく */
+  transition: all 0.3s ease; /* ホバー時の動きを滑らかに */
+}
+
+/* ホバー（マウスを乗せた時）の演出 */
+.more-btn:hover {
+  background-color: #4682B4;
+  color: #fff;             /* 色を反転させる */
+  transform: translateY(-3px); /* 少し浮き上がらせる */
+  box-shadow: 0 5px 15px rgba(70, 130, 180, 0.3);
+}
+
+/* スマホ版の調整 */
+@media (max-width: 768px) {
+  .more-btn {
+    font-size: 1.2rem;     /* スマホでは少しだけ控えめに調整 */
+    padding: 10px 30px;
+    width: 80%;            /* スマホでは横幅を広げて押しやすく */
+    text-align: center;
+  }
+}
+
+/* FAQ css　ここから */
+/* FAQ全体のスタイル */
+.faq-section {
+  padding-top: 10px !important;    /* セクション自体の上の余白を最小化 */
+  padding-bottom: 20px !important;
+}
+
+/* 外枠（ここが大きな空白の原因でした） */
+.faq-outer-wrapper {
+  max-width: 800px;
+  margin: 10px auto;              /* 上下の余白を 40px → 10px に縮小 */
+  padding: 0 20px;
+}
+
+/* 押す前の「大きな箱」 */
+.faq-main-toggle {
+  background-color: #4682B4; /* 田中さんのテーマカラーに合わせて調整 */
+  color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.faq-main-toggle:hover {
+  background-color: #3a6d96;
+  transform: translateY(-2px);
+}
+
+.faq-toggle-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.4rem;
+  font-weight: bold;
+}
+
+.faq-main-chevron {
+  transition: transform 0.4s ease;
+}
+
+/* スライドして出てくる中身のコンテナ */
+.faq-slide-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+  background-color: #f0f7ff;
+  border-radius: 0 0 12px 12px;
+  margin-top: -5px; /* 箱と一体化させる */
+}
+
+/* 開いた時の状態 */
+.faq-outer-wrapper.is-open .faq-slide-container {
+  max-height: 2000px; /* 十分な高さ */
+  transition: max-height 1s ease-in-out;
+  border: 2px solid #4682B4;
+  border-top: none;
+}
+
+.faq-outer-wrapper.is-open #section-chevron {
+  transform: rotate(180deg);
+}
+
+/* 中のリスト項目 */
+.faq-inner-list {
+  padding: 20px;
+}
+
+.faq-item {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #dce8f0;
+  padding-bottom: 15px;
+}
+
+/* Q（質問）のスタイル：青色 */
+.faq-q {
+  font-weight: bold;
+  color: #4682B4; /* 田中さんのテーマカラー（青） */
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start; /* 複数行になってもQが上に固定されるように */
+}
+
+.faq-q::before {
+  content: "Q.";
+  margin-right: 10px;
+  font-size: 1.2rem;
+  color: #4682B4; /* Qの文字を青に */
+}
+
+/* A（回答）のスタイル：ピンク色 */
+.faq-a {
+  color: #444;
+  line-height: 1.6;
+  padding-left: 0; /* 位置調整のため一度リセット */
+  display: flex;
+  align-items: flex-start;
+}
+
+.faq-a::before {
+  content: "A.";
+  margin-right: 10px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #e91e63; /* ★回答のAをピンクに */
+}
+
+.faq-a {
+  color: #444;
+  line-height: 1.6;
+  padding-left: 25px;
+}
+/*FAQ cssここまで*/
+</style>
 </head>
 
 <body data-page="policy">
@@ -56,30 +410,68 @@
 </header>
 
 <main>
- <section class="hero">
-  <div class="hero-image">
-   <img id="dynamic-hero-img" src="images/hero-bg.jpg" alt="">
-   
 
-
-    <!-- 文字（← 必ずこの中） -->
-    <div class="hero-text-layer">
-      <p id="dynamic-hero-text"></p>
-      <h1 id="dynamic-hero-lawmaker"></h1>
-      <h1 id="dynamic-hero-name"></h1>
+<!-- ヒーローセクション -->
+<section class="hero-container">
+    <img id="dynamic-hero-img" src="assets/TOP_page_main.png" alt="田中しほ">
+    
+    <div class="hero-clip-bg"></div>
+    
+    <div class="hero-copy">
+        <h2>子育ての疑問に寄り添う</h2>
+        <p>京都府議会議員 田中しほ</p>
     </div>
-  </div>
 </section>
 
+
+<!-- ご相談セクション -->
 <section class="consultation-section">
-  <a href="post.html" class="consultation-card-integrated">
-    <div class="card-content-overlay">
-      <h2 class="card-main-title">子育ての疑問に寄り添う</h2>
-      <p class="card-sub-title">あなたの声をお聞かせください</p>
-      <div class="comment-submit-button">ご相談はコチラ ＞</div>
+  <a href="post.html" class="consultation-banner-img-type">
+    <div class="banner-image-container">
+      <img src="assets/ポストバナー.PNG" alt="子育て相談ポスト" class="base-image">
+    </div>
+    <div class="banner-footer-btn">
+      思いを伝える
     </div>
   </a>
 </section>
+<!-- ご相談セクションここまで -->
+ <!--FAQ セクション ここから-->
+<section class="faq-section">
+  <div class="faq-outer-wrapper">
+    
+    <div class="faq-main-toggle" onclick="toggleFaqSection()">
+      <div class="faq-toggle-content">
+        <i data-lucide="help-circle" class="faq-main-icon"></i>
+        <span>よくある投稿例 (FAQ) を見る</span>
+      </div>
+      <i data-lucide="chevron-down" id="section-chevron" class="faq-main-chevron"></i>
+    </div>
+
+    <div id="faq-slide-content" class="faq-slide-container">
+      <div class="faq-inner-list">
+        
+        <div class="faq-item">
+          <div class="faq-q">子育て支援の具体的な取り組みは？</div>
+          <div class="faq-a">京都府議会では、待機児童解消や一時預かりの拡充など、現場の声を反映した政策を推進しています。</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">相談はどこからできますか？</div>
+          <div class="faq-a">サイト内の「ご相談ポスト」や公式LINEから、いつでもお気軽にご連絡いただけます。</div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">地域の活動予定を知るにはどうすればいいですか？</div>
+          <div class="faq-a">当サイトの「活動報告」や各SNS（Instagram、Facebook等）にて随時スケジュールを更新しております。</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</section>
+<!-- FAQ セクション ここまで -->
 
   <section class="youtube-section">
     <div class="video-wrapper" id="dynamic-yt-container">
@@ -87,22 +479,6 @@
     </div>
   </section>
 
-  <section class="link-nav-section">
-    <div class="link-grid">
-      <a href="profile.html" class="link-card profile-link">
-        <span class="en">Profile</span>
-        <span class="jp">自己紹介 ＞</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- <section class="news-section">
-    <div class="news-block">
-      <h2 class="shihopress-section-title">Shiho Press</h2>
-      <div id="shiho-press-container"></div>
-      <a href="pdf-text.html" class="more-btn">一覧へ ＞</a>
-    </div> -->
-    
     <div class="news-block">
       <h2 class="section-title">最新の活動報告</h2>
       <div id="policy-carousel-container"></div>
@@ -114,7 +490,6 @@
     <h2 class="section-title">SNS</h2>
     <div class="sns-list" id="dynamic-sns-container"></div>
   </section>
-</main>
 
 <section class="page-header">
   <div class="page-header-inner">
@@ -155,12 +530,8 @@ const ContentManager = {
 
   applyData(data) {
     if (!data) return;
-    if (data.heroImg) {
-      const img = document.getElementById('dynamic-hero-img');
-      img.classList.remove('is-visible');
-      img.onload = () => img.classList.add('is-visible');
-      img.src = data.heroImg;
-    }
+    
+    // 画像上書きは無効
     const ytContainer = document.getElementById('dynamic-yt-container');
     const vId = this.parseYoutubeId(data.ytUrl);
     ytContainer.innerHTML = vId 
@@ -222,29 +593,11 @@ let carouselIndices = {};
 let carouselTotalSlides = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const heroText     = document.getElementById('dynamic-hero-text');
-  const heroLawmaker = document.getElementById('dynamic-hero-lawmaker');
-  const heroName     = document.getElementById('dynamic-hero-name');
-  const heroImg      = document.getElementById('dynamic-hero-img');
-
-  // JSON読み込み
+  // 画像関連の不要なDOM取得とフェードイン処理を削除
   fetch('data/static-texts.json')
     .then(res => res.json())
-    .then(data => {
-      if (data.top) {
-        heroText.textContent     = data.top.text || "";
-        heroLawmaker.textContent = data.top.lawmaker || "";
-        heroName.textContent     = data.top.name || "";
-      }
+    .catch(err => console.log("Static text skip"));
 
-      // 順番フロートイン
-      setTimeout(() => heroText.classList.add('is-visible'), 500);       // text
-      setTimeout(() => heroLawmaker.classList.add('is-visible'), 500);   // lawmaker
-      setTimeout(() => heroName.classList.add('is-visible'), 500);       // name
-      setTimeout(() => heroImg.classList.add('float-in'), 1500);         // 画像
-    });
-
-  // --- 他の処理 ---
   const checkDB = setInterval(async () => {
     if (typeof fetchActivityReports === 'function') {
       clearInterval(checkDB);
@@ -263,11 +616,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadLatestShihoPress();
 });
 
-// ===== Shiho Press 描画関数 (別タブでPDFを開く設定) =====
+// 以降、カルーセル等の関数はそのまま維持（変更なし）
 async function loadLatestShihoPress() {
   const container = document.getElementById('shiho-press-container');
   if (!container) return;
-
   try {
     const response = await fetch('/api/pdfs');
     if (!response.ok) throw new Error('API Error');
@@ -276,15 +628,12 @@ async function loadLatestShihoPress() {
       container.innerHTML = '<p style="text-align:center; padding:20px;">現在、新しい記事はありません。</p>';
       return;
     }
-
     const years = pdfs.map(pdf => new Date(pdf.created_at).getFullYear());
     const latestYear = Math.max(...years);
     const latestYearData = pdfs.filter(pdf => new Date(pdf.created_at).getFullYear() === latestYear).sort((a, b) => b.id - a.id);
-
     const yearKey = 'shihopress_latest';
     carouselTotalSlides[yearKey] = latestYearData.length;
     carouselIndices[yearKey] = 0;
-
     container.innerHTML = `
       <div style="margin-bottom: 10px; font-weight: bold; color: #03709b;">最新：${latestYear}年度</div>
       <div class="pdf-year-section" data-carousel-year="${yearKey}">
@@ -312,16 +661,13 @@ async function loadLatestShihoPress() {
           </div>
         </div>
       </div>`;
-
     updateCarouselIndex(yearKey);
     latestYearData.forEach(pdf => generatePdfThumbnail(pdf.file_path, `thumb-container-${pdf.id}`));
-
   } catch (error) {
     console.error('ShihoPress Carousel Error:', error);
   }
 }
 
-// サムネイル生成
 async function generatePdfThumbnail(pdfUrl, containerId) {
   try {
     const loadingTask = pdfjsLib.getDocument(pdfUrl);
@@ -333,7 +679,6 @@ async function generatePdfThumbnail(pdfUrl, containerId) {
     canvas.height = viewport.height;
     canvas.width = viewport.width;
     await page.render({ canvasContext: context, viewport: viewport }).promise;
-    
     const container = document.getElementById(containerId);
     if (container) {
       container.innerHTML = `<img src="${canvas.toDataURL()}" style="width:100%; height:200px; object-fit:cover;">`;
@@ -343,13 +688,11 @@ async function generatePdfThumbnail(pdfUrl, containerId) {
   }
 }
 
-// 活動報告カルーセル描画
 function renderPolicyCarousel(reports) {
   const container = document.getElementById('policy-carousel-container');
   const yearKey = 'policy_latest';
   carouselTotalSlides[yearKey] = reports.length;
   carouselIndices[yearKey] = 0;
-
   container.innerHTML = `
     <div class="pdf-year-section" data-carousel-year="${yearKey}">
       <div class="pdf-carousel-wrapper">
@@ -377,7 +720,6 @@ function renderPolicyCarousel(reports) {
   updateCarouselIndex(yearKey);
 }
 
-// カルーセル共通操作
 function updateCarouselIndex(key) {
   const section = document.querySelector(`[data-carousel-year="${key}"]`);
   if (!section) return;
@@ -413,6 +755,14 @@ function goToSlideIndex(key, index) {
 }
 
 window.addEventListener('resize', () => Object.keys(carouselIndices).forEach(updateCarouselIndex));
+
+
+/*小倉　追加部分*/
+/*FAQのjavascript　ここから*/
+function toggleFaqSection() {
+  const wrapper = document.querySelector('.faq-outer-wrapper');
+  wrapper.classList.toggle('is-open');
+}
 </script>
 <script src="src/header.js"></script>
 </body>
