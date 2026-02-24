@@ -20,6 +20,7 @@ export default function ConsultationPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isPc, setIsPc] = useState(false);
 
   // 初期データ構造
   const initialFormData = {
@@ -118,6 +119,91 @@ export default function ConsultationPage() {
     }
   };
 
+
+  const questionbuttonStyle: React.CSSProperties = {
+  width: "100%",
+  border: "3px solid #ffffff",
+  borderRadius: "20px",
+  backgroundColor: "#d4e6f7",
+  cursor: "pointer",
+  boxSizing: "border-box",
+  fontWeight: 'bold',
+
+  ...(isPc
+    ? {
+        aspectRatio: "1 / 1",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "16px",
+        padding: "10px",
+      }
+    : {
+        padding: "15px",
+        fontSize: "14px",
+      }),
+};
+
+const necessarybuttonStyle: React.CSSProperties = {
+  width: "100%",
+  border: "3px solid #ffffff",
+  borderRadius: "20px",
+  backgroundColor: "#d4e6f7",
+  cursor: "pointer",
+  boxSizing: "border-box",
+
+  ...(isPc
+    ? {
+        aspectRatio: "1 / 1",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "16px",
+        padding: "10px",
+      }
+    : {
+        padding: "15px",
+        fontSize: "14px",
+      }),
+};
+
+
+const buttonStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "15px",
+  border: "1px solid #ddd",
+  borderRadius: "12px",
+  backgroundColor: "#fff",
+  cursor: "pointer",
+  fontSize: "14px",
+  boxSizing: "border-box",
+};
+
+  const gridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: isPc ? "repeat(2,220px)" : "1fr",
+  justifyContent: "center",
+  gap: "20px",
+};
+
+const necessarygridStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: isPc ? "repeat(2,180px)" : "1fr",
+  justifyContent: "center",
+  gap: "20px",
+};
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsPc(window.innerWidth >= 600); // ← ここを1024→768に
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, 
+  []);
+
   if (!isInitialized) return null;
 
   return (
@@ -128,7 +214,7 @@ export default function ConsultationPage() {
       width: '100%',
       maxWidth: '800px',
       margin: '0 auto',
-      fontFamily: 'sans-serif',
+      fontFamily: 'M PLUS Rounded 1c, sans-serif',
       boxSizing: 'border-box',
       minHeight: '100vh',
       overflow: 'hidden'
@@ -153,7 +239,7 @@ export default function ConsultationPage() {
     <div style={{ position: 'relative', zIndex: 1 }}>
 
       {step <= 7 && (
-        <div style={{ marginBottom: '30px', fontSize: '14px', fontWeight: 'bold', color: '#666' }}>
+        <div style={{ marginBottom: '30px', fontSize: '14.2px', fontWeight: 'bold', color: '#666' }}>
           進捗: {progressPercent}%
           <div style={{ width: '100%', height: '6px', background: '#FCFDFE', marginTop: '8px', borderRadius: '3px', overflow: 'hidden' }}>
             <div style={{ width: `${progressPercent}%`, height: '100%', background: '#4a86c5', transition: '0.3s ease-in-out' }}></div>
@@ -167,7 +253,7 @@ export default function ConsultationPage() {
             <h2 style={titleStyle}>{CONSULTATION_QUESTIONS.q1.title}</h2>
             <div style={gridStyle}>
               {CONSULTATION_QUESTIONS.q1.options.map((opt) => (
-                <button key={opt.id} onClick={() => { setFormData({ ...formData, q1_id: opt.id }); nextStep(); }} style={buttonStyle}>{opt.text}</button>
+                <button key={opt.id} onClick={() => { setFormData({ ...formData, q1_id: opt.id }); nextStep(); }} style={questionbuttonStyle}>{opt.text}</button>
               ))}
             </div>
           </div>
@@ -178,7 +264,7 @@ export default function ConsultationPage() {
             <h2 style={titleStyle}>{CONSULTATION_QUESTIONS.q2.title}</h2>
             <div style={gridStyle}>
               {CONSULTATION_QUESTIONS.q2.options.map(opt => (
-                <button key={opt.id} onClick={() => { setFormData({...formData, q2_id: opt.id}); nextStep(); }} style={buttonStyle}>{opt.text}</button>
+                <button key={opt.id} onClick={() => { setFormData({...formData, q2_id: opt.id}); nextStep(); }} style={questionbuttonStyle}>{opt.text}</button>
               ))}
             </div>
             <button onClick={prevStep} style={backLinkStyle}>戻る</button>
@@ -190,7 +276,7 @@ export default function ConsultationPage() {
             <h2 style={titleStyle}>{CONSULTATION_QUESTIONS.q3.title}</h2>
             <div style={gridStyle}>
               {CONSULTATION_QUESTIONS.q3.options.map(opt => (
-                <button key={opt.id} onClick={() => { setFormData({...formData, q3_id: opt.id}); nextStep(); }} style={buttonStyle}>{opt.text}</button>
+                <button key={opt.id} onClick={() => { setFormData({...formData, q3_id: opt.id}); nextStep(); }} style={questionbuttonStyle}>{opt.text}</button>
               ))}
             </div>
             <button onClick={prevStep} style={backLinkStyle}>戻る</button>
@@ -200,9 +286,9 @@ export default function ConsultationPage() {
         {step === 4 && (
           <div>
             <h2 style={titleStyle}>返信を希望されますか？</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <button onClick={() => { setFormData({...formData, needs_reply: true}); nextStep(); }} style={buttonStyle}>希望する</button>
-              <button onClick={() => { setFormData({...formData, needs_reply: false}); setStep(6); }} style={buttonStyle}>不要</button>
+            <div style={necessarygridStyle}>
+              <button onClick={() => { setFormData({...formData, needs_reply: true}); nextStep(); }} style={necessarybuttonStyle}>希望する</button>
+              <button onClick={() => { setFormData({...formData, needs_reply: false}); setStep(6); }} style={necessarybuttonStyle}>不要</button>
             </div>
             <button onClick={prevStep} style={backLinkStyle}>戻る</button>
           </div>
@@ -223,7 +309,7 @@ export default function ConsultationPage() {
             <h2 style={titleStyle}>詳細をご記入ください</h2>
             
             {/* これまで選択した内容のサマリーを表示 */}
-            <div style={{ marginBottom: '25px', padding: '20px', background: '#f7fafc', borderRadius: '12px', fontSize: '14px', border: '1px solid #e2e8f0', lineHeight: '1.6' }}>
+            <div style={{ marginBottom: '25px', padding: '20px', background: '#ffffff', borderRadius: '12px', fontSize: '15px', border: '2px solid #e2e8f0', lineHeight: '1.6' }}>
               <div style={{ color: '#4a5568', fontWeight: 'bold', marginBottom: '10px', borderBottom: '1px solid #e2e8f0', paddingBottom: '5px' }}>選択内容の確認</div>
               <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '4px' }}>
                 <span style={{ color: '#718096' }}>相談時期:</span>
@@ -239,7 +325,7 @@ export default function ConsultationPage() {
 
             {/* テーマ提案セクション */}
             <div style={{ marginBottom: '25px' }}>
-              <p style={{ fontSize: '14px', marginBottom: '10px', fontWeight: 'bold', color: '#4a5568' }}>
+              <p style={{ fontSize: '15px', marginBottom: '10px', fontWeight: 'bold', color: '#4a5568' }}>
                 Q. ご相談の内容に近いテーマを選択してください（必須）
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
@@ -252,7 +338,7 @@ export default function ConsultationPage() {
                       onClick={() => setFormData({...formData, selected_suggestion_id: masterId})} 
                       style={{
                         ...buttonStyle,
-                        fontSize: '14px',
+                        fontSize: '14.5px',
                         textAlign: 'left',
                         padding: '15px',
                         borderColor: isSelected ? '#2d3748' : '#ddd',
@@ -280,7 +366,7 @@ export default function ConsultationPage() {
               </div>
             </div>
 
-            <p style={{ fontSize: '14px', marginBottom: '10px', fontWeight: 'bold', color: '#4a5568' }}>
+            <p style={{ fontSize: '15px', marginBottom: '10px', fontWeight: 'bold', color: '#4a5568' }}>
               Q. 具体的な内容をご記入ください
             </p>
             <textarea 
@@ -325,8 +411,6 @@ export default function ConsultationPage() {
 
 // スタイル定義
 const titleStyle: React.CSSProperties = { fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 'bold' };
-const gridStyle: React.CSSProperties = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px' };
-const buttonStyle: React.CSSProperties = { padding: '20px', fontSize: '16px', cursor: 'pointer', border: '1px solid #ddd', borderRadius: '12px', width: '100%', backgroundColor: '#fff', transition: 'all 0.2s', textAlign: 'center' };
 const nextButtonStyle: React.CSSProperties = { width: '100%', padding: '18px', marginTop: '15px', backgroundColor: '#4378b1', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '15px', fontSize: '16px', borderRadius: '12px', border: '2px solid #e2e8f0', marginTop: '10px', boxSizing: 'border-box', outline: 'none' };
 const backLinkStyle: React.CSSProperties = { marginTop: '25px', display: 'block', background: 'none', border: 'none', color: '#888', cursor: 'pointer', textDecoration: 'underline', textAlign: 'center', width: '100%' ,fontWeight:'bold',fontSize: '16px'};

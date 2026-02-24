@@ -4,6 +4,12 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import ConsultationFloatButton from '@/components/ConsultationFloatButton';
+import { M_PLUS_Rounded_1c } from 'next/font/google';
+
+const rounded = M_PLUS_Rounded_1c({
+    weight: ['400', '500', '700'],
+    subsets: ['latin'],
+  });
 
 /**
  * RootLayout: アプリケーションのルートレイアウト
@@ -28,7 +34,7 @@ export default function RootLayout({
 
   return (
     <html lang="ja">
-      <body style={{ margin: 0, padding: 0 }}>
+      <body className={rounded.className} style={{ margin: 0, padding: 0 }}>
         {/* メインコンテンツ */}
         {children}
 
