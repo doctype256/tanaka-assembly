@@ -979,41 +979,44 @@ section.hero {
 /*==========================
    基本情報
 ========================== */
+/*==========================
+   基本情報
+========================== */
 .profile-basic {
   max-width: 420px;
   margin: 0 auto 2rem;
-
 }
 
 .basic-row {
   display: flex;
   align-items: center;
-  position: relative;      /* 中央線を絶対位置で置くため必要 */
-  gap: 6rem;
+  position: relative;
+  gap: 6rem; /* PC */
   margin-bottom: 1.5rem;
 }
 
-/* 中央線 */
+/* 中央線（余白のど真ん中） */
 .basic-row::before {
   content: "";
   position: absolute;
-  left: 50%;               /* 横幅の中央 */
+  /* ラベル幅160px + gap(6rem)の半分(3rem) */
+  left: calc(160px + 3rem);
   top: 0;
   bottom: 0;
   width: 2px;
   background: #000;
   transform: translateX(-50%);
-  z-index: 0;              /* ラベル・値の背後に表示 */
+  z-index: 0;
 }
 
 .basic-row .label,
 .basic-row .value {
-  z-index: 1;              /* ラベルと値を縦線の上に表示 */
+  z-index: 1;
 }
 
 /* ラベル */
 .basic-row .label {
-  flex: 0 0 160px;         /* 幅固定 */
+  flex: 0 0 160px;
   text-align: right;
 }
 
@@ -1023,28 +1026,25 @@ section.hero {
   text-align: left;
 }
 
+/* 文字サイズ */
+.basic-row strong { 
+  font-size: 22px; 
+}
+.basic-row p { 
+  font-size: 20px; 
+  margin: 0; 
+}
 
-/* 文字サイズ調整 */
-.basic-row strong { font-size: 22px; }
-.basic-row p { font-size: 20px; margin: 0; }
-
+/* ===== タブレット（iPad・iPad mini）===== */
 @media (max-width: 768px) {
   .basic-row {
-    gap: 2.5rem;            /* PCより少し狭く */
+    gap: 2.5rem; /* gapが変わる */
   }
 
+  /* ★ここが最重要（50%は絶対使わない） */
   .basic-row::before {
-    left: 50%;            /* 縦線を少し右に移動 */
-  }
-
-  .basic-row .label {
-    flex: 0 0 160px;      /* ラベル幅を縮小 */
-    text-align: right;
-  }
-
-  .basic-row .value {
-    flex: 1;
-    text-align: left;
+    /* ラベル160px + gap(2.5rem)の半分(1.25rem) */
+    left: calc(160px + 1.25rem);
   }
 
   .basic-row strong {
@@ -1056,6 +1056,21 @@ section.hero {
   }
 }
 
+/* ===== スマホ ===== */
+@media (max-width: 480px) {
+  .basic-row {
+    gap: 2.5rem;
+  }
+
+  .basic-row::before {
+    /* ラベル160px + gap(1.5rem)の半分(0.75rem) */
+    left: calc(160px + 1.25rem);
+  }
+
+  .basic-row .label {
+    flex: 0 0 160px; /* スマホは少し縮めるとさらに安定 */
+  }
+}
 
 
 
