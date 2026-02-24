@@ -127,7 +127,6 @@ export default function ConsultationPage() {
   backgroundColor: "#d4e6f7",
   cursor: "pointer",
   boxSizing: "border-box",
-  fontWeight: 'bold',
 
   ...(isPc
     ? {
@@ -140,7 +139,7 @@ export default function ConsultationPage() {
       }
     : {
         padding: "15px",
-        fontSize: "14px",
+        fontSize: "15px",
       }),
 };
 
@@ -151,6 +150,7 @@ const necessarybuttonStyle: React.CSSProperties = {
   backgroundColor: "#d4e6f7",
   cursor: "pointer",
   boxSizing: "border-box",
+  
 
   ...(isPc
     ? {
@@ -163,7 +163,7 @@ const necessarybuttonStyle: React.CSSProperties = {
       }
     : {
         padding: "15px",
-        fontSize: "14px",
+        fontSize: "15.5px",
       }),
 };
 
@@ -175,7 +175,7 @@ const buttonStyle: React.CSSProperties = {
   borderRadius: "12px",
   backgroundColor: "#fff",
   cursor: "pointer",
-  fontSize: "14px",
+  fontSize: "15px",
   boxSizing: "border-box",
 };
 
@@ -410,7 +410,7 @@ const necessarygridStyle: React.CSSProperties = {
 }
 
 // スタイル定義
-const titleStyle: React.CSSProperties = { fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 'bold' };
+const titleStyle: React.CSSProperties = { fontSize: '1.5rem', marginBottom: '1.5rem', fontWeight: 'bold', color: '#1b212b' };
 const nextButtonStyle: React.CSSProperties = { width: '100%', padding: '18px', marginTop: '15px', backgroundColor: '#4378b1', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' };
 const inputStyle: React.CSSProperties = { width: '100%', padding: '15px', fontSize: '16px', borderRadius: '12px', border: '2px solid #e2e8f0', marginTop: '10px', boxSizing: 'border-box', outline: 'none' };
 const backLinkStyle: React.CSSProperties = { marginTop: '25px', display: 'block', background: 'none', border: 'none', color: '#888', cursor: 'pointer', textDecoration: 'underline', textAlign: 'center', width: '100%' ,fontWeight:'bold',fontSize: '16px'};

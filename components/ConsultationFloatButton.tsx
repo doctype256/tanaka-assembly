@@ -52,25 +52,22 @@ export default function ConsultationFloatButton() {
       position: 'fixed',
       bottom: '30px',
       right: '30px',
-      width: '60px',
-      height: '60px',
-      borderRadius: '50%',
-      backgroundColor: '#ff6b9d',
-      color: 'white',
-      fontSize: '28px',
+      width: '130px',
+      height: '130px',
+      //borderRadius: '13px', // ← ここ変更
+      background: 'none',
       border: 'none',
       cursor: 'pointer',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+      boxShadow: '0 8px 20px rgba(0,0,0,0.25)',
       zIndex: 10000,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
+      padding: 0,
       transition: 'transform 0.2s ease',
-    },
+      overflow: 'hidden',
+      },
     hint: {
     　position: 'fixed',
   　　bottom: '40px',
-  　　right: '110px',
+  　　right: '180px',
   　　backgroundColor: '#fff8fb',
   　　color: '#d6336c',
   　　padding: '14px 20px',
@@ -160,7 +157,16 @@ export default function ConsultationFloatButton() {
         onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.1)')}
         onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1.0)')}
       >
-        📮
+        <img
+          src="/assets/ポストアイコン.png"
+          alt="相談する"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+           ///borderRadius: '0px',
+          }}
+        />
       </button>
 
       {isOpen && (

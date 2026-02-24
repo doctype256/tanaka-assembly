@@ -722,9 +722,10 @@ section.hero {
 }
 
 .page-header-inner {
-  max-width: 1100px;
-  margin: 0 auto;
-}
+     max-width: none;   /* ← 制限を解除 */
+    width: 100%;       /* ← 画面いっぱい */
+    margin: 0;         /* ← 中央寄せ解除 */
+  }
 
 /* ==============================
    タイトル・住所（縦並び）
