@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const session = await getIronSession<SessionData>(req, res, sessionOptions);
 
 
-    console.log("Change code");
+    console.log("Changed code");
     // :fire: 管理者チェック（/api/profile と同じ）
     if (!session.isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
