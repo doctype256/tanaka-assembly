@@ -7,7 +7,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "vercel": "vercel",
+    "vercel-dev": "vercel dev"
   },
   "dependencies": {
     "@libsql/client": "^0.15.15",

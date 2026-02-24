@@ -13,21 +13,9 @@ const db = createClient({
 });
 
 // ▼ ログ出力関数（change-password と同じ）
+// ログ出力を完全に無効化
 function writeLog(message: string) {
-  console.log('[writeLog 呼び出し]', message);
-  const logDir = path.join(process.cwd(), 'logs');
-  const logPath = path.join(logDir, 'reset-password.log');
-  const timestamp = new Date().toISOString();
-  const logMessage = `[${timestamp}] ${message}\n`;
-
-  try {
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir);
-    }
-    fs.appendFileSync(logPath, logMessage, 'utf8');
-  } catch (err) {
-    console.error('[ログ出力エラー]', err);
-  }
+  // 何もしない
 }
 
 export async function POST(req: NextRequest) {

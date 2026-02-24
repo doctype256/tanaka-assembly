@@ -12,7 +12,17 @@ const db = createClient({
 });
 
 export async function POST(req: Request) {
-  const { email } = await req.json();
+
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 });
+  }
+  const { email } = body || {};
+  if (!email) {
+    return new Response(JSON.stringify({ error: 'Email is required' }), { status: 400 });
+  }
 
   // ▼ admins テーブル作成（email カラム追加）
   await db.execute(`
