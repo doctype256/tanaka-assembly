@@ -392,22 +392,77 @@ h2 {
 }
 .hero-sub { font-size: 1.2rem; display: block; color: #333; }
 
-/* ご相談ポスト (背景やわらかめ) */
-.consultation-banner {
+
+/* ==============================
+   相談バナー：写真タイプ
+   ============================== */
+/* ご相談セクション全体のサイズ制限 */
+.consultation-section {
+  padding: 40px 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fff5f7; /* ラフの「背景やわらかめ」 */
-  border: 2px solid #ec4899;
-  padding: 1.5rem 2rem;
-  border-radius: 15px;
-  text-decoration: none;
-  color: #b8326a;
-  transition: 0.3s;
+  justify-content: center; /* 中央に配置 */
 }
-.consultation-banner:hover { background: #fde2e8; transform: scale(1.02); }
-.banner-text { font-size: 1.4rem; font-weight: bold; display: block; }
-.banner-icon { font-size: 2rem; }
+
+.consultation-banner-img-type {
+  max-width: 1px; /* ここを 500px や 400px にするとグッと小さくなります */
+  margin: 0 auto;   /* 中央寄せを維持 */
+}
+
+.consultation-banner-img-type:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.15);
+}
+
+.banner-image-container {
+  width: 100%;
+  height: 100%;
+}
+
+.base-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 枠に合わせてきれいに収める */
+}
+
+/* 文字の重なり（オーバーレイ）の調整 */
+.banner-overlay-content {
+  position: absolute;
+  inset: 0; /* 上下左右0 */
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  /* 左側に少し背景色を付けて文字を読みやすく */
+  background: linear-gradient(90deg, rgba(255,245,247,0.8) 0%, rgba(255,245,247,0) 70%);
+}
+
+.main-text {
+  color: #b8326a;
+  font-size: clamp(1.2rem, 3vw, 1.8rem); /* 画面幅に合わせてフォントサイズも可変 */
+  font-weight: 900;
+  margin: 0 0 0.8rem 0;
+  font-family: 'Noto Serif JP', serif;
+}
+
+.banner-btn {
+  background: #ec4899;
+  color: #fff;
+  padding: 0.5rem 1.2rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+/* スマホ版の微調整 */
+@media (max-width: 768px) {
+  .consultation-banner-img-type {
+    max-width: 100%; /* スマホでは横幅いっぱい */
+  }
+  .banner-overlay-content {
+    padding: 1rem;
+  }
+}
 
 /* YouTube */
 .video-wrapper {
@@ -432,6 +487,8 @@ h2 {
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   font-weight: 600;
 }
+
+
 
 /* SNSリスト */
 .sns-row {

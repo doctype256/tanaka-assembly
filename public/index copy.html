@@ -10,35 +10,126 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <style>
-    .page-header-columns { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
-    @media (min-width: 1024px) { .page-header-columns { flex-direction: row; } }
-    .page-header-left { flex: 1.5; }
-    .map-embed-wrapper { 
-      position: relative; 
-      width: 100%; 
-      height: 500px; 
-      border-radius: 24px; 
-      overflow: hidden; 
-      background: #f0f0f0;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+<style>
+.hero-container {
+      position: relative;
+      width: 100vw !important;
+      left: 50% !important;
+      margin-left: -50vw !important;
+      height: 90vh; 
+      min-height: 700px;
+      max-width: none !important;
+      padding: 0 !important;
+      overflow: hidden;
+      z-index: 5;
+      background-color: #fff;
     }
-    .map-embed-wrapper iframe { border: 0; width: 100%; height: 100%; }
 
-    .sns-icon-lucide {
-      width: 20px;
-      height: 20px;
-      margin-right: 12px;
-      display: inline-block;
-      vertical-align: middle;
+    /* 人物画像：PC版は「80% 5%」を死守 */
+    #dynamic-hero-img {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 80%; 
+      height: 100%;
+      object-fit: cover;
+      object-position: 80% 5%; 
+      z-index: 1;
     }
-    .sns-icon-lucide.instagram { color: #E1306C; }
-    .sns-icon-lucide.facebook { color: #1877F2; }
-    .sns-icon-lucide.x { color: #000000; }
-    .sns-icon-lucide.tiktok { color: #000000; }
-    .sns-icon-lucide.line { color: #06C755; }
-    .sns-icon-lucide.default { color: #666666; }
-  </style>
+
+    /* 青い斜めセクション：向きは逆（上が狭く、下が広い） */
+    .hero-clip-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 60%; 
+      height: 100%;
+      background-color: #4682B4;
+      z-index: 10;
+      pointer-events: none;
+      clip-path: polygon(0 0, 30% 0, 60% 100%, 0 100%);
+    }
+
+    /* 文字ボックス：PCは左ライン */
+    .hero-copy {
+      position: absolute;
+      bottom: 5%; 
+      left: 3%; 
+      z-index: 20;
+      background-color: rgba(255, 255, 255, 0.98); 
+      padding: 50px 60px;
+      border-radius: 4px; 
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2); 
+      border-left: 15px solid #4682B4; 
+      max-width: 700px;
+    }
+
+    .hero-copy h2 {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 4.2rem;
+      font-weight: 900;
+      color: #333; 
+      line-height: 1.1;
+      margin: 0 0 20px 0;
+      white-space: nowrap; 
+    }
+
+    .hero-copy p {
+      font-size: 1.8rem; 
+      color: #555;
+      font-weight: 700;
+      margin: 0;
+      letter-spacing: 0.1em;
+    }
+
+/* --- スマホ版調整 --- */
+    @media (max-width: 768px) {
+      .hero-container {
+        height: 85vh;
+        min-height: 500px;
+      }
+
+      /* お顔を少し左（中央寄り）に */
+      #dynamic-hero-img {
+        width: 100%;
+        object-position: 65% 10%; 
+      }
+
+      /* スマホの青い帯 */
+      .hero-clip-bg {
+        width: 100%;
+        height: 35%; 
+        top: auto;
+        bottom: 0;
+        clip-path: polygon(0 0, 100% 30%, 100% 100%, 0 100%);
+      }
+
+      .hero-copy {
+        bottom: 5%; 
+        left: 3%; /* 左右の余白を少し広げて一行に入りやすく調整 */
+        right: 3%;
+        padding: 20px 10px; /* 上下の余白を詰める */
+        max-width: 94%;
+        border-left: none; 
+        border-bottom: 10px solid #4682B4; 
+        text-align: center;
+      }
+
+      .hero-copy h2 {
+        /* ★1行に収まるようサイズを調整。vwを使って画面幅に合わせます */
+        font-size: clamp(1.4rem, 6.5vw, 2rem); 
+        white-space: nowrap; /* ★改行を禁止して1行に強制 */
+        letter-spacing: -0.02em; /* 文字間をわずかに詰めて収まりを良く */
+        margin-bottom: 8px;
+      }
+
+      .hero-copy p {
+        font-size: 1rem;
+        letter-spacing: 0.05em;
+      }
+    }
+    
+</style>
 </head>
 
 <body data-page="policy">
@@ -52,30 +143,30 @@
 </header>
 
 <main>
- <section class="hero">
-  <div class="hero-image">
-   <img id="dynamic-hero-img" src="images/hero-bg.jpg" alt="">
-   
 
-
-    <!-- 文字（← 必ずこの中） -->
-    <div class="hero-text-layer">
-      <p id="dynamic-hero-text"></p>
-      <h1 id="dynamic-hero-lawmaker"></h1>
-      <h1 id="dynamic-hero-name"></h1>
+<!-- ヒーローセクション -->
+<section class="hero-container">
+    <img id="dynamic-hero-img" src="assets/TOP_page_main.png" alt="田中しほ">
+    
+    <div class="hero-clip-bg"></div>
+    
+    <div class="hero-copy">
+        <h2>子育ての疑問に寄り添う</h2>
+        <p>京都府議会議員 田中しほ</p>
     </div>
-  </div>
 </section>
+<section class="h-16 w-full bg-[#4682B4] md:hidden"></section>
 
+
+<!-- ご相談セクション ここから-->
 <section class="consultation-section">
-  <a href="post.html" class="consultation-card-integrated">
-    <div class="card-content-overlay">
-      <h2 class="card-main-title">子育ての疑問に寄り添う</h2>
-      <p class="card-sub-title">あなたの声をお聞かせください</p>
-      <div class="comment-submit-button">ご相談はコチラ ＞</div>
+  <a href="post.html" class="consultation-banner-img-type">
+    <div class="banner-image-container">
+      <img src="assets/ポストバナー.PNG" alt="子育て相談ポスト" class="base-image">
     </div>
   </a>
 </section>
+<!--ご相談セクションここまで-->
 
   <section class="youtube-section">
     <div class="video-wrapper" id="dynamic-yt-container">
@@ -92,13 +183,6 @@
     </div>
   </section>
 
-  <!-- <section class="news-section">
-    <div class="news-block">
-      <h2 class="shihopress-section-title">Shiho Press</h2>
-      <div id="shiho-press-container"></div>
-      <a href="pdf-text.html" class="more-btn">一覧へ ＞</a>
-    </div> -->
-    
     <div class="news-block">
       <h2 class="section-title">最新の活動報告</h2>
       <div id="policy-carousel-container"></div>
@@ -151,12 +235,8 @@ const ContentManager = {
 
   applyData(data) {
     if (!data) return;
-    if (data.heroImg) {
-      const img = document.getElementById('dynamic-hero-img');
-      img.classList.remove('is-visible');
-      img.onload = () => img.classList.add('is-visible');
-      img.src = data.heroImg;
-    }
+    
+    // 画像上書きは無効
     const ytContainer = document.getElementById('dynamic-yt-container');
     const vId = this.parseYoutubeId(data.ytUrl);
     ytContainer.innerHTML = vId 
@@ -218,29 +298,11 @@ let carouselIndices = {};
 let carouselTotalSlides = {};
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const heroText     = document.getElementById('dynamic-hero-text');
-  const heroLawmaker = document.getElementById('dynamic-hero-lawmaker');
-  const heroName     = document.getElementById('dynamic-hero-name');
-  const heroImg      = document.getElementById('dynamic-hero-img');
-
-  // JSON読み込み
+  // 画像関連の不要なDOM取得とフェードイン処理を削除
   fetch('data/static-texts.json')
     .then(res => res.json())
-    .then(data => {
-      if (data.top) {
-        heroText.textContent     = data.top.text || "";
-        heroLawmaker.textContent = data.top.lawmaker || "";
-        heroName.textContent     = data.top.name || "";
-      }
+    .catch(err => console.log("Static text skip"));
 
-      // 順番フロートイン
-      setTimeout(() => heroText.classList.add('is-visible'), 500);       // text
-      setTimeout(() => heroLawmaker.classList.add('is-visible'), 500);   // lawmaker
-      setTimeout(() => heroName.classList.add('is-visible'), 500);       // name
-      setTimeout(() => heroImg.classList.add('float-in'), 1500);         // 画像
-    });
-
-  // --- 他の処理 ---
   const checkDB = setInterval(async () => {
     if (typeof fetchActivityReports === 'function') {
       clearInterval(checkDB);
@@ -259,11 +321,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   loadLatestShihoPress();
 });
 
-// ===== Shiho Press 描画関数 (別タブでPDFを開く設定) =====
+// 以降、カルーセル等の関数はそのまま維持（変更なし）
 async function loadLatestShihoPress() {
   const container = document.getElementById('shiho-press-container');
   if (!container) return;
-
   try {
     const response = await fetch('/api/pdfs');
     if (!response.ok) throw new Error('API Error');
@@ -272,15 +333,12 @@ async function loadLatestShihoPress() {
       container.innerHTML = '<p style="text-align:center; padding:20px;">現在、新しい記事はありません。</p>';
       return;
     }
-
     const years = pdfs.map(pdf => new Date(pdf.created_at).getFullYear());
     const latestYear = Math.max(...years);
     const latestYearData = pdfs.filter(pdf => new Date(pdf.created_at).getFullYear() === latestYear).sort((a, b) => b.id - a.id);
-
     const yearKey = 'shihopress_latest';
     carouselTotalSlides[yearKey] = latestYearData.length;
     carouselIndices[yearKey] = 0;
-
     container.innerHTML = `
       <div style="margin-bottom: 10px; font-weight: bold; color: #03709b;">最新：${latestYear}年度</div>
       <div class="pdf-year-section" data-carousel-year="${yearKey}">
@@ -308,16 +366,13 @@ async function loadLatestShihoPress() {
           </div>
         </div>
       </div>`;
-
     updateCarouselIndex(yearKey);
     latestYearData.forEach(pdf => generatePdfThumbnail(pdf.file_path, `thumb-container-${pdf.id}`));
-
   } catch (error) {
     console.error('ShihoPress Carousel Error:', error);
   }
 }
 
-// サムネイル生成
 async function generatePdfThumbnail(pdfUrl, containerId) {
   try {
     const loadingTask = pdfjsLib.getDocument(pdfUrl);
@@ -329,7 +384,6 @@ async function generatePdfThumbnail(pdfUrl, containerId) {
     canvas.height = viewport.height;
     canvas.width = viewport.width;
     await page.render({ canvasContext: context, viewport: viewport }).promise;
-    
     const container = document.getElementById(containerId);
     if (container) {
       container.innerHTML = `<img src="${canvas.toDataURL()}" style="width:100%; height:200px; object-fit:cover;">`;
@@ -339,13 +393,11 @@ async function generatePdfThumbnail(pdfUrl, containerId) {
   }
 }
 
-// 活動報告カルーセル描画
 function renderPolicyCarousel(reports) {
   const container = document.getElementById('policy-carousel-container');
   const yearKey = 'policy_latest';
   carouselTotalSlides[yearKey] = reports.length;
   carouselIndices[yearKey] = 0;
-
   container.innerHTML = `
     <div class="pdf-year-section" data-carousel-year="${yearKey}">
       <div class="pdf-carousel-wrapper">
@@ -373,7 +425,6 @@ function renderPolicyCarousel(reports) {
   updateCarouselIndex(yearKey);
 }
 
-// カルーセル共通操作
 function updateCarouselIndex(key) {
   const section = document.querySelector(`[data-carousel-year="${key}"]`);
   if (!section) return;
