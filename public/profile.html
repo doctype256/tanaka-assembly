@@ -8,14 +8,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/style.css">
   <style>
-    /* 地図のサイズを index.html と同様に 500px で固定 */
-      .page-header-columns { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
+    .page-header-columns { display: flex; flex-direction: column; gap: 2rem; width: 100%; }
     @media (min-width: 1024px) { .page-header-columns { flex-direction: row; } }
-    .page-header-left { flex: 1.5; }
+    .page-header-left { 
+        flex: 0 0 auto;   /* ← 伸びない */
+        width: 100%;
+        max-width: 500px; /* 好きな最大幅 */
+     }
     .map-embed-wrapper { 
       position: relative; 
       width: 100%; 
-      height: 500px; 
+      aspect-ratio: 1 / 1; 
       border-radius: 24px; 
       overflow: hidden; 
       background: #f0f0f0;
